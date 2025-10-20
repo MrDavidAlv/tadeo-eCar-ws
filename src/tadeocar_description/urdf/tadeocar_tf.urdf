@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<robot name="tadeocar_v1">
+
+  <!-- Base Footprint -->
+  <link name="base_footprint"/>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Base Link -->
+  <link name="base_link"/>
+
+  <!-- LiDAR Link -->
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+    <origin xyz="0.6 0 0.4" rpy="0 0 0"/>
+  </joint>
+
+  <link name="lidar_link"/>
+
+  <!-- Camera Link -->
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="0.6 0 0.28" rpy="0 0 0"/>
+  </joint>
+
+  <link name="camera_link"/>
+
+  <!-- IMU Link -->
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="imu_link"/>
+
+</robot>

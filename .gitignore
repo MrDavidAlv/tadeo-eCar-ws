@@ -1,0 +1,27 @@
+# === ROS2 colcon build files ===
+build/
+install/
+log/
+
+# === VSCode settings ===
+.vscode/
+
+# === Python cache ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# === System/Editor temp files ===
+*.swp
+*.bak
+*.tmp
+*~
+.DS_Store
+Thumbs.db
+
+CONTEXTO.md
+
+/backup_meshes
+/scripts
+

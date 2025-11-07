@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TadeoeCar Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .status.connected {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #f0f0f0;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .mode-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .control-panel {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .control-panel.active {
+            display: block;
+        }
+
+        .joystick-container {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            position: relative;
+            background: #f0f0f0;
+            border-radius: 50%;
+            touch-action: none;
+        }
+
+        .joystick-handle {
+            width: 60px;
+            height: 60px;
+            background: #667eea;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+        }
+
+        .joystick-handle:active {
+            cursor: grabbing;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .value-display {
+            text-align: center;
+            font-size: 1.2em;
+            color: #667eea;
+            margin-top: 5px;
+        }
+
+        .stop-btn {
+            width: 100%;
+            padding: 20px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .stop-btn:hover {
+            background: #d32f2f;
+            transform: scale(1.05);
+        }
+
+        .info {
+            text-align: center;
+            color: #666;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 TadeoeCar</h1>
+
+        <div id="status" class="status disconnected">
+            DESCONECTADO
+        </div>
+
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="omnidirectional">Omnidireccional</button>
+            <button class="mode-btn" data-mode="ackermann">Ackermann</button>
+            <button class="mode-btn" data-mode="halo">Halo</button>
+            <button class="mode-btn" data-mode="spin">Giro</button>
+        </div>
+
+        <div class="slider-container">
+            <label for="speedSlider">Velocidad: <span id="speedValue">100</span>%</label>
+            <input type="range" id="speedSlider" min="0" max="100" value="100">
+        </div>
+
+        <!-- Omnidirectional Control -->
+        <div id="omni-panel" class="control-panel active">
+            <div class="joystick-container" id="joystick">
+                <div class="joystick-handle" id="joystickHandle"></div>
+            </div>
+            <div class="info">Mueve el joystick para controlar</div>
+        </div>
+
+        <!-- Ackermann Control -->
+        <div id="ackermann-panel" class="control-panel">
+            <div class="slider-container">
+                <label>Dirección</label>
+                <input type="range" id="steeringSlider" min="-100" max="100" value="0">
+                <div class="value-display" id="steeringValue">0</div>
+            </div>
+            <div class="slider-container">
+                <label>Aceleración</label>
+                <input type="range" id="throttleSlider" min="-100" max="100" value="0">
+                <div class="value-display" id="throttleValue">0</div>
+            </div>
+        </div>
+
+        <!-- Halo Control -->
+        <div id="halo-panel" class="control-panel">
+            <div class="slider-container">
+                <label>Ángulo Global</label>
+                <input type="range" id="angleSlider" min="0" max="360" value="0">
+                <div class="value-display" id="angleValue">0°</div>
+            </div>
+            <div class="slider-container">
+                <label>Velocidad</label>
+                <input type="range" id="haloSpeedSlider" min="0" max="100" value="0">
+                <div class="value-display" id="haloSpeedValue">0</div>
+            </div>
+        </div>
+
+        <!-- Spin Control -->
+        <div id="spin-panel" class="control-panel">
+            <div class="slider-container">
+                <label>Velocidad de Giro</label>
+                <input type="range" id="spinSlider" min="-100" max="100" value="0">
+                <div class="value-display" id="spinValue">0</div>
+            </div>
+        </div>
+
+        <button class="stop-btn" id="stopBtn">⏹ DETENER</button>
+    </div>
+
+    <script src="control.js"></script>
+</body>
+</html>

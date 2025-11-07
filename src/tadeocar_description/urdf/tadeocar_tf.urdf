@@ -13,31 +13,103 @@
   <!-- Base Link -->
   <link name="base_link"/>
 
-  <!-- LiDAR Link -->
+  <!-- LiDAR Link (Axioma compatible: base_scan) -->
   <joint name="lidar_joint" type="fixed">
     <parent link="base_link"/>
-    <child link="lidar_link"/>
-    <origin xyz="0.6 0 0.4" rpy="0 0 0"/>
+    <child link="base_scan"/>
+    <origin xyz="0 0 0.30" rpy="0 0 0"/>
   </joint>
 
-  <link name="lidar_link"/>
+  <link name="base_scan"/>
 
-  <!-- Camera Link -->
-  <joint name="camera_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="camera_link"/>
-    <origin xyz="0.6 0 0.28" rpy="0 0 0"/>
-  </joint>
+  <!-- ROS2 Control Configuration with Velocity PID -->
+  <ros2_control name="GazeboSystem" type="system">
+    <hardware>
+      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+    </hardware>
 
-  <link name="camera_link"/>
+    <!-- Steering Joints with Velocity PID -->
+    <joint name="front_left_steering_joint">
+      <param name="vel_kp">50.0</param>
+      <param name="vel_ki">0.0</param>
+      <param name="vel_kd">5.0</param>
+      <param name="vel_max_integral_error">1000</param>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
 
-  <!-- IMU Link -->
-  <joint name="imu_joint" type="fixed">
-    <parent link="base_link"/>
-    <child link="imu_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-  </joint>
+    <joint name="front_right_steering_joint">
+      <param name="vel_kp">50.0</param>
+      <param name="vel_ki">0.0</param>
+      <param name="vel_kd">5.0</param>
+      <param name="vel_max_integral_error">1000</param>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
 
-  <link name="imu_link"/>
+    <joint name="rear_left_steering_joint">
+      <param name="vel_kp">50.0</param>
+      <param name="vel_ki">0.0</param>
+      <param name="vel_kd">5.0</param>
+      <param name="vel_max_integral_error">1000</param>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="rear_right_steering_joint">
+      <param name="vel_kp">50.0</param>
+      <param name="vel_ki">0.0</param>
+      <param name="vel_kd">5.0</param>
+      <param name="vel_max_integral_error">1000</param>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <!-- Wheel Joints with Velocity Control -->
+    <joint name="front_left_wheel_joint">
+      <param name="vel_kp">10.0</param>
+      <param name="vel_ki">0.0</param>
+      <param name="vel_kd">1.0</param>
+      <param name="vel_max_integral_error">1000</param>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="front_right_wheel_joint">
+      <param name="vel_kp">10.0</param>
+      <param name="vel_ki">0.0</param>
+      <param name="vel_kd">1.0</param>
+      <param name="vel_max_integral_error">1000</param>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="rear_left_wheel_joint">
+      <param name="vel_kp">10.0</param>
+      <param name="vel_ki">0.0</param>
+      <param name="vel_kd">1.0</param>
+      <param name="vel_max_integral_error">1000</param>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="rear_right_wheel_joint">
+      <param name="vel_kp">10.0</param>
+      <param name="vel_ki">0.0</param>
+      <param name="vel_kd">1.0</param>
+      <param name="vel_max_integral_error">1000</param>
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+  </ros2_control>
 
 </robot>

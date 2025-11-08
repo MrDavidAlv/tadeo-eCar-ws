@@ -21,6 +21,7 @@ def generate_launch_description():
 
     nav2_params = os.path.join(pkg_navigation, 'config', 'nav2_params.yaml')
     default_map = os.path.join(pkg_navigation, 'maps', 'mapa.yaml')
+    rviz_config = os.path.join(pkg_navigation, 'config', 'navigation.rviz')
 
     use_sim_time = LaunchConfiguration('use_sim_time')
     gui = LaunchConfiguration('gui')
@@ -72,6 +73,14 @@ def generate_launch_description():
         }.items()
     )
 
+    rviz = Node(
+        package='rviz2',
+        executable='rviz2',
+        output='screen',
+        arguments=['-d', rviz_config],
+        parameters=[{'use_sim_time': use_sim_time}]
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('gui', default_value='true'),
@@ -84,5 +93,6 @@ def generate_launch_description():
         joy_node,
         xbox_control,
         fourws_kinematics,
-        nav2_launch
+        nav2_launch,
+        rviz
     ])

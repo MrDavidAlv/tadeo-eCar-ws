@@ -588,7 +588,7 @@
 
     <!-- LiDAR Sensor (Axioma compatible) -->
     <link name="base_scan">
-      <pose>0 0 0.30 0 0 0</pose>
+      <pose>0.55 0 0.39 0 0 0</pose>
 
       <inertial>
         <mass>0.125</mass>
@@ -609,7 +609,7 @@
             <length>0.030</length>
           </cylinder>
         </geometry>
-      </collision>
+      </collision>base_scan
 
       <visual name="lidar_sensor_visual">
         <geometry>
@@ -632,7 +632,7 @@
         <ray>
           <scan>
             <horizontal>
-              <samples>360</samples>
+              <samples>180</samples>
               <resolution>2.000000</resolution>
               <min_angle>0.000000</min_angle>
               <max_angle>6.280000</max_angle>

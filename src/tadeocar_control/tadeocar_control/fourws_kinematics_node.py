@@ -391,11 +391,15 @@ class FourWSKinematicsNode(Node):
 
     def compute_crab(self, vx, vy):
         """
-        Crab mode: Lateral movement, all wheels at same angle
+        TRUE Crab mode: Lateral movement with opposed front/rear wheels
+
+        Joystick Y (vy) → Forward/backward movement (all wheels at 0°)
+        Joystick X (vx) → Lateral movement (front wheels opposite to rear wheels)
+        Combined → Diagonal crab movement
 
         Args:
-            vx: Linear velocity in x (forward/backward)
-            vy: Linear velocity in y (lateral)
+            vx: Linear velocity in x (LATERAL from joystick X - left/right)
+            vy: Linear velocity in y (LONGITUDINAL from joystick Y - forward/backward)
 
         Returns:
             steering: Dict of steering angles for each wheel
@@ -416,30 +420,61 @@ class FourWSKinematicsNode(Node):
                 'rear_right': 0.0
             }
         else:
-            # Compute direction for crab motion
-            angle = math.atan2(vy, vx)
-            speed = math.sqrt(vx**2 + vy**2)
+            # Separate lateral and longitudinal components
+            lateral_speed = abs(vx)
+            longitudinal_speed = abs(vy)
+            total_speed = math.sqrt(vx**2 + vy**2)
 
-            # All wheels point in same direction (crab walk)
+            # Calculate steering angles for TRUE crab motion
+            # For pure lateral: front wheels = +angle, rear wheels = -angle
+            # For pure longitudinal: all wheels = 0°
+            # For diagonal: proportional combination
+
+            if abs(vx) > 0.001:
+                # There's lateral component - calculate crab angle
+                # Crab angle: how much to turn wheels for lateral movement
+                # Front and rear wheels point in OPPOSITE directions
+                lateral_angle = math.atan2(abs(vx), abs(vy)) if abs(vy) > 0.001 else math.pi / 2
+
+                # Clamp to max steering angle
+                lateral_angle = self.clamp(lateral_angle, 0.0, self.max_steering_angle)
+
+                # Front wheels turn one way, rear wheels turn opposite way
+                # Sign depends on direction of lateral movement
+                # Note: left direction works correctly, so we keep those signs
+                if vx < 0:  # Moving left (this works correctly)
+                    front_angle = -lateral_angle
+                    rear_angle = lateral_angle
+                else:  # Moving right (vx > 0) - use opposite signs
+                    front_angle = lateral_angle
+                    rear_angle = -lateral_angle
+            else:
+                # Pure longitudinal - no lateral component
+                front_angle = 0.0
+                rear_angle = 0.0
+
             steering = {
-                'front_left': angle,
-                'front_right': angle,
-                'rear_left': angle,
-                'rear_right': angle
+                'front_left': front_angle,
+                'front_right': front_angle,
+                'rear_left': rear_angle,
+                'rear_right': rear_angle
             }
 
-            # All wheels same velocity
-            wheel_vel = speed / self.wheel_radius
+            # Calculate wheel velocities
+            # For crab motion, velocity is based on total speed
+            # Direction is determined by vy (forward = positive, backward = negative)
+            wheel_vel = total_speed / self.wheel_radius
+
+            # If moving backward (vy < 0), invert velocity
+            if vy < 0:
+                wheel_vel = -wheel_vel
+
             velocities = {
                 'front_left': wheel_vel,
                 'front_right': wheel_vel,
                 'rear_left': wheel_vel,
                 'rear_right': wheel_vel
             }
-
-        # Clamp steering angles
-        for key in steering:
-            steering[key] = self.clamp(steering[key], -self.max_steering_angle, self.max_steering_angle)
 
         return steering, velocities
 

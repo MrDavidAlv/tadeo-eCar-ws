@@ -28,7 +28,6 @@ def generate_launch_description():
     urdf_file = os.path.join(pkg_description, 'urdf', 'tadeocar_tf.urdf')
     model_file = os.path.join(pkg_description, 'models', 'tadeocar_v1', 'model.sdf')
     slam_params_file = os.path.join(pkg_navigation, 'config', 'slam_params.yaml')
-    laser_filter_file = os.path.join(pkg_navigation, 'config', 'laser_filter.yaml')
 
     # Launch arguments
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
@@ -149,23 +148,6 @@ def generate_launch_description():
         }]
     )
 
-    # LaserScan Filter (removes robot self-detections) - DISABLED for now
-    # Uncomment if you need additional filtering beyond range min/max
-    # laser_filter_node = Node(
-    #     package='laser_filters',
-    #     executable='scan_to_scan_filter_chain',
-    #     name='scan_to_scan_filter_chain',
-    #     output='screen',
-    #     parameters=[
-    #         laser_filter_file,
-    #         {'use_sim_time': use_sim_time}
-    #     ],
-    #     remappings=[
-    #         ('/scan', '/scan_raw'),
-    #         ('/scan_filtered', '/scan')
-    #     ]
-    # )
-
     # SLAM Toolbox (Async)
     slam_toolbox_node = Node(
         package='slam_toolbox',
@@ -199,9 +181,7 @@ def generate_launch_description():
         joy_node,
         xbox_control,
         fourws_kinematics,
-        # fourws_odometry,  # Disabled temporarily - using diff_drive plugin for now
         gazebo_bridge,
-        # laser_filter_node,  # Disabled - using range min in LIDAR config instead
         slam_toolbox_node,
         rviz_node
     ])

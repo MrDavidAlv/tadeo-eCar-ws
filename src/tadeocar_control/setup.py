@@ -26,7 +26,6 @@ setup(
         'console_scripts': [
             'web_control = tadeocar_control.web_control_node:main',
             'fourws_kinematics = tadeocar_control.fourws_kinematics_node:main',
-            'fourws_odometry = tadeocar_control.fourws_odometry_node:main',
             'xbox_control = tadeocar_control.xbox_control_node:main',
         ],
     },

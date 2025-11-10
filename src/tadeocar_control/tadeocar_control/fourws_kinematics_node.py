@@ -104,10 +104,19 @@ class FourWSKinematicsNode(Node):
         self.kp_wheel = 10.0      # Proportional gain for wheels
 
         # Subscribers
+        # Xbox/manual control → omnidirectional mode
         self.cmd_vel_sub = self.create_subscription(
             Twist,
             '/cmd_vel',
-            self.cmd_vel_callback,
+            lambda msg: self.cmd_vel_callback(msg, source='xbox'),
+            10
+        )
+
+        # Nav2 commands → crab mode (allows rotation)
+        self.cmd_vel_nav_sub = self.create_subscription(
+            Twist,
+            '/cmd_vel_nav',
+            lambda msg: self.cmd_vel_callback(msg, source='nav2'),
             10
         )
 
@@ -153,8 +162,14 @@ class FourWSKinematicsNode(Node):
         else:
             self.get_logger().warn(f'Unknown mode: {new_mode}')
 
-    def cmd_vel_callback(self, msg):
-        """Process velocity commands and compute wheel commands"""
+    def cmd_vel_callback(self, msg, source='xbox'):
+        """
+        Process velocity commands and compute wheel commands
+
+        Args:
+            msg: Twist message with velocities
+            source: 'xbox' for manual control (omnidirectional), 'nav2' for navigation (crab+rotation)
+        """
         linear_x = msg.linear.x
         linear_y = msg.linear.y
         angular_z = msg.angular.z
@@ -164,16 +179,27 @@ class FourWSKinematicsNode(Node):
         linear_y = self.clamp(linear_y, -self.max_linear_speed, self.max_linear_speed)
         angular_z = self.clamp(angular_z, -self.max_angular_speed, self.max_angular_speed)
 
-        # Compute kinematics based on mode
-        if self.mode == 'omnidirectional':
-            steering, velocities = self.compute_omnidirectional(linear_x, linear_y, angular_z)
-        elif self.mode == 'ackermann':
-            steering, velocities = self.compute_ackermann(linear_x, angular_z)
-        elif self.mode == 'crab':
-            steering, velocities = self.compute_crab(linear_x, linear_y)
+        # Select mode based on source
+        if source == 'nav2':
+            # Nav2 → Use crab mode (allows rotation for path following)
+            # Crab mode combines linear motion with rotation
+            if abs(angular_z) > 0.001:
+                # Use ackermann mode for rotation (turns in place better)
+                steering, velocities = self.compute_ackermann(linear_x, angular_z)
+            else:
+                # Pure translation → crab mode
+                steering, velocities = self.compute_crab(linear_x, linear_y)
         else:
-            self.get_logger().warn(f'Invalid mode: {self.mode}')
-            return
+            # Xbox/manual control → Use current mode (omnidirectional by default)
+            if self.mode == 'omnidirectional':
+                steering, velocities = self.compute_omnidirectional(linear_x, linear_y, angular_z)
+            elif self.mode == 'ackermann':
+                steering, velocities = self.compute_ackermann(linear_x, angular_z)
+            elif self.mode == 'crab':
+                steering, velocities = self.compute_crab(linear_x, linear_y)
+            else:
+                self.get_logger().warn(f'Invalid mode: {self.mode}')
+                return
 
         # Publish commands
         self.publish_commands(steering, velocities)
@@ -251,14 +277,15 @@ class FourWSKinematicsNode(Node):
 
             # Add rotational component
             if abs(wz) > 0.001:
+                # For rotation: left wheels and right wheels must have opposite velocities
                 wheel_distance = math.sqrt((self.wheel_base/2)**2 + (self.track_width/2)**2)
                 rot_contribution = wz * wheel_distance / self.wheel_radius
 
                 velocities = {
-                    'front_left': wheel_vel + rot_contribution,
-                    'front_right': wheel_vel + rot_contribution,
-                    'rear_left': wheel_vel + rot_contribution,
-                    'rear_right': wheel_vel + rot_contribution
+                    'front_left': wheel_vel + rot_contribution,   # Left side: +rotation
+                    'front_right': wheel_vel - rot_contribution,  # Right side: -rotation (CORRECTED)
+                    'rear_left': wheel_vel + rot_contribution,    # Left side: +rotation
+                    'rear_right': wheel_vel - rot_contribution    # Right side: -rotation (CORRECTED)
                 }
             else:
                 velocities = {

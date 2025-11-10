@@ -103,14 +103,22 @@ def generate_launch_description():
         }]
     )
 
-    # Xbox Control Node
-    xbox_control = Node(
-        package='tadeocar_control',
-        executable='xbox_control',
-        name='xbox_control_node',
+    # Teleop Twist Joy (control with enable button RB)
+    teleop_joy = Node(
+        package='teleop_twist_joy',
+        executable='teleop_node',
+        name='teleop_twist_joy',
         output='screen',
         parameters=[{
-            'use_sim_time': use_sim_time
+            'use_sim_time': use_sim_time,
+            'axis_linear.x': 1,          # Left stick vertical (forward/backward)
+            'axis_linear.y': 0,          # Left stick horizontal (left/right strafe)
+            'axis_angular.yaw': 3,       # Right stick horizontal (rotation)
+            'scale_linear.x': 2.0,       # Max linear speed forward
+            'scale_linear.y': 2.0,       # Max linear speed strafe
+            'scale_angular.yaw': 1.0,    # Max angular speed
+            'enable_button': 5,          # RB button (must hold to move)
+            'enable_turbo_button': -1    # Disable turbo
         }]
     )
 
@@ -137,16 +145,16 @@ def generate_launch_description():
     #     }]
     # )
 
-    # Gazebo Effort Bridge
-    gazebo_bridge = Node(
-        package='tadeocar_control',
-        executable='gazebo_effort_bridge',
-        name='gazebo_effort_bridge',
-        output='screen',
-        parameters=[{
-            'use_sim_time': use_sim_time
-        }]
-    )
+    # Gazebo Effort Bridge - DISABLED (executable does not exist)
+    # gazebo_bridge = Node(
+    #     package='tadeocar_control',
+    #     executable='gazebo_effort_bridge',
+    #     name='gazebo_effort_bridge',
+    #     output='screen',
+    #     parameters=[{
+    #         'use_sim_time': use_sim_time
+    #     }]
+    # )
 
     # SLAM Toolbox (Async)
     slam_toolbox_node = Node(
@@ -179,9 +187,8 @@ def generate_launch_description():
         gzclient,
         spawn_robot,
         joy_node,
-        xbox_control,
+        teleop_joy,
         fourws_kinematics,
-        gazebo_bridge,
         slam_toolbox_node,
         rviz_node
     ])

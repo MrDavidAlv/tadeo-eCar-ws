@@ -32,6 +32,7 @@
 - [Características](#-características)
 - [Galería del Robot](#-galería-del-robot)
 - [Arquitectura del Sistema](#-arquitectura-del-sistema)
+- [Modelo Matemático](#-modelo-matemático)
 - [Requisitos del Sistema](#-requisitos-del-sistema)
 - [Instalación](#-instalación)
 - [Compilación](#-compilación)
@@ -94,6 +95,59 @@ SLAM Toolbox genera mapas de ocupación en tiempo real procesando datos del LiDA
 </div>
 
 Nav2 stack proporciona planificación global con NavFn, control local con DWB, costmaps dinámicos y comportamientos de recuperación para navegación autónoma robusta.
+
+---
+
+## 📐 Modelo Matemático
+
+<div align="center">
+<img src="images/modelo.png" width="800"/>
+</div>
+
+El robot Tadeo eCar cuenta con un modelo matemático completo que describe su cinemática, dinámica y sistema de control PID. El diagrama superior muestra la arquitectura completa del sistema: geometría del robot 4WD4WS, ecuaciones de cinemática inversa para los tres modos de operación, sistema de control PID y especificaciones técnicas.
+
+### 📚 Documentación Técnica Completa
+
+La documentación detallada del modelo matemático está disponible en [`documentacion/modelo-matematico/`](./documentacion/modelo-matematico/):
+
+| Documento | Descripción |
+|-----------|-------------|
+| **[README](./documentacion/modelo-matematico/README.md)** | Introducción, notación matemática y estructura general del modelo |
+| **[Cinemática](./documentacion/modelo-matematico/cinematica.md)** | Modelo cinemático directo e inverso para Omnidireccional, Ackermann y Crab |
+| **[Control](./documentacion/modelo-matematico/control.md)** | Sistema de control PID, análisis de estabilidad y sintonización |
+| **[Parámetros](./documentacion/modelo-matematico/parametros.md)** | Parámetros físicos, geométricos, dinámicos e inerciales (valores reales) |
+| **[Diagrama Excalidraw](./documentacion/modelo-matematico/modelo-4ws.excalidraw)** | Representación visual completa y editable del modelo |
+
+### 🔬 Resumen Técnico
+
+**Parámetros Geométricos**:
+- Radio de rueda: $r = 0.1$ m
+- Distancia entre ejes: $L = 1.058$ m
+- Ancho de vía: $W = 0.55$ m
+- Masa total: $m = 108$ kg
+
+**Límites Operacionales**:
+- Velocidad lineal máxima: $v_{max} = 2.0$ m/s
+- Velocidad angular máxima: $\omega_{max} = 1.0$ rad/s
+- Ángulo de dirección máximo: $\alpha_{max} = \pm 1.57$ rad (90°)
+
+**Control PID**:
+- Dirección: $K_{p,s} = 50.0$, $K_{d,s} = 5.0$
+- Ruedas: $K_{p,w} = 10.0$, $K_{d,w} = 1.0$
+
+**Cinemática Inversa (Omnidireccional)**:
+
+Para velocidad del robot $\mathbf{v}_R = [v_x, v_y, \omega]^T$, cada rueda $i$ se controla mediante:
+
+$$
+\alpha_i = \text{atan2}(v_y - \omega \cdot p_{x_i}, v_x + \omega \cdot p_{y_i})
+$$
+
+$$
+\dot{\phi}_i = \frac{1}{r}\sqrt{(v_x + \omega \cdot p_{y_i})^2 + (v_y - \omega \cdot p_{x_i})^2}
+$$
+
+📖 **Documentación completa**: [documentacion/modelo-matematico/](./documentacion/modelo-matematico/)
 
 ---
 

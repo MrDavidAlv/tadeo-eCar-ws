@@ -60,12 +60,12 @@
 <div align="center">
 <table>
   <tr>
-    <td><img src="images/robot1.png" width="400"/></td>
-    <td><img src="images/robot2.png" width="400"/></td>
+    <td><img src="images/robot1.jpg" width="400"/></td>
+    <td><img src="images/robot2.jpg" width="400"/></td>
   </tr>
   <tr>
-    <td><img src="images/robot3.png" width="400"/></td>
-    <td><img src="images/robot4.png" width="400"/></td>
+    <td><img src="images/robot3.jpg" width="400"/></td>
+    <td><img src="images/robot4.jpg" width="400"/></td>
   </tr>
 </table>
 </div>

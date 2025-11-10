@@ -8,15 +8,20 @@
 [![Lenguaje Python](https://img.shields.io/badge/Python-3.8+-yellow?logo=python)](#)
 [![Sistema Operativo](https://img.shields.io/badge/Ubuntu-22.04-E95420?logo=ubuntu)](#)
 [![ROS2 Humble](https://img.shields.io/badge/ROS2-Humble-22314E?logo=ros)](#)
-[![Gazebo Ignition](https://img.shields.io/badge/Gazebo-Ignition-orange?logo=gazebo)](#)
+[![Gazebo Classic](https://img.shields.io/badge/Gazebo-Classic%2011-orange?logo=gazebo)](#)
+[![CMake](https://img.shields.io/badge/CMake-3.16+-064F8C?logo=cmake)](#)
+[![Colcon](https://img.shields.io/badge/Build-Colcon-22314E)](#)
+[![Nav2](https://img.shields.io/badge/Nav2-Humble-00599C)](#)
+[![SLAM Toolbox](https://img.shields.io/badge/SLAM-Toolbox-green)](#)
+[![Git](https://img.shields.io/badge/Git-2.34+-F05032?logo=git)](#)
 [![VS Code](https://img.shields.io/badge/IDE-VS%20Code-007ACC?logo=visualstudiocode)](#)
 [![Shell](https://img.shields.io/badge/Shell-Bash-4EAA25?logo=gnubash)](#)
-[![Docker](https://img.shields.io/badge/Container-Docker-2496ED?logo=docker)](#)
-[![Docker Compose](https://img.shields.io/badge/Docker--Compose-Blue?logo=docker)](#)
+<!-- [![Docker](https://img.shields.io/badge/Container-Docker-2496ED?logo=docker)](#) -->
+<!-- [![Docker Compose](https://img.shields.io/badge/Docker--Compose-Blue?logo=docker)](#) -->
 [![Arquitectura](https://img.shields.io/badge/CPU-x86_64%20%7C%20ARM64-lightgrey?logo=amd)](#)
 [![Licencia](https://img.shields.io/badge/Licencia-Privada-red)](#)
 [![Versión Actual](https://img.shields.io/badge/Versión-v1.0.0-blue)](#)
-[![Repositorio](https://img.shields.io/badge/GitHub-TadeoRoboticsGroup-181717?logo=github)](https://github.com/MrDavidAlv/Robot4WD4WS)
+[![Repositorio](https://img.shields.io/badge/GitHub-MrDavidAlv-181717?logo=github)](https://github.com/MrDavidAlv/Robot4WD4WS)
 
 > Plataforma robótica autónoma para logística universitaria en interiores. Robot eléctrico omnidireccional 4WD 4WS con capacidades de navegación autónoma, SLAM, visión computacional y planificación de trayectorias usando ROS2 Humble. Diseñado para transporte de materiales en ambientes universitarios.
 
@@ -25,6 +30,7 @@
 ## 📑 Tabla de Contenidos
 
 - [Características](#-características)
+- [Galería del Robot](#-galería-del-robot)
 - [Arquitectura del Sistema](#-arquitectura-del-sistema)
 - [Requisitos del Sistema](#-requisitos-del-sistema)
 - [Instalación](#-instalación)
@@ -46,6 +52,23 @@
 - **Control multi-interfaz**: Soporte para Xbox controller, interfaz web y comandos de navegación
 - **Simulación completa**: Integración con Gazebo Classic y ros2_control
 - **Sensor LiDAR**: Rango de 3.5m, 320 muestras, 20Hz para percepción del entorno
+
+---
+
+## 📸 Galería del Robot
+
+<div align="center">
+<table>
+  <tr>
+    <td><img src="images/robot1.png" width="400"/></td>
+    <td><img src="images/robot2.png" width="400"/></td>
+  </tr>
+  <tr>
+    <td><img src="images/robot3.png" width="400"/></td>
+    <td><img src="images/robot4.png" width="400"/></td>
+  </tr>
+</table>
+</div>
 
 ---
 

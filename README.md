@@ -2,15 +2,7 @@
 
 <div align="center">
 <img src="images/portada.png" width="300"/>
-<br/><br/>
-<img src="images/logo-semillero.jpeg" style="border-radius: 50%;" width="120"/>
-<br/>
-<strong>Semillero de Investigación en Robótica - SIRO</strong>
-<br/>
-<em>Universidad de Bogotá Jorge Tadeo Lozano</em>
 </div>
-
-<br/>
 
 [![Lenguaje C++](https://img.shields.io/badge/C++-17-blue)](#)
 [![Lenguaje Python](https://img.shields.io/badge/Python-3.8+-yellow?logo=python)](#)

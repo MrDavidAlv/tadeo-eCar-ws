@@ -6,12 +6,11 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Map1
-        - /Global Costmap1
-        - /Axes1
-        - /TF1
+        - /RobotModel1
+        - /RobotModel1/Mass Properties1
+        - /RobotModel1/Description Topic1
+        - /RobotModel1/Links1
         - /TF1/Frames1
-        - /TF1/Frames1/base_link1
       Splitter Ratio: 0.5352941155433655
     Tree Height: 719
   - Class: rviz_common/Selection
@@ -247,7 +246,7 @@ Visualization Manager:
         Value: /robot_description
       Enabled: true
       Links:
-        All Links Enabled: true
+        All Links Enabled: false
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
@@ -260,12 +259,30 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
+          Value: false
         base_scan:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        camera_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_left_optical:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_right_optical:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         chasis_link:
           Alpha: 1
           Show Axes: false
@@ -307,6 +324,11 @@ Visualization Manager:
           Show Trail: false
           Value: true
         rear_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        stereo_camera_base:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -330,6 +352,14 @@ Visualization Manager:
           Value: true
         base_scan:
           Value: false
+        camera_left:
+          Value: true
+        camera_left_optical:
+          Value: true
+        camera_right:
+          Value: true
+        camera_right_optical:
+          Value: true
         chasis_link:
           Value: false
         front_left_steering_link:
@@ -352,6 +382,8 @@ Visualization Manager:
           Value: true
         rear_right_wheel_link:
           Value: false
+        stereo_camera_base:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -360,23 +392,31 @@ Visualization Manager:
       Tree:
         map:
           odom:
-            base_link:
-              base_scan:
-                {}
-              chasis_link:
-                {}
-              front_left_steering_link:
-                front_left_wheel_link:
+            base_footprint:
+              base_link:
+                base_scan:
                   {}
-              front_right_steering_link:
-                front_right_wheel_link:
+                chasis_link:
                   {}
-              rear_left_steering_link:
-                rear_left_wheel_link:
-                  {}
-              rear_right_steering_link:
-                rear_right_wheel_link:
-                  {}
+                front_left_steering_link:
+                  front_left_wheel_link:
+                    {}
+                front_right_steering_link:
+                  front_right_wheel_link:
+                    {}
+                rear_left_steering_link:
+                  rear_left_wheel_link:
+                    {}
+                rear_right_steering_link:
+                  rear_right_wheel_link:
+                    {}
+                stereo_camera_base:
+                  camera_left:
+                    camera_left_optical:
+                      {}
+                  camera_right:
+                    camera_right_optical:
+                      {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -425,25 +465,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 6.132907390594482
+      Distance: 3.2980387210845947
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 4.646233558654785
-        Y: -1.3769441843032837
-        Z: -0.7117892503738403
+        X: -0.11778813600540161
+        Y: 0.21998818218708038
+        Z: 0.3697778880596161
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.26039841771125793
+      Pitch: 0.5047968029975891
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.7385830879211426
+      Yaw: 3.5217466354370117
     Saved: ~
 Window Geometry:
   Displays:

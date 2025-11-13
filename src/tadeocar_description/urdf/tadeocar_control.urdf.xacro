@@ -73,9 +73,9 @@
   <!-- Stereo Camera Base Link -->
   <link name="stereo_camera_base">
     <inertial>
-      <mass value="0.1"/>
+      <mass value="0.5"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 1.5708"/>
@@ -86,12 +86,7 @@
         <color rgba="0.2 0.2 0.2 1.0"/>
       </material>
     </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 1.5708"/>
-      <geometry>
-        <box size="0.15 0.05 0.03"/>
-      </geometry>
-    </collision>
+    <!-- Collision removed - cameras are sensors only -->
   </link>
 
   <joint name="stereo_camera_base_joint" type="fixed">
@@ -103,9 +98,9 @@
   <!-- Left Camera Link -->
   <link name="camera_left">
     <inertial>
-      <mass value="0.05"/>
+      <mass value="0.2"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001"/>
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
@@ -116,12 +111,7 @@
         <color rgba="0.1 0.1 0.1 1.0"/>
       </material>
     </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
-      <geometry>
-        <cylinder radius="0.01" length="0.01"/>
-      </geometry>
-    </collision>
+    <!-- Collision removed - cameras are sensors only -->
   </link>
 
   <joint name="camera_left_joint" type="fixed">
@@ -133,9 +123,9 @@
   <!-- Right Camera Link -->
   <link name="camera_right">
     <inertial>
-      <mass value="0.05"/>
+      <mass value="0.2"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001"/>
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
     </inertial>
     <visual>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
@@ -146,12 +136,7 @@
         <color rgba="0.1 0.1 0.1 1.0"/>
       </material>
     </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
-      <geometry>
-        <cylinder radius="0.01" length="0.01"/>
-      </geometry>
-    </collision>
+    <!-- Collision removed - cameras are sensors only -->
   </link>
 
   <joint name="camera_right_joint" type="fixed">
@@ -372,22 +357,21 @@
     </plugin>
   </gazebo>
 
-  <!-- Gazebo properties for stereo camera base -->
+  <!-- Gazebo properties for cameras - removed kinematic flag to fix physics issues -->
+  <!-- Camera links are now properly fixed to base_link via joints -->
   <gazebo reference="stereo_camera_base">
-    <gravity>false</gravity>
-    <kinematic>true</kinematic>
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
   </gazebo>
 
-  <!-- Gazebo properties for left camera -->
   <gazebo reference="camera_left">
-    <gravity>false</gravity>
-    <kinematic>true</kinematic>
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
   </gazebo>
 
-  <!-- Gazebo properties for right camera -->
   <gazebo reference="camera_right">
-    <gravity>false</gravity>
-    <kinematic>true</kinematic>
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
   </gazebo>
 
   <!-- Gazebo plugin for left camera -->

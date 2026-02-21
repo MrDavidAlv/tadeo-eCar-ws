@@ -16,7 +16,7 @@ from ament_index_python.packages import get_package_share_directory
 def generate_launch_description():
 
     pkg_description = get_package_share_directory('tadeocar_description')
-    urdf_file = os.path.join(pkg_description, 'urdf', 'tadeocar_tf.urdf')
+    urdf_file = os.path.join(pkg_description, 'urdf', 'tadeocar.urdf')
 
     # Read URDF file
     with open(urdf_file, 'r') as file:

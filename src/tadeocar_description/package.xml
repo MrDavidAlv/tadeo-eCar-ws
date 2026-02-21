@@ -3,15 +3,15 @@
 <package format="3">
   <name>tadeocar_description</name>
   <version>1.0.0</version>
-  <description>TadeoeCar 4WS4WD robot description and Gazebo simulation</description>
+  <description>TadeoeCar 4WS4WD robot description (URDF for TF tree)</description>
 
-  <maintainer email="axioma@tadeorobotics.com">Axioma</maintainer>
+  <maintainer email="davidalvarez33@gmail.com">axioma</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>gazebo_ros</exec_depend>
-  <exec_depend>gazebo_plugins</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

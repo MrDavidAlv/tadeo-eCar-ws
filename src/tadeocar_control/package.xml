@@ -3,13 +3,14 @@
 <package format="3">
   <name>tadeocar_control</name>
   <version>1.0.0</version>
-  <description>Web-based control system for TadeoeCar 4WS4WD robot</description>
+  <description>Control system for TadeoeCar 4WS4WD robot (Gz Sim compatible)</description>
   <maintainer email="davidalvarez33@gmail.com">axioma</maintainer>
   <license>MIT</license>
 
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
 
   <export>
     <build_type>ament_python</build_type>

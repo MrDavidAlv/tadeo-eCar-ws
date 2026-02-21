@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<robot name="tadeocar">
+
+  <!-- Base Footprint -->
+  <link name="base_footprint"/>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Base Link -->
+  <link name="base_link"/>
+
+  <!-- Chassis Link -->
+  <link name="chasis_link"/>
+
+  <joint name="chasis_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="chasis_link"/>
+    <origin xyz="0 0 0.35" rpy="0 0 0"/>
+  </joint>
+
+  <!-- LiDAR Link -->
+  <link name="base_scan"/>
+
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_scan"/>
+    <origin xyz="0.55 0 0.33" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Stereo Camera Base Link -->
+  <link name="stereo_camera_base"/>
+
+  <joint name="stereo_camera_base_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="stereo_camera_base"/>
+    <origin xyz="0.55 0 0.40" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Left Camera Link -->
+  <link name="camera_left"/>
+
+  <joint name="camera_left_joint" type="fixed">
+    <parent link="stereo_camera_base"/>
+    <child link="camera_left"/>
+    <origin xyz="0.03 0.06 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Right Camera Link -->
+  <link name="camera_right"/>
+
+  <joint name="camera_right_joint" type="fixed">
+    <parent link="stereo_camera_base"/>
+    <child link="camera_right"/>
+    <origin xyz="0.03 -0.06 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Camera Optical Frames -->
+  <link name="camera_left_optical"/>
+  <joint name="camera_left_optical_joint" type="fixed">
+    <parent link="camera_left"/>
+    <child link="camera_left_optical"/>
+    <origin xyz="0.005 0 0" rpy="-1.5708 0 -1.5708"/>
+  </joint>
+
+  <link name="camera_right_optical"/>
+  <joint name="camera_right_optical_joint" type="fixed">
+    <parent link="camera_right"/>
+    <child link="camera_right_optical"/>
+    <origin xyz="0.005 0 0" rpy="-1.5708 0 -1.5708"/>
+  </joint>
+
+  <!-- Steering Links -->
+  <link name="front_left_steering_link"/>
+
+  <joint name="front_left_steering_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_left_steering_link"/>
+    <origin xyz="0.478 0.275 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="front_right_steering_link"/>
+
+  <joint name="front_right_steering_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_right_steering_link"/>
+    <origin xyz="0.478 -0.275 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="rear_left_steering_link"/>
+
+  <joint name="rear_left_steering_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_left_steering_link"/>
+    <origin xyz="-0.58 0.275 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="rear_right_steering_link"/>
+
+  <joint name="rear_right_steering_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_right_steering_link"/>
+    <origin xyz="-0.58 -0.275 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- Wheel Links -->
+  <link name="front_left_wheel_link"/>
+
+  <joint name="front_left_wheel_joint" type="continuous">
+    <parent link="front_left_steering_link"/>
+    <child link="front_left_wheel_link"/>
+    <origin xyz="0.05 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="front_right_wheel_link"/>
+
+  <joint name="front_right_wheel_joint" type="continuous">
+    <parent link="front_right_steering_link"/>
+    <child link="front_right_wheel_link"/>
+    <origin xyz="0.05 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="rear_left_wheel_link"/>
+
+  <joint name="rear_left_wheel_joint" type="continuous">
+    <parent link="rear_left_steering_link"/>
+    <child link="rear_left_wheel_link"/>
+    <origin xyz="-0.05 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <link name="rear_right_wheel_link"/>
+
+  <joint name="rear_right_wheel_joint" type="continuous">
+    <parent link="rear_right_steering_link"/>
+    <child link="rear_right_wheel_link"/>
+    <origin xyz="-0.05 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+</robot>

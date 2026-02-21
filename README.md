@@ -2,48 +2,29 @@
 
 <div align="center">
 <img src="images/portada.png" width="300"/>
-</div>
 
-[![Lenguaje C++](https://img.shields.io/badge/C++-17-blue)](#)
+
 [![Lenguaje Python](https://img.shields.io/badge/Python-3.8+-yellow?logo=python)](#)
 [![Sistema Operativo](https://img.shields.io/badge/Ubuntu-22.04-E95420?logo=ubuntu)](#)
 [![ROS2 Humble](https://img.shields.io/badge/ROS2-Humble-22314E?logo=ros)](#)
-[![Gazebo Classic](https://img.shields.io/badge/Gazebo-Classic%2011-orange?logo=gazebo)](#)
-[![CMake](https://img.shields.io/badge/CMake-3.16+-064F8C?logo=cmake)](#)
+[![Gazebo Fortress](https://img.shields.io/badge/Gazebo-Fortress-orange?logo=gazebo)](#)
 [![Colcon](https://img.shields.io/badge/Build-Colcon-22314E)](#)
 [![Nav2](https://img.shields.io/badge/Nav2-Humble-00599C)](#)
 [![SLAM Toolbox](https://img.shields.io/badge/SLAM-Toolbox-green)](#)
 [![Git](https://img.shields.io/badge/Git-2.34+-F05032?logo=git)](#)
 [![VS Code](https://img.shields.io/badge/IDE-VS%20Code-007ACC?logo=visualstudiocode)](#)
 [![Shell](https://img.shields.io/badge/Shell-Bash-4EAA25?logo=gnubash)](#)
-<!-- [![Docker](https://img.shields.io/badge/Container-Docker-2496ED?logo=docker)](#) -->
-<!-- [![Docker Compose](https://img.shields.io/badge/Docker--Compose-Blue?logo=docker)](#) -->
 [![Arquitectura](https://img.shields.io/badge/CPU-x86_64%20%7C%20ARM64-lightgrey?logo=amd)](#)
-[![Licencia](https://img.shields.io/badge/Licencia-Privada-red)](#)
 [![Versión Actual](https://img.shields.io/badge/Versión-v1.0.0-blue)](#)
 [![Repositorio](https://img.shields.io/badge/GitHub-MrDavidAlv-181717?logo=github)](https://github.com/MrDavidAlv/Robot4WD4WS)
+
+</div>
 
 > Plataforma robótica autónoma para logística universitaria en interiores. Robot eléctrico omnidireccional 4WD 4WS con capacidades de navegación autónoma, SLAM, visión computacional y planificación de trayectorias usando ROS2 Humble. Diseñado para transporte de materiales en ambientes universitarios.
 
 ---
 
-## 📑 Tabla de Contenidos
-
-- [Características](#-características)
-- [Galería del Robot](#-galería-del-robot)
-- [Arquitectura del Sistema](#-arquitectura-del-sistema)
-- [Modelo Matemático](#-modelo-matemático)
-- [Requisitos del Sistema](#-requisitos-del-sistema)
-- [Instalación](#-instalación)
-- [Compilación](#-compilación)
-- [Ejecución](#-ejecución)
-- [Nodos Principales](#-nodos-principales)
-- [Modos de Operación](#-modos-de-operación)
-- [Estructura del Proyecto](#-estructura-del-proyecto)
-
----
-
-## ✨ Características
+## Características
 
 - **Sistema de tracción 4WD4WS**: Cuatro ruedas motrices y direccionales independientes
 - **Control omnidireccional**: Movilidad de 360° con múltiples modos de conducción
@@ -56,7 +37,7 @@
 
 ---
 
-## 📸 Galería del Robot
+## Galería del Robot
 
 <div align="center">
 <table>
@@ -73,7 +54,7 @@
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## Arquitectura del Sistema
 
 ### Transformadas (TF Tree)
 <div align="center">
@@ -98,7 +79,7 @@ Nav2 stack proporciona planificación global con NavFn, control local con DWB, c
 
 ---
 
-## 📐 Modelo Matemático
+## Modelo Matemático
 
 <div align="center">
 <img src="images/modelo.png" width="800"/>
@@ -106,52 +87,10 @@ Nav2 stack proporciona planificación global con NavFn, control local con DWB, c
 
 El robot Tadeo eCar cuenta con un modelo matemático completo que describe su cinemática, dinámica y sistema de control PID. El diagrama superior muestra la arquitectura completa del sistema: geometría del robot 4WD4WS, ecuaciones de cinemática inversa para los tres modos de operación, sistema de control PID y especificaciones técnicas.
 
-### 📚 Documentación Técnica Completa
+### Documentación Técnica Completa
 
-La documentación detallada del modelo matemático está disponible en [`documentacion/modelo-matematico/`](./documentacion/modelo-matematico/):
 
-| Documento | Descripción |
-|-----------|-------------|
-| **[README](./documentacion/modelo-matematico/README.md)** | Introducción, notación matemática y estructura general del modelo |
-| **[Cinemática](./documentacion/modelo-matematico/cinematica.md)** | Modelo cinemático directo e inverso para Omnidireccional, Ackermann y Crab |
-| **[Control](./documentacion/modelo-matematico/control.md)** | Sistema de control PID, análisis de estabilidad y sintonización |
-| **[Parámetros](./documentacion/modelo-matematico/parametros.md)** | Parámetros físicos, geométricos, dinámicos e inerciales (valores reales) |
-| **[Diagrama Excalidraw](./documentacion/modelo-matematico/modelo-4ws.excalidraw)** | Representación visual completa y editable del modelo |
-
-### 🔬 Resumen Técnico
-
-**Parámetros Geométricos**:
-- Radio de rueda: $r = 0.1$ m
-- Distancia entre ejes: $L = 1.058$ m
-- Ancho de vía: $W = 0.55$ m
-- Masa total: $m = 108$ kg
-
-**Límites Operacionales**:
-- Velocidad lineal máxima: $v_{max} = 2.0$ m/s
-- Velocidad angular máxima: $\omega_{max} = 1.0$ rad/s
-- Ángulo de dirección máximo: $\alpha_{max} = \pm 1.57$ rad (90°)
-
-**Control PID**:
-- Dirección: $K_{p,s} = 50.0$, $K_{d,s} = 5.0$
-- Ruedas: $K_{p,w} = 10.0$, $K_{d,w} = 1.0$
-
-**Cinemática Inversa (Omnidireccional)**:
-
-Para velocidad del robot $\mathbf{v}_R = [v_x, v_y, \omega]^T$, cada rueda $i$ se controla mediante:
-
-$$
-\alpha_i = \text{atan2}(v_y - \omega \cdot p_{x_i}, v_x + \omega \cdot p_{y_i})
-$$
-
-$$
-\dot{\phi}_i = \frac{1}{r}\sqrt{(v_x + \omega \cdot p_{y_i})^2 + (v_y - \omega \cdot p_{x_i})^2}
-$$
-
-📖 **Documentación completa**: [documentacion/modelo-matematico/](./documentacion/modelo-matematico/)
-
----
-
-## 💻 Requisitos del Sistema
+## Requisitos del Sistema
 
 ### Software Base
 - **Sistema Operativo**: Ubuntu 22.04 LTS (Jammy Jellyfish)
@@ -204,15 +143,9 @@ websockets>=10.0
 numpy>=1.21.0
 ```
 
-### Hardware Recomendado
-- **CPU**: Intel i5 8th Gen / AMD Ryzen 5 o superior
-- **RAM**: 8 GB mínimo, 16 GB recomendado
-- **GPU**: NVIDIA con soporte CUDA (opcional, para aceleración)
-- **Almacenamiento**: 10 GB libres
-
 ---
 
-## 🔧 Instalación
+## Instalación
 
 ### 1. Instalar ROS2 Humble
 
@@ -273,7 +206,7 @@ cd ~/ros2/TadeoeCar-ws
 
 ---
 
-## 🔨 Compilación
+## Compilación
 
 ### Compilar todos los paquetes
 
@@ -308,7 +241,7 @@ colcon build --symlink-install
 
 ---
 
-## 🚀 Ejecución
+## Ejecución
 
 ### Modo SLAM (Mapeo)
 
@@ -378,362 +311,6 @@ rviz2 -d src/tadeocar_navigation/config/slam.rviz
 
 # Visualización Navegación
 rviz2 -d src/tadeocar_navigation/config/navigation.rviz
-```
-
----
-
-## 🤖 Nodos Principales
-
-### 1. `fourws_kinematics_node`
-
-**Ejecutable**: `fourws_kinematics`
-**Paquete**: `tadeocar_control`
-**Archivo**: `src/tadeocar_control/tadeocar_control/fourws_kinematics_node.py`
-
-#### Descripción
-Nodo de control cinemático para robot 4WD4WS que convierte comandos de velocidad (`Twist`) en comandos de dirección y velocidad angular para cada una de las cuatro ruedas. Compatible con ros2_control y Gazebo Classic.
-
-#### Parámetros del Robot
-| Parámetro | Valor | Descripción |
-|-----------|-------|-------------|
-| `wheel_radius` | 0.1 m | Radio de las ruedas |
-| `wheel_base` | 1.058 m | Distancia entre eje delantero y trasero |
-| `track_width` | 0.55 m | Distancia entre ruedas izquierda y derecha |
-| `max_linear_speed` | 2.0 m/s | Velocidad lineal máxima |
-| `max_angular_speed` | 1.0 rad/s | Velocidad angular máxima |
-| `max_steering_angle` | 1.57 rad (~90°) | Ángulo de dirección máximo |
-
-#### Control PID
-- **Dirección**: `kp=50.0`, `kd=5.0` (control de posición angular)
-- **Ruedas**: `kp=10.0`, `kd=1.0` (control de velocidad)
-
-#### Tópicos
-
-**Suscripciones**:
-- `/cmd_vel` (`geometry_msgs/Twist`): Comandos de velocidad manuales o Xbox
-- `/cmd_vel_nav` (`geometry_msgs/Twist`): Comandos de velocidad de Nav2
-- `/robot_mode` (`std_msgs/String`): Cambio de modo de conducción
-- `/joint_states` (`sensor_msgs/JointState`): Estado actual de juntas
-
-**Publicaciones** (ros2_control commands):
-- `/front_left_steering_controller/commands`
-- `/front_right_steering_controller/commands`
-- `/rear_left_steering_controller/commands`
-- `/rear_right_steering_controller/commands`
-- `/front_left_wheel_controller/commands`
-- `/front_right_wheel_controller/commands`
-- `/rear_left_wheel_controller/commands`
-- `/rear_right_wheel_controller/commands`
-
-#### Modos de Operación
-
-1. **Omnidirectional**: Todas las ruedas apuntan en la dirección del vector de movimiento, permitiendo movilidad de 360°
-2. **Ackermann**: Dirección tipo automóvil (ruedas delanteras direccionales, traseras fijas)
-3. **Crab**: Movimiento lateral (todas las ruedas al mismo ángulo, desplazamiento perpendicular)
-
-#### Algoritmo de Cinemática
-
-**Modo Omnidirectional**:
-```python
-for wheel in [FL, FR, RL, RR]:
-    angle = atan2(vy, vx)
-    speed = sqrt(vx² + vy²) / wheel_radius
-```
-
-**Modo Ackermann**:
-```python
-if vx != 0:
-    R = vx / wz  # Radio de giro
-    angle_front = atan(wheel_base / R)
-    angle_rear = 0.0
-```
-
-**Modo Crab**:
-```python
-for wheel in [FL, FR, RL, RR]:
-    angle = atan2(vy, vx)
-    speed = vy / wheel_radius  # Velocidad lateral constante
-```
-
----
-
-### 2. `xbox_control_node`
-
-**Ejecutable**: `xbox_control`
-**Paquete**: `tadeocar_control`
-**Archivo**: `src/tadeocar_control/tadeocar_control/xbox_control_node.py`
-
-#### Descripción
-Nodo de teleoperación con control Xbox para robot 4WD4WS con soporte de doble joystick para control omnidireccional y crab.
-
-#### Controles Xbox
-
-| Control | Función |
-|---------|---------|
-| **Joystick Izquierdo** | Dirección de movimiento omnidireccional (X: lateral, Y: frontal) |
-| **Joystick Derecho** | Dirección de movimiento crab / rotación |
-| **RB (Right Bumper)** | Acelerador (mantener presionado para mover) |
-| **LB (Left Bumper)** | Freno de emergencia (parada inmediata) |
-| **Botón A** | Cambiar a modo Omnidirectional |
-| **Botón B** | Cambiar a modo Ackermann |
-| **Botón X** | Cambiar a modo Crab |
-
-#### Parámetros
-- `max_linear_speed`: 2.0 m/s
-- `max_angular_speed`: 1.0 rad/s
-- `deadzone`: 0.1 (zona muerta de joysticks)
-
-#### Tópicos
-
-**Suscripciones**:
-- `/joy` (`sensor_msgs/Joy`): Estado del control Xbox
-
-**Publicaciones**:
-- `/cmd_vel` (`geometry_msgs/Twist`): Comandos de velocidad
-- `/robot_mode` (`std_msgs/String`): Modo de conducción actual
-
----
-
-### 3. Nodo de Odometría (En Desarrollo)
-
-**Estado**: ⚠️ **TEMPORALMENTE DESHABILITADO**
-
-#### Descripción
-Nodo dedicado para cálculo de odometría basado en las cuatro ruedas (`fourws_odometry_node`). Actualmente el sistema utiliza el plugin `diff_drive` de Gazebo como solución temporal, que solo considera las ruedas delanteras.
-
-#### Planificación Futura
-El nodo `fourws_odometry` calculará:
-- Posición `(x, y, θ)` integrando velocidades de las 4 ruedas
-- Velocidades lineales y angulares del robot
-- Covarianzas de odometría para fusión con sensores
-- Publicación del transform `odom → base_link`
-
-#### Impacto Actual
-La odometría diferencial temporal:
-- ✅ Funcional para pruebas básicas
-- ⚠️ Menos precisa en movimientos omnidireccionales
-- ⚠️ No aprovecha las capacidades 4WS completas
-- ⚠️ Puede afectar precisión de SLAM y Nav2
-
-**Configuración temporal** en `model.sdf:748-763`:
-```xml
-<plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
-  <left_joint>front_left_wheel_joint</left_joint>
-  <right_joint>front_right_wheel_joint</right_joint>
-  <wheel_separation>0.55</wheel_separation>
-  <wheel_diameter>0.2</wheel_diameter>
-  <publish_odom>true</publish_odom>
-  <publish_odom_tf>true</publish_odom_tf>
-  <odometry_frame>odom</odometry_frame>
-  <robot_base_frame>base_link</robot_base_frame>
-</plugin>
-```
-
----
-
-## 🎮 Modos de Operación
-
-### Omnidirectional Mode
-**Características**:
-- Movilidad de 360° sin restricciones
-- Todas las ruedas apuntan en dirección del movimiento
-- Ideal para maniobras en espacios reducidos
-- Mayor consumo energético
-
-**Cinemática**: Cada rueda se orienta según `atan2(vy, vx)` y gira a velocidad proporcional a `sqrt(vx² + vy²)`.
-
-### Ackermann Mode
-**Características**:
-- Comportamiento tipo automóvil
-- Ruedas delanteras direccionales, traseras fijas
-- Menor desgaste de neumáticos
-- Eficiente en trayectorias largas
-
-**Cinemática**: Ángulos de dirección calculados según geometría Ackermann con radio de giro `R = vx / wz`.
-
-### Crab Mode
-**Características**:
-- Movimiento lateral puro
-- Todas las ruedas al mismo ángulo
-- Desplazamiento perpendicular al chasis
-- Útil para alineación precisa
-
-**Cinemática**: Ángulo constante para todas las ruedas, velocidad uniforme basada en `vy`.
-
----
-
-## 📂 Estructura del Proyecto
-
-```
-TadeoeCar-ws/
-├── src/
-│   ├── tadeocar_control/          # Control y cinemática
-│   │   ├── tadeocar_control/
-│   │   │   ├── fourws_kinematics_node.py  ⭐ Cinemática 4WS
-│   │   │   ├── xbox_control_node.py       ⭐ Control Xbox
-│   │   │   └── web_control_node.py        WebSocket control
-│   │   ├── config/
-│   │   │   └── ros2_controllers.yaml      Configuración ros2_control
-│   │   ├── launch/
-│   │   └── package.xml
-│   │
-│   ├── tadeocar_navigation/       # SLAM y Nav2
-│   │   ├── config/
-│   │   │   ├── nav2_params.yaml           Parámetros Nav2
-│   │   │   ├── slam_params.yaml           Parámetros SLAM Toolbox
-│   │   │   ├── navigation.rviz
-│   │   │   └── slam.rviz
-│   │   ├── launch/
-│   │   │   └── slam.launch.py
-│   │   ├── maps/
-│   │   │   ├── mapa.pgm
-│   │   │   └── mapa.yaml
-│   │   └── package.xml
-│   │
-│   ├── tadeocar_description/      # Modelo del robot
-│   │   ├── models/tadeocar_v1/
-│   │   │   └── model.sdf                  Modelo Gazebo SDF
-│   │   ├── urdf/
-│   │   │   └── tadeocar_tf.urdf           Definición TF
-│   │   ├── meshes/                        Modelos 3D (DAE)
-│   │   ├── worlds/                        Mundos Gazebo
-│   │   └── package.xml
-│   │
-│   └── tadeocar_bringup/          # Launch files principales
-│       ├── launch/
-│       │   ├── slam.launch.py             ⭐ SLAM completo
-│       │   ├── navigation.launch.py       ⭐ Navegación autónoma
-│       │   └── save_map.launch.py         Guardar mapas
-│       └── package.xml
-│
-├── images/                         # Documentación visual
-│   ├── portada.png
-│   ├── Navigation.png
-│   ├── SLAM.png
-│   └── URDF-TF.png
-│
-└── README.md
-```
-
----
-
-## 🔍 Flujo de Datos del Sistema
-
-### Control Manual
-```
-Xbox Controller → joy_node → /joy
-    ↓
-xbox_control_node → /cmd_vel (Twist)
-    ↓
-fourws_kinematics_node → ros2_control commands
-    ↓
-Gazebo + ros2_control → Simulación física
-    ↓
-joint_state_broadcaster → /joint_states
-```
-
-### SLAM
-```
-Gazebo Lidar Plugin → /scan (LaserScan)
-    ↓
-slam_toolbox → /map (OccupancyGrid) + TF (map → odom)
-    ↓
-RViz2 (Visualización)
-```
-
-### Navegación Autónoma
-```
-/goal_pose (Nav2 RViz) → nav2_planner
-    ↓
-nav2_controller → /cmd_vel_nav (Twist)
-    ↓
-fourws_kinematics_node (modo crab) → ros2_control
-    ↓
-Gazebo → Ejecución del plan
-```
-
----
-
-## 🐛 Problemas Conocidos
-
-### 1. Odometría Temporal (Alta prioridad)
-**Descripción**: Se usa plugin `diff_drive` en lugar de nodo dedicado `fourws_odometry_node`.
-**Impacto**: Odometría menos precisa en movimientos omnidireccionales.
-**Estado**: En desarrollo.
-
-### 2. Configuración Nav2 para Diferencial
-**Descripción**: `nav2_params.yaml` usa `DifferentialMotionModel` en AMCL.
-**Solución**: Cambiar a modelo holonómico/omnidireccional.
-**Impacto**: Localización subóptima en movimientos laterales.
-
-### 3. SLAM no optimizado para 4WS
-**Descripción**: Parámetros de SLAM Toolbox balanceados para diff_drive.
-**Solución**: Re-tunear parámetros para odometría 4WS.
-**Impacto**: Menor precisión en mapeo con movimientos complejos.
-
----
-
-## 📝 Notas Adicionales
-
-### Configuración ros2_control
-El sistema utiliza **JointGroupVelocityController** para control PID de velocidad en cada junta:
-- **Steering joints**: Controladores de posición con retroalimentación de velocidad (`kp=50.0`)
-- **Wheel joints**: Controladores de velocidad directa (`kp=10.0`)
-- **Update rate**: 100 Hz
-
-### Sensor LiDAR (Ray Sensor)
-- **Modelo**: `gpu_ray` en Gazebo
-- **Muestras**: 320
-- **Rango angular**: ±160° (-2.79 a +2.79 rad)
-- **Rango de distancia**: 0.36 m - 3.5 m
-- **Frecuencia**: 20 Hz
-- **Ruido**: Media 0.0, desviación estándar 0.01
-
-### Parámetros Físicos del Robot
-| Parámetro | Valor |
-|-----------|-------|
-| **Masa total** | ~90 kg (chasis: 50kg, suspensiones: 24kg, ruedas: 24kg) |
-| **Dimensiones** | 1.058m (L) × 0.55m (W) × ~0.5m (H) |
-| **Coeficiente de fricción** | μ₁=2.5, μ₂=2.5 (ruedas) |
-| **Amortiguación steering** | 5.0 N·m·s/rad |
-| **Amortiguación wheels** | 0.01 N·m·s/rad |
-
----
-
-## 📞 Contacto y Soporte
-
-**Organización**: Tadeo Robotics Group
-**Repositorio**: [github.com/TadeoRoboticsGroup/tadeo-eCar-ws](https://github.com/TadeoRoboticsGroup/tadeo-eCar-ws)
-**Licencia**: Privada
-
----
-
-## 🔄 Comandos Rápidos
-
-```bash
-# Setup completo
-source /opt/ros/humble/setup.bash
-cd ~/ros2/TadeoeCar-ws
-colcon build --symlink-install
-source install/setup.bash
-
-# Ejecutar SLAM
-ros2 launch tadeocar_bringup slam.launch.py
-
-# Ejecutar navegación
-ros2 launch tadeocar_bringup navigation.launch.py
-
-# Verificar nodos activos
-ros2 node list
-
-# Ver tópicos
-ros2 topic list
-
-# Monitorear cmd_vel
-ros2 topic echo /cmd_vel
-
-# Ver TF tree
-ros2 run tf2_tools view_frames
 ```
 
 ---

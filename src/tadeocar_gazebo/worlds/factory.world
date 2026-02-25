@@ -1,0 +1,559 @@
+<?xml version="1.0"?>
+<!--
+  Factory Campus World — 20m (X) × 15m (Y)
+  X: -10 → +10  |  Y: -7.5 → +7.5
+  Robot spawn: (0, 0, 0.1) — ~1.2m long, 0.55m wide
+
+  Layout:
+    · Main E-W corridor:   Y = -3.5 → +3.5  (7 m wide)
+    · Cross N-S aisle:     X = -1  → +1     (2 m gap in shelf rows)
+    · North storage zone:  Y = +4.3 → +7.5  (2 shelf rows)
+    · South storage zone:  Y = -7.5 → -4.3  (2 shelf rows)
+    · Machinery East:      X = +6  → +9.5   (two blocks, 3 m gap)
+    · Loading dock West:   X = -9.5 → -6.5  (raised platform)
+    · Pillars, crates, barrels scattered throughout
+-->
+<sdf version="1.9">
+  <world name="factory_campus">
+
+    <!-- ==================== SYSTEM PLUGINS ==================== -->
+    <plugin filename="ignition-gazebo-physics-system"
+            name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="ignition-gazebo-scene-broadcaster-system"
+            name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="ignition-gazebo-user-commands-system"
+            name="ignition::gazebo::systems::UserCommands"/>
+    <plugin filename="ignition-gazebo-sensors-system"
+            name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="ignition-gazebo-contact-system"
+            name="ignition::gazebo::systems::Contact"/>
+
+    <!-- ==================== PHYSICS ==================== -->
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+
+    <!-- ==================== SCENE ==================== -->
+    <scene>
+      <ambient>0.5 0.5 0.5 1</ambient>
+      <background>0.6 0.7 0.8 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <!-- ==================== LIGHTS ==================== -->
+    <light name="sun" type="directional">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 15 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.3 0.3 0.3 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.3 0.2 -0.9</direction>
+    </light>
+
+    <!-- Ceiling lights (point lights for factory feel) -->
+    <light name="light_nw" type="point">
+      <pose>-5 4 4 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation><range>12</range><constant>0.4</constant><linear>0.05</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="light_ne" type="point">
+      <pose>5 4 4 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation><range>12</range><constant>0.4</constant><linear>0.05</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="light_sw" type="point">
+      <pose>-5 -4 4 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation><range>12</range><constant>0.4</constant><linear>0.05</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="light_se" type="point">
+      <pose>5 -4 4 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation><range>12</range><constant>0.4</constant><linear>0.05</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+    <light name="light_center" type="point">
+      <pose>0 0 4 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation><range>14</range><constant>0.3</constant><linear>0.04</linear><quadratic>0.008</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
+    </light>
+
+    <!-- ==================== GROUND PLANE ==================== -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane><normal>0 0 1</normal><size>100 100</size></plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <plane><normal>0 0 1</normal><size>100 100</size></plane>
+          </geometry>
+          <material>
+            <ambient>0.45 0.45 0.45 1</ambient>
+            <diffuse>0.45 0.45 0.45 1</diffuse>
+            <specular>0.05 0.05 0.05 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ==================== OUTER WALLS ==================== -->
+    <!-- North wall  Y=+7.5 -->
+    <model name="wall_north">
+      <static>true</static>
+      <pose>0 7.625 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>20.5 0.25 2.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>20.5 0.25 2.5</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- South wall  Y=-7.5 -->
+    <model name="wall_south">
+      <static>true</static>
+      <pose>0 -7.625 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>20.5 0.25 2.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>20.5 0.25 2.5</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- East wall  X=+10 -->
+    <model name="wall_east">
+      <static>true</static>
+      <pose>10.125 0 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 15.25 2.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.25 15.25 2.5</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- West wall  X=-10 -->
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-10.125 0 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.25 15.25 2.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.25 15.25 2.5</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ==================== STORAGE RACKS — NORTH SIDE ==================== -->
+    <!--
+      Rack N1 (first row):  Y=4.5,  from X=-9→-1  and  X=+1→+5.5
+      Rack N2 (second row): Y=6.0,  from X=-9→-1  and  X=+1→+5.5
+      Cross aisle gap:      X=-1→+1  (2 m wide)
+      Inter-rack aisle:     Y=4.7→5.8 (1.1 m clear)
+    -->
+    <model name="rack_n1a">
+      <static>true</static>
+      <pose>-5 4.5 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>8.0 0.4 1.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>8.0 0.4 1.5</size></box></geometry>
+          <material><ambient>0.54 0.27 0.07 1</ambient><diffuse>0.54 0.27 0.07 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rack_n1b">
+      <static>true</static>
+      <pose>3.25 4.5 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>4.5 0.4 1.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>4.5 0.4 1.5</size></box></geometry>
+          <material><ambient>0.54 0.27 0.07 1</ambient><diffuse>0.54 0.27 0.07 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rack_n2a">
+      <static>true</static>
+      <pose>-5 6.0 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>8.0 0.4 1.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>8.0 0.4 1.5</size></box></geometry>
+          <material><ambient>0.60 0.30 0.08 1</ambient><diffuse>0.60 0.30 0.08 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rack_n2b">
+      <static>true</static>
+      <pose>3.25 6.0 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>4.5 0.4 1.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>4.5 0.4 1.5</size></box></geometry>
+          <material><ambient>0.60 0.30 0.08 1</ambient><diffuse>0.60 0.30 0.08 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ==================== STORAGE RACKS — SOUTH SIDE ==================== -->
+    <model name="rack_s1a">
+      <static>true</static>
+      <pose>-5 -4.5 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>8.0 0.4 1.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>8.0 0.4 1.5</size></box></geometry>
+          <material><ambient>0.54 0.27 0.07 1</ambient><diffuse>0.54 0.27 0.07 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rack_s1b">
+      <static>true</static>
+      <pose>3.25 -4.5 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>4.5 0.4 1.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>4.5 0.4 1.5</size></box></geometry>
+          <material><ambient>0.54 0.27 0.07 1</ambient><diffuse>0.54 0.27 0.07 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rack_s2a">
+      <static>true</static>
+      <pose>-5 -6.0 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>8.0 0.4 1.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>8.0 0.4 1.5</size></box></geometry>
+          <material><ambient>0.60 0.30 0.08 1</ambient><diffuse>0.60 0.30 0.08 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="rack_s2b">
+      <static>true</static>
+      <pose>3.25 -6.0 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>4.5 0.4 1.5</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>4.5 0.4 1.5</size></box></geometry>
+          <material><ambient>0.60 0.30 0.08 1</ambient><diffuse>0.60 0.30 0.08 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ==================== MACHINERY (EAST) ==================== -->
+    <!--
+      Machine NE: X=6→9.5, Y=1.75→5.25   (leaves 3.5m gap at Y=-1.75→+1.75)
+      Machine SE: X=6→9.5, Y=-5.25→-1.75
+    -->
+    <model name="machine_ne">
+      <static>true</static>
+      <pose>7.75 3.5 0.9 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>3.5 3.5 1.8</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>3.5 3.5 1.8</size></box></geometry>
+          <material><ambient>0.55 0.25 0.05 1</ambient><diffuse>0.55 0.25 0.05 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Machine NE detail (top panel) -->
+    <model name="machine_ne_panel">
+      <static>true</static>
+      <pose>7.75 3.5 1.85 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>3.5 3.5 0.1</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>3.5 3.5 0.1</size></box></geometry>
+          <material><ambient>0.2 0.2 0.2 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="machine_se">
+      <static>true</static>
+      <pose>7.75 -3.5 0.9 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>3.5 3.5 1.8</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>3.5 3.5 1.8</size></box></geometry>
+          <material><ambient>0.55 0.25 0.05 1</ambient><diffuse>0.55 0.25 0.05 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="machine_se_panel">
+      <static>true</static>
+      <pose>7.75 -3.5 1.85 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>3.5 3.5 0.1</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>3.5 3.5 0.1</size></box></geometry>
+          <material><ambient>0.2 0.2 0.2 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ==================== LOADING DOCK (WEST) ==================== -->
+    <!-- Raised platform: X=-9.5→-6.5, Y=-2→+2 -->
+    <model name="dock_platform">
+      <static>true</static>
+      <pose>-8 0 0.1 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>3.0 4.0 0.2</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>3.0 4.0 0.2</size></box></geometry>
+          <material><ambient>0.85 0.78 0.6 1</ambient><diffuse>0.85 0.78 0.6 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Dock back wall (safety barrier) -->
+    <model name="dock_barrier">
+      <static>true</static>
+      <pose>-9.3 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.15 4.0 0.6</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.15 4.0 0.6</size></box></geometry>
+          <material><ambient>0.9 0.7 0.0 1</ambient><diffuse>0.9 0.7 0.0 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ==================== STRUCTURAL PILLARS ==================== -->
+    <!-- 4 pillars at corridor boundaries, 0.35×0.35m, 3m tall -->
+    <model name="pillar_nw">
+      <static>true</static>
+      <pose>-5 3.5 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.35 0.35 3.0</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.35 0.35 3.0</size></box></geometry>
+          <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="pillar_sw">
+      <static>true</static>
+      <pose>-5 -3.5 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.35 0.35 3.0</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.35 0.35 3.0</size></box></geometry>
+          <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="pillar_ne">
+      <static>true</static>
+      <pose>4.5 3.5 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.35 0.35 3.0</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.35 0.35 3.0</size></box></geometry>
+          <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="pillar_se">
+      <static>true</static>
+      <pose>4.5 -3.5 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.35 0.35 3.0</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.35 0.35 3.0</size></box></geometry>
+          <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ==================== CRATE CLUSTERS ==================== -->
+    <!-- North storage zone: 3 crates near east end of rack_n1b -->
+    <model name="crate_n1">
+      <static>true</static>
+      <pose>2.0 5.25 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.6 0.6 0.6</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.6 0.6 0.6</size></box></geometry>
+          <material><ambient>0.7 0.55 0.1 1</ambient><diffuse>0.7 0.55 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="crate_n2">
+      <static>true</static>
+      <pose>2.75 5.25 0.3 0 0 0.3</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.6 0.6 0.6</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.6 0.6 0.6</size></box></geometry>
+          <material><ambient>0.65 0.50 0.1 1</ambient><diffuse>0.65 0.50 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="crate_n3">
+      <static>true</static>
+      <pose>2.0 5.9 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.6 0.6 0.6</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.6 0.6 0.6</size></box></geometry>
+          <material><ambient>0.75 0.58 0.12 1</ambient><diffuse>0.75 0.58 0.12 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- South storage zone: 3 crates -->
+    <model name="crate_s1">
+      <static>true</static>
+      <pose>2.0 -5.25 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.6 0.6 0.6</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.6 0.6 0.6</size></box></geometry>
+          <material><ambient>0.7 0.55 0.1 1</ambient><diffuse>0.7 0.55 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="crate_s2">
+      <static>true</static>
+      <pose>2.75 -5.25 0.3 0 0 -0.2</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.6 0.6 0.6</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.6 0.6 0.6</size></box></geometry>
+          <material><ambient>0.65 0.50 0.1 1</ambient><diffuse>0.65 0.50 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="crate_s3">
+      <static>true</static>
+      <pose>2.0 -5.9 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.6 0.6 0.6</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.6 0.6 0.6</size></box></geometry>
+          <material><ambient>0.75 0.58 0.12 1</ambient><diffuse>0.75 0.58 0.12 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Corridor crates: scattered in the loading/entry zone -->
+    <model name="crate_w1">
+      <static>true</static>
+      <pose>-7.0 2.5 0.3 0 0 0.5</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.7 0.7 0.6</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.7 0.7 0.6</size></box></geometry>
+          <material><ambient>0.6 0.45 0.08 1</ambient><diffuse>0.6 0.45 0.08 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="crate_w2">
+      <static>true</static>
+      <pose>-7.0 -2.5 0.3 0 0 -0.4</pose>
+      <link name="link">
+        <collision name="col"><geometry><box><size>0.7 0.7 0.6</size></box></geometry></collision>
+        <visual name="vis">
+          <geometry><box><size>0.7 0.7 0.6</size></box></geometry>
+          <material><ambient>0.6 0.45 0.08 1</ambient><diffuse>0.6 0.45 0.08 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ==================== BARRELS ==================== -->
+    <!-- 3 barrels as point obstacles in main corridor zone -->
+    <model name="barrel_north">
+      <static>true</static>
+      <pose>-3 2.5 0.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry>
+          <material><ambient>0.1 0.2 0.7 1</ambient><diffuse>0.1 0.2 0.7 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="barrel_south">
+      <static>true</static>
+      <pose>-3 -2.5 0.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry>
+          <material><ambient>0.1 0.2 0.7 1</ambient><diffuse>0.1 0.2 0.7 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="barrel_east">
+      <static>true</static>
+      <pose>4.5 0 0.4 0 0 0</pose>
+      <link name="link">
+        <collision name="col">
+          <geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><cylinder><radius>0.25</radius><length>0.8</length></cylinder></geometry>
+          <material><ambient>0.7 0.1 0.1 1</ambient><diffuse>0.7 0.1 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ==================== GRAVITY & ATMOSPHERE ==================== -->
+    <gravity>0 0 -9.8</gravity>
+    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    <atmosphere type="adiabatic"/>
+
+  </world>
+</sdf>

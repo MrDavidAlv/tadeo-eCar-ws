@@ -19,7 +19,7 @@ def generate_launch_description():
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
     # Paths
-    world_file = os.path.join(pkg_tadeocar_gazebo, 'worlds', 'empty.world')
+    world_file = os.path.join(pkg_tadeocar_gazebo, 'worlds', 'factory.world')
     urdf_file = os.path.join(pkg_tadeocar_description, 'urdf', 'tadeocar.urdf')
     sdf_file = os.path.join(pkg_tadeocar_gazebo, 'models', 'tadeocar_v1', 'model.sdf')
 
@@ -115,6 +115,15 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}]
     )
 
+    # 4WS Kinematics Controller (converts /cmd_vel -> individual joint commands)
+    fourws_kinematics = Node(
+        package='tadeocar_control',
+        executable='fourws_kinematics',
+        name='fourws_kinematics_node',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}]
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
@@ -131,4 +140,5 @@ def generate_launch_description():
         bridge,
         robot_state_publisher,
         odom_to_tf,
+        fourws_kinematics,
     ])

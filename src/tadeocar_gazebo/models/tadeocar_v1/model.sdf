@@ -886,6 +886,7 @@
     </plugin>
 
     <!-- Joint Controllers (velocity control for each joint) -->
+    <!--TODO(olmerg) change from velocity controller to position controller https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1systems_1_1JointPositionController.html-->
     <!-- Front Left Steering -->
     <plugin filename="ignition-gazebo-joint-controller-system"
             name="ignition::gazebo::systems::JointController">

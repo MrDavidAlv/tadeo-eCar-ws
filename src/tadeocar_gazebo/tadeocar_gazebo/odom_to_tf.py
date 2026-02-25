@@ -18,13 +18,12 @@ class OdomToTf(Node):
     def _odom_cb(self, msg: Odometry):
         t = TransformStamped()
         t.header = msg.header                    # frame_id = "odom"
-        t.child_frame_id = msg.child_frame_id    # "tadeocar/base_link" from Gz
-        # Normalize to "base_link" if Gz prefixes with model name
-        if '/' in t.child_frame_id:
-            t.child_frame_id = t.child_frame_id.split('/')[-1]
+        # Publish odom -> base_footprint to avoid TF conflict with
+        # robot_state_publisher which publishes base_footprint -> base_link
+        t.child_frame_id = 'base_footprint'
         t.transform.translation.x = msg.pose.pose.position.x
         t.transform.translation.y = msg.pose.pose.position.y
-        t.transform.translation.z = msg.pose.pose.position.z
+        t.transform.translation.z = 0.0          # base_footprint is on the ground
         t.transform.rotation = msg.pose.pose.orientation
         self.tf_broadcaster.sendTransform(t)
 

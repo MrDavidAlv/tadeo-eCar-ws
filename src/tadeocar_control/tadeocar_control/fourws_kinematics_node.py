@@ -327,6 +327,8 @@ class FourWSKinematicsNode(Node):
         for wheel, target_angle in steering.items():
             current_angle = self.current_steering[wheel]
 
+            #TODO(olmerg) aqui se obtiene el angulo que deberia ser lo que se envie al carro directamente 
+
             error = self.compute_shortest_path(current_angle, target_angle)
 
             target_normalized = self.normalize_angle(target_angle)
@@ -339,6 +341,8 @@ class FourWSKinematicsNode(Node):
 
             msg = Float64()
             msg.data = steering_velocity
+
+            # REMOVE the velocity controller 
             self.steering_pubs[wheel].publish(msg)
 
         # Publish wheel velocities directly

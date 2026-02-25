@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Orchestrator: simulation + fourws_kinematics + SLAM + RViz."""
+"""Orchestrator: simulation + SLAM + RViz.
+Note: fourws_kinematics is already included in simulation.launch.py
+"""
 import os
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
@@ -31,14 +33,6 @@ def generate_launch_description():
         launch_arguments={'use_sim_time': use_sim_time}.items()
     )
 
-    fourws_kinematics = Node(
-        package='tadeocar_control',
-        executable='fourws_kinematics',
-        name='fourws_kinematics_node',
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}]
-    )
-
     rviz = Node(
         package='rviz2',
         executable='rviz2',
@@ -52,7 +46,6 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true',
                               description='Use simulation clock'),
         simulation,
-        fourws_kinematics,
         slam,
         rviz,
     ])

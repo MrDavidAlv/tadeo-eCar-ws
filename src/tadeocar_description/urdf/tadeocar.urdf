@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot name="tadeocar">
 
-  <!-- Base Footprint -->
+  <!-- ==================== BASE FOOTPRINT ==================== -->
   <link name="base_footprint"/>
 
   <joint name="base_footprint_joint" type="fixed">
@@ -10,11 +10,37 @@
     <origin xyz="0 0 0.1" rpy="0 0 0"/>
   </joint>
 
-  <!-- Base Link -->
-  <link name="base_link"/>
+  <!-- ==================== BASE LINK (chassis base) ==================== -->
+  <link name="base_link">
+    <visual name="base_visual">
+      <origin xyz="0 0 0.155" rpy="0 0 0"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/chassis/chasis_base.dae</filename>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material name="blue">
+        <color rgba="0.2 0.2 0.8 1.0"/>
+      </material>
+    </visual>
+  </link>
 
-  <!-- Chassis Link -->
-  <link name="chasis_link"/>
+  <!-- ==================== CHASSIS LINK (upper body) ==================== -->
+  <link name="chasis_link">
+    <visual name="chasis_visual">
+      <origin xyz="-0.49 0.39 -0.126" rpy="1.5708 0 3.14159"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/chassis/chasis.dae</filename>
+          <scale>0.001 0.001 0.001</scale>
+        </mesh>
+      </geometry>
+      <material name="red">
+        <color rgba="0.8 0.2 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="chasis_joint" type="fixed">
     <parent link="base_link"/>
@@ -22,8 +48,18 @@
     <origin xyz="0 0 0.35" rpy="0 0 0"/>
   </joint>
 
-  <!-- LiDAR Link -->
-  <link name="base_scan"/>
+  <!-- ==================== LiDAR ==================== -->
+  <link name="base_scan">
+    <visual name="lidar_visual">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.035" length="0.030"/>
+      </geometry>
+      <material name="dark_gray">
+        <color rgba="0.1 0.1 0.1 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="lidar_joint" type="fixed">
     <parent link="base_link"/>
@@ -31,8 +67,18 @@
     <origin xyz="0.55 0 0.33" rpy="0 0 0"/>
   </joint>
 
-  <!-- Stereo Camera Base Link -->
-  <link name="stereo_camera_base"/>
+  <!-- ==================== STEREO CAMERA BASE ==================== -->
+  <link name="stereo_camera_base">
+    <visual name="stereo_base_visual">
+      <origin xyz="0 0 0" rpy="0 0 1.5708"/>
+      <geometry>
+        <box size="0.15 0.05 0.03"/>
+      </geometry>
+      <material name="dark_gray2">
+        <color rgba="0.2 0.2 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="stereo_camera_base_joint" type="fixed">
     <parent link="base_link"/>
@@ -40,8 +86,18 @@
     <origin xyz="0.55 0 0.40" rpy="0 0 0"/>
   </joint>
 
-  <!-- Left Camera Link -->
-  <link name="camera_left"/>
+  <!-- ==================== LEFT CAMERA ==================== -->
+  <link name="camera_left">
+    <visual name="camera_left_visual">
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="0.01"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.05 0.05 0.05 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="camera_left_joint" type="fixed">
     <parent link="stereo_camera_base"/>
@@ -49,8 +105,18 @@
     <origin xyz="0.03 0.06 0" rpy="0 0 0"/>
   </joint>
 
-  <!-- Right Camera Link -->
-  <link name="camera_right"/>
+  <!-- ==================== RIGHT CAMERA ==================== -->
+  <link name="camera_right">
+    <visual name="camera_right_visual">
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <geometry>
+        <cylinder radius="0.01" length="0.01"/>
+      </geometry>
+      <material name="black2">
+        <color rgba="0.05 0.05 0.05 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="camera_right_joint" type="fixed">
     <parent link="stereo_camera_base"/>
@@ -58,7 +124,7 @@
     <origin xyz="0.03 -0.06 0" rpy="0 0 0"/>
   </joint>
 
-  <!-- Camera Optical Frames -->
+  <!-- ==================== CAMERA OPTICAL FRAMES ==================== -->
   <link name="camera_left_optical"/>
   <joint name="camera_left_optical_joint" type="fixed">
     <parent link="camera_left"/>
@@ -73,8 +139,21 @@
     <origin xyz="0.005 0 0" rpy="-1.5708 0 -1.5708"/>
   </joint>
 
-  <!-- Steering Links -->
-  <link name="front_left_steering_link"/>
+  <!-- ==================== FRONT LEFT STEERING ==================== -->
+  <link name="front_left_steering_link">
+    <visual name="fl_steering_visual">
+      <origin xyz="0 0 0.227" rpy="0 3.14159 3.14159"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae</filename>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="front_left_steering_joint" type="continuous">
     <parent link="base_link"/>
@@ -83,35 +162,21 @@
     <axis xyz="0 0 1"/>
   </joint>
 
-  <link name="front_right_steering_link"/>
-
-  <joint name="front_right_steering_joint" type="continuous">
-    <parent link="base_link"/>
-    <child link="front_right_steering_link"/>
-    <origin xyz="0.478 -0.275 0" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-  </joint>
-
-  <link name="rear_left_steering_link"/>
-
-  <joint name="rear_left_steering_joint" type="continuous">
-    <parent link="base_link"/>
-    <child link="rear_left_steering_link"/>
-    <origin xyz="-0.58 0.275 0" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-  </joint>
-
-  <link name="rear_right_steering_link"/>
-
-  <joint name="rear_right_steering_joint" type="continuous">
-    <parent link="base_link"/>
-    <child link="rear_right_steering_link"/>
-    <origin xyz="-0.58 -0.275 0" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-  </joint>
-
-  <!-- Wheel Links -->
-  <link name="front_left_wheel_link"/>
+  <!-- ==================== FRONT LEFT WHEEL ==================== -->
+  <link name="front_left_wheel_link">
+    <visual name="fl_wheel_visual">
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae</filename>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material name="dark_wheel">
+        <color rgba="0.2 0.2 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="front_left_wheel_joint" type="continuous">
     <parent link="front_left_steering_link"/>
@@ -120,7 +185,44 @@
     <axis xyz="0 1 0"/>
   </joint>
 
-  <link name="front_right_wheel_link"/>
+  <!-- ==================== FRONT RIGHT STEERING ==================== -->
+  <link name="front_right_steering_link">
+    <visual name="fr_steering_visual">
+      <origin xyz="0 0 0.227" rpy="0 3.14159 -3.14159"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae</filename>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material name="gray2">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="front_right_steering_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_right_steering_link"/>
+    <origin xyz="0.478 -0.275 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- ==================== FRONT RIGHT WHEEL ==================== -->
+  <link name="front_right_wheel_link">
+    <visual name="fr_wheel_visual">
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae</filename>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material name="dark_wheel2">
+        <color rgba="0.2 0.2 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="front_right_wheel_joint" type="continuous">
     <parent link="front_right_steering_link"/>
@@ -129,7 +231,44 @@
     <axis xyz="0 1 0"/>
   </joint>
 
-  <link name="rear_left_wheel_link"/>
+  <!-- ==================== REAR LEFT STEERING ==================== -->
+  <link name="rear_left_steering_link">
+    <visual name="rl_steering_visual">
+      <origin xyz="0 0 0.227" rpy="0 3.14159 0"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae</filename>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material name="gray3">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="rear_left_steering_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_left_steering_link"/>
+    <origin xyz="-0.58 0.275 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- ==================== REAR LEFT WHEEL ==================== -->
+  <link name="rear_left_wheel_link">
+    <visual name="rl_wheel_visual">
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae</filename>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material name="dark_wheel3">
+        <color rgba="0.2 0.2 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="rear_left_wheel_joint" type="continuous">
     <parent link="rear_left_steering_link"/>
@@ -138,7 +277,44 @@
     <axis xyz="0 1 0"/>
   </joint>
 
-  <link name="rear_right_wheel_link"/>
+  <!-- ==================== REAR RIGHT STEERING ==================== -->
+  <link name="rear_right_steering_link">
+    <visual name="rr_steering_visual">
+      <origin xyz="0 0 0.227" rpy="0 3.14159 0"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae</filename>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material name="gray4">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <joint name="rear_right_steering_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_right_steering_link"/>
+    <origin xyz="-0.58 -0.275 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- ==================== REAR RIGHT WHEEL ==================== -->
+  <link name="rear_right_wheel_link">
+    <visual name="rr_wheel_visual">
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <mesh>
+          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae</filename>
+          <scale>1 1 1</scale>
+        </mesh>
+      </geometry>
+      <material name="dark_wheel4">
+        <color rgba="0.2 0.2 0.2 1.0"/>
+      </material>
+    </visual>
+  </link>
 
   <joint name="rear_right_wheel_joint" type="continuous">
     <parent link="rear_right_steering_link"/>

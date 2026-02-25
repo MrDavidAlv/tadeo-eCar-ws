@@ -1,4 +1,4 @@
-# Robot Autónomo Tadeo eCar 4WD4WS
+# Tadeo eCar 4WD4WS Autonomous Robot
 
 <div align="center">
 <img src="images/portada.png" width="280"/>
@@ -15,11 +15,11 @@
 
 </div>
 
-> Plataforma robótica autónoma 4WD4WS con navegación autónoma, SLAM, y cinemática omnidireccional usando ROS2 Humble. Diseñada para transporte de materiales en entornos universitarios.
+> Autonomous 4WD4WS robotic platform with full navigation, SLAM, and omnidirectional kinematics built on ROS2 Humble. Designed for indoor material transport in university environments.
 
 ---
 
-## Galería del Robot
+## Robot Gallery
 
 <div align="center">
 <table>
@@ -36,21 +36,21 @@
 
 ---
 
-## Arquitectura del Sistema
+## System Architecture
 
 <div align="center">
 <table>
   <tr>
-    <th>Transformadas (TF Tree)</th>
-    <th>Sistema SLAM</th>
+    <th>Transform Tree (TF)</th>
+    <th>SLAM System</th>
   </tr>
   <tr>
     <td><img src="images/URDF-TF.png" width="480"/></td>
     <td><img src="images/SLAM.png" width="480"/></td>
   </tr>
   <tr>
-    <th>Navegación (Nav2)</th>
-    <th>Modelo Matemático</th>
+    <th>Navigation (Nav2)</th>
+    <th>Mathematical Model</th>
   </tr>
   <tr>
     <td><img src="images/Navigation.png" width="480"/></td>
@@ -61,26 +61,26 @@
 
 ---
 
-## Paquetes y Launch Files
+## Packages and Launch Files
 
-| Paquete | Launch File | Descripción |
+| Package | Launch File | Description |
 |---------|-------------|-------------|
-| `tadeocar_bringup` | `slam_bringup.launch.py` | Simulación completa con SLAM (Gazebo + cinemática + SLAM Toolbox + RViz2) |
-| `tadeocar_bringup` | `navigation_bringup.launch.py` | Simulación completa con Nav2 (Gazebo + cinemática + Nav2 + RViz2) |
-| `tadeocar_control` | `control.launch.py` | Solo nodo de cinemática 4WS |
-| `tadeocar_control` | `fourws_control.launch.py` | Cinemática 4WS con publicación de estado |
-| `tadeocar_control` | `xbox_control.launch.py` | Cinemática + control Xbox |
-| `tadeocar_description` | `display.launch.py` | Visualización URDF/TF en RViz2 |
-| `tadeocar_gazebo` | `simulation.launch.py` | Solo simulación Gazebo Fortress |
-| `tadeocar_navigation` | `navigation.launch.py` | Stack Nav2 (AMCL + planificador + DWB) |
-| `tadeocar_slam` | `slam.launch.py` | SLAM Toolbox (mapeo async) |
-| `tadeocar_slam` | `save_map.launch.py` | Guardar mapa generado |
+| `tadeocar_bringup` | `slam_bringup.launch.py` | Full simulation with SLAM (Gazebo + kinematics + SLAM Toolbox + RViz2) |
+| `tadeocar_bringup` | `navigation_bringup.launch.py` | Full simulation with Nav2 (Gazebo + kinematics + Nav2 + RViz2) |
+| `tadeocar_control` | `control.launch.py` | Kinematics node only |
+| `tadeocar_control` | `fourws_control.launch.py` | 4WS kinematics with joint state publishing |
+| `tadeocar_control` | `xbox_control.launch.py` | Kinematics + Xbox controller |
+| `tadeocar_description` | `display.launch.py` | URDF/TF visualization in RViz2 |
+| `tadeocar_gazebo` | `simulation.launch.py` | Gazebo Fortress simulation only |
+| `tadeocar_navigation` | `navigation.launch.py` | Nav2 stack (AMCL + global planner + DWB) |
+| `tadeocar_slam` | `slam.launch.py` | SLAM Toolbox (async mapping) |
+| `tadeocar_slam` | `save_map.launch.py` | Save the generated map |
 
 ---
 
-## Instalación
+## Installation
 
-### Dependencias
+### Dependencies
 
 ```bash
 sudo apt install -y \
@@ -101,7 +101,7 @@ sudo apt install -y \
 pip3 install websockets numpy
 ```
 
-### Compilar
+### Build
 
 ```bash
 source /opt/ros/humble/setup.bash
@@ -111,26 +111,26 @@ source install/setup.bash
 
 ---
 
-## Ejecución
+## Usage
 
 ```bash
-# Mapeo con SLAM
+# SLAM mapping
 ros2 launch tadeocar_bringup slam_bringup.launch.py
 
-# Guardar mapa
+# Save map
 ros2 launch tadeocar_slam save_map.launch.py
 
-# Navegación autónoma
+# Autonomous navigation
 ros2 launch tadeocar_bringup navigation_bringup.launch.py
 
-# Visualización del modelo
+# Model visualization
 ros2 launch tadeocar_description display.launch.py
 ```
 
-Los mapas se guardan en `src/tadeocar_navigation/maps/`.
+Maps are saved to `src/tadeocar_navigation/maps/`.
 
 ---
 
 <div align="center">
-Desarrollado por el Semillero Robotica Utadeo
+Developed by the Semillero Robotica Utadeo
 </div>

@@ -10,8 +10,6 @@
 [![SLAM Toolbox](https://img.shields.io/badge/SLAM-Toolbox-green)](#)
 [![Python](https://img.shields.io/badge/Python-3.8+-yellow?logo=python)](#)
 [![Colcon](https://img.shields.io/badge/Build-Colcon-22314E)](#)
-[![Git](https://img.shields.io/badge/Git-2.34+-F05032?logo=git)](#)
-[![GitHub](https://img.shields.io/badge/GitHub-MrDavidAlv-181717?logo=github)](https://github.com/MrDavidAlv/Robot4WD4WS)
 
 </div>
 
@@ -71,10 +69,16 @@
 | `tadeocar_control` | `fourws_control.launch.py` | 4WS kinematics with joint state publishing |
 | `tadeocar_control` | `xbox_control.launch.py` | Kinematics + Xbox controller |
 | `tadeocar_description` | `display.launch.py` | URDF/TF visualization in RViz2 |
-| `tadeocar_gazebo` | `simulation.launch.py` | Gazebo Fortress simulation only |
+| `tadeocar_gazebo` | `simulation.launch.py` | Gazebo Fortress simulation (includes kinematics node) |
 | `tadeocar_navigation` | `navigation.launch.py` | Nav2 stack (AMCL + global planner + DWB) |
 | `tadeocar_slam` | `slam.launch.py` | SLAM Toolbox (async mapping) |
 | `tadeocar_slam` | `save_map.launch.py` | Save the generated map |
+
+### Control Architecture
+
+- **Steering joints**: Position control via `JointPositionController` (Gz Sim). Replicates the behavior of 270-degree industrial servomotors used on the physical robot.
+- **Wheel joints**: Velocity control via `JointController` (Gz Sim).
+- **Kinematics node**: Converts `/cmd_vel` (Twist) into individual joint commands for 4 steering + 4 wheel joints.
 
 ---
 
@@ -84,13 +88,10 @@
 
 ```bash
 sudo apt install -y \
-  ros-humble-ros2-control \
-  ros-humble-ros2-controllers \
   ros-humble-ros-gz \
   ros-humble-navigation2 \
   ros-humble-nav2-bringup \
   ros-humble-slam-toolbox \
-  ros-humble-robot-localization \
   ros-humble-joy \
   ros-humble-teleop-twist-joy \
   ros-humble-rviz2 \
@@ -131,6 +132,12 @@ Maps are saved to `src/tadeocar_navigation/maps/`.
 
 ---
 
+## Documentation
+
+Technical documentation including the mathematical model is in the [documentacion/](documentacion/) directory.
+
+---
+
 <div align="center">
-Developed by the Semillero Robotica Utadeo
+Developed by the Semillero Robotica - Universidad de Bogota Jorge Tadeo Lozano
 </div>

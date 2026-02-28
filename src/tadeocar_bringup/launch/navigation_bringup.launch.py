@@ -31,13 +31,7 @@ def generate_launch_description():
         launch_arguments={'use_sim_time': use_sim_time}.items()
     )
 
-    fourws_kinematics = Node(
-        package='tadeocar_control',
-        executable='fourws_kinematics',
-        name='fourws_kinematics_node',
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}]
-    )
+    # Note: fourws_kinematics is already launched by simulation.launch.py
 
     # Static TF map->odom (until AMCL initializes)
     static_transform_publisher = Node(
@@ -60,7 +54,6 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true',
                               description='Use simulation clock'),
         simulation,
-        fourws_kinematics,
         static_transform_publisher,
         navigation,
         rviz,

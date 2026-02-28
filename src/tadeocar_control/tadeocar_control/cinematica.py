@@ -24,9 +24,9 @@ ang_vel_=np.linspace(-max_ang,max_ang,50)
 lin_vel_des, ang_vel_des = np.meshgrid(lin_vel_/3.6, ang_vel_*pi/180, sparse=False)
 print(lin_vel_des.shape)
 print(ang_vel_des.shape)
-radius_=0.254/2.0
-base_= 0.9 #distancia entre adelante y atras
-track_=0.75 #distancia entre izquierda y derecha
+radius_=0.1  # wheel radius (m) - matches model.sdf and fourws_kinematics_node
+base_= 1.058 # wheelbase front-to-rear (m)
+track_=0.55  # track width left-to-right (m)
 # Distance between a wheel joint (from the midpoint of the wheel width) and the associated steering joint:
 # We consider that the distance is the same for every wheel
 wheel_steering_y_offset_=0

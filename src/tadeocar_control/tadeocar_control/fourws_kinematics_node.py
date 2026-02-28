@@ -1,405 +1,267 @@
 #!/usr/bin/env python3
 """
-4WD4WS Kinematics Controller Node for TadeoeCar
-Compatible with Gz Sim (Harmonic) via ros_gz_bridge
-Implements: Omnidirectional, Ackermann, and Crab modes
+4WD4WS Kinematics Controller Node for TadeoeCar.
+Compatible with Gz Sim (Fortress) via ros_gz_bridge.
+
+Steering joints use position control (JointPositionController).
+Wheel joints use velocity control (JointController).
+
+Modes: omnidirectional, ackermann, crab.
 """
+
+import math
 
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64, String
 from sensor_msgs.msg import JointState
-import math
+
+
+WHEELS = ['front_left', 'front_right', 'rear_left', 'rear_right']
 
 
 class FourWSKinematicsNode(Node):
-    """
-    4-Wheel Steering Kinematics Controller
-
-    Modes:
-    - omnidirectional: All wheels point in direction of motion (360 mobility)
-    - ackermann: Front wheels steer, rear wheels straight (car-like)
-    - crab: Lateral movement (all wheels same angle, perpendicular motion)
-    """
 
     def __init__(self):
         super().__init__('fourws_kinematics_node')
 
-        # Control mode
-        self.mode = 'omnidirectional'  # Default mode
-        self.get_logger().info('4WS Kinematics Node starting in omnidirectional mode')
+        self.mode = 'omnidirectional'
 
-        # Robot parameters (from TadeoeCar model)
-        self.wheel_radius = 0.1  # meters
-        self.wheel_base = 1.058  # meters (front to rear)
-        self.track_width = 0.55  # meters (left to right)
+        # Robot parameters (configurable via ROS2 parameters)
+        self.declare_parameter('wheel_radius', 0.1)
+        self.declare_parameter('wheel_base', 1.058)
+        self.declare_parameter('track_width', 0.55)
+        self.declare_parameter('max_linear_speed', 2.0)
+        self.declare_parameter('max_angular_speed', 1.0)
+        self.declare_parameter('max_steering_angle', 2.356)  # 135 deg (270/2)
 
-        # Speed limits
-        self.max_linear_speed = 2.0  # m/s
-        self.max_angular_speed = 1.0  # rad/s
-        self.max_steering_angle = 1.57  # radians (~90 degrees) for testing full range
+        self.wheel_radius = self.get_parameter('wheel_radius').value
+        self.wheel_base = self.get_parameter('wheel_base').value
+        self.track_width = self.get_parameter('track_width').value
+        self.max_linear_speed = self.get_parameter('max_linear_speed').value
+        self.max_angular_speed = self.get_parameter('max_angular_speed').value
+        self.max_steering_angle = self.get_parameter('max_steering_angle').value
 
-        # Physical steering limits (270 degrees = +/-135 degrees = +/-2.356 rad)
-        self.max_physical_steering = math.pi * 0.75  # 135 degrees in radians
+        # Half dimensions for kinematics
+        self.half_base = self.wheel_base / 2.0
+        self.half_track = self.track_width / 2.0
 
-        # Current joint states
-        self.current_steering = {
-            'front_left': 0.0,
-            'front_right': 0.0,
-            'rear_left': 0.0,
-            'rear_right': 0.0
+        # Wheel positions relative to robot center (x, y)
+        self.wheel_positions = {
+            'front_left':  ( self.half_base,  self.half_track),
+            'front_right': ( self.half_base, -self.half_track),
+            'rear_left':   (-self.half_base,  self.half_track),
+            'rear_right':  (-self.half_base, -self.half_track),
         }
 
-        # Publishers for steering (Gz Sim JointController topics)
+        # Current steering angles from joint states (for feedback)
+        self.current_steering = {w: 0.0 for w in WHEELS}
+
+        # Steering publishers (position control: send target angle in radians)
         self.steering_pubs = {
-            'front_left': self.create_publisher(
+            w: self.create_publisher(
                 Float64,
-                '/model/tadeocar/joint/front_left_steering_joint/cmd_vel',
-                10
-            ),
-            'front_right': self.create_publisher(
-                Float64,
-                '/model/tadeocar/joint/front_right_steering_joint/cmd_vel',
-                10
-            ),
-            'rear_left': self.create_publisher(
-                Float64,
-                '/model/tadeocar/joint/rear_left_steering_joint/cmd_vel',
-                10
-            ),
-            'rear_right': self.create_publisher(
-                Float64,
-                '/model/tadeocar/joint/rear_right_steering_joint/cmd_vel',
-                10
+                f'/model/tadeocar/joint/{w}_steering_joint/cmd_pos',
+                10,
             )
+            for w in WHEELS
         }
 
-        # Publishers for wheels (Gz Sim JointController topics)
+        # Wheel publishers (velocity control: send angular velocity in rad/s)
         self.wheel_pubs = {
-            'front_left': self.create_publisher(
+            w: self.create_publisher(
                 Float64,
-                '/model/tadeocar/joint/front_left_wheel_joint/cmd_vel',
-                10
-            ),
-            'front_right': self.create_publisher(
-                Float64,
-                '/model/tadeocar/joint/front_right_wheel_joint/cmd_vel',
-                10
-            ),
-            'rear_left': self.create_publisher(
-                Float64,
-                '/model/tadeocar/joint/rear_left_wheel_joint/cmd_vel',
-                10
-            ),
-            'rear_right': self.create_publisher(
-                Float64,
-                '/model/tadeocar/joint/rear_right_wheel_joint/cmd_vel',
-                10
+                f'/model/tadeocar/joint/{w}_wheel_joint/cmd_vel',
+                10,
             )
+            for w in WHEELS
         }
-
-        # Control gains
-        self.kp_steering = 15.0
-        self.max_steering_vel = 20.0
 
         # Subscribers
-        self.cmd_vel_sub = self.create_subscription(
-            Twist,
-            '/cmd_vel',
-            lambda msg: self.cmd_vel_callback(msg, source='nav2'),
-            10
+        self.create_subscription(Twist, '/cmd_vel', self.cmd_vel_callback, 10)
+        self.create_subscription(String, '/robot_mode', self.mode_callback, 10)
+        self.create_subscription(
+            JointState, '/joint_states', self.joint_state_callback, 10
         )
 
-        self.mode_sub = self.create_subscription(
-            String,
-            '/robot_mode',
-            self.mode_callback,
-            10
+        self.get_logger().info(
+            f'4WS Kinematics Node initialized (position control). '
+            f'Mode: {self.mode}. '
+            f'L={self.wheel_base}m, W={self.track_width}m, r={self.wheel_radius}m'
         )
-
-        self.joint_state_sub = self.create_subscription(
-            JointState,
-            '/joint_states',
-            self.joint_state_callback,
-            10
-        )
-
-        self.get_logger().info('4WS Kinematics Node initialized successfully')
-        self.get_logger().info('Available modes: omnidirectional, ackermann, crab')
 
     def joint_state_callback(self, msg):
-        """Update current steering angles from joint states"""
-        try:
-            for i, name in enumerate(msg.name):
-                if 'steering' in name:
-                    if 'front_left' in name:
-                        self.current_steering['front_left'] = msg.position[i]
-                    elif 'front_right' in name:
-                        self.current_steering['front_right'] = msg.position[i]
-                    elif 'rear_left' in name:
-                        self.current_steering['rear_left'] = msg.position[i]
-                    elif 'rear_right' in name:
-                        self.current_steering['rear_right'] = msg.position[i]
-        except Exception as e:
-            self.get_logger().warn(f'Error reading joint states: {e}')
+        for i, name in enumerate(msg.name):
+            if 'steering' not in name:
+                continue
+            for w in WHEELS:
+                if w in name:
+                    self.current_steering[w] = msg.position[i]
+                    break
 
     def mode_callback(self, msg):
-        """Change control mode"""
         new_mode = msg.data.lower()
-        if new_mode in ['omnidirectional', 'ackermann', 'crab']:
+        if new_mode in ('omnidirectional', 'ackermann', 'crab'):
             self.mode = new_mode
             self.get_logger().info(f'Mode changed to: {self.mode}')
         else:
             self.get_logger().warn(f'Unknown mode: {new_mode}')
 
-    def cmd_vel_callback(self, msg, source='xbox'):
-        """Process velocity commands and compute wheel commands"""
-        linear_x = msg.linear.x
-        linear_y = msg.linear.y
-        angular_z = msg.angular.z
+    def cmd_vel_callback(self, msg):
+        vx = self._clamp(msg.linear.x, -self.max_linear_speed, self.max_linear_speed)
+        vy = self._clamp(msg.linear.y, -self.max_linear_speed, self.max_linear_speed)
+        wz = self._clamp(msg.angular.z, -self.max_angular_speed, self.max_angular_speed)
 
-        # Apply speed limits
-        linear_x = self.clamp(linear_x, -self.max_linear_speed, self.max_linear_speed)
-        linear_y = self.clamp(linear_y, -self.max_linear_speed, self.max_linear_speed)
-        angular_z = self.clamp(angular_z, -self.max_angular_speed, self.max_angular_speed)
-
-        # Select mode based on source
-        if source == 'nav2':
-            steering, velocities = self.compute_omnidirectional(linear_x, linear_y, angular_z)
+        if self.mode == 'omnidirectional':
+            steering, velocities = self._compute_omnidirectional(vx, vy, wz)
+        elif self.mode == 'ackermann':
+            steering, velocities = self._compute_ackermann(vx, wz)
+        elif self.mode == 'crab':
+            steering, velocities = self._compute_crab(vx, vy)
         else:
-            if self.mode == 'omnidirectional':
-                steering, velocities = self.compute_omnidirectional(linear_x, linear_y, angular_z)
-            elif self.mode == 'ackermann':
-                steering, velocities = self.compute_ackermann(linear_x, angular_z)
-            elif self.mode == 'crab':
-                steering, velocities = self.compute_crab(linear_x, linear_y)
-            else:
-                self.get_logger().warn(f'Invalid mode: {self.mode}')
-                return
+            return
 
-        # Publish commands
-        self.publish_commands(steering, velocities)
+        self._publish_commands(steering, velocities)
 
-    def compute_omnidirectional(self, vx, vy, wz):
-        """4WD4WS omnidirectional kinematics: each wheel has independent angle"""
+    # -- Kinematics modes --
 
-        # Wheel positions relative to robot center
-        wheel_positions = {
-            'front_left':  (self.wheel_base/2,  self.track_width/2),
-            'front_right': (self.wheel_base/2, -self.track_width/2),
-            'rear_left':   (-self.wheel_base/2, self.track_width/2),
-            'rear_right':  (-self.wheel_base/2, -self.track_width/2)
-        }
-
+    def _compute_omnidirectional(self, vx, vy, wz):
+        """Each wheel has independent steering angle based on instantaneous velocity."""
         steering = {}
         velocities = {}
 
-        for wheel, (x, y) in wheel_positions.items():
-            # Instantaneous velocity of each wheel
-            v_wheel_x = vx - wz * y
-            v_wheel_y = vy + wz * x
+        for w, (px, py) in self.wheel_positions.items():
+            vw_x = vx - wz * py
+            vw_y = vy + wz * px
 
-            # Steering angle for this wheel
-            if abs(v_wheel_x) < 0.001 and abs(v_wheel_y) < 0.001:
-                steering[wheel] = 0.0
-                velocities[wheel] = 0.0
+            if abs(vw_x) < 1e-3 and abs(vw_y) < 1e-3:
+                steering[w] = 0.0
+                velocities[w] = 0.0
             else:
-                angle = math.atan2(v_wheel_y, v_wheel_x)
-                angle, direction = self.normalize_steering_angle(angle)
-                steering[wheel] = self.clamp(angle, -self.max_steering_angle, self.max_steering_angle)
-
-                # Wheel speed
-                speed = math.sqrt(v_wheel_x**2 + v_wheel_y**2)
-                velocities[wheel] = (speed / self.wheel_radius) * direction
+                angle = math.atan2(vw_y, vw_x)
+                angle, direction = self._normalize_steering(angle)
+                steering[w] = self._clamp(
+                    angle, -self.max_steering_angle, self.max_steering_angle
+                )
+                speed = math.hypot(vw_x, vw_y)
+                velocities[w] = (speed / self.wheel_radius) * direction
 
         return steering, velocities
 
-    def compute_ackermann(self, vx, wz):
-        """Ackermann mode: Front wheels steer, rear wheels straight (car-like)"""
-        if abs(vx) < 0.001 and abs(wz) < 0.001:
-            steering = {
-                'front_left': 0.0, 'front_right': 0.0,
-                'rear_left': 0.0, 'rear_right': 0.0
-            }
-            velocities = {
-                'front_left': 0.0, 'front_right': 0.0,
-                'rear_left': 0.0, 'rear_right': 0.0
-            }
+    def _compute_ackermann(self, vx, wz):
+        """Front wheels steer with geometric Ackermann, rear wheels straight."""
+        steering = {w: 0.0 for w in WHEELS}
+        velocities = {w: 0.0 for w in WHEELS}
+
+        if abs(vx) < 1e-3 and abs(wz) < 1e-3:
+            return steering, velocities
+
+        base_vel = vx / self.wheel_radius
+
+        if abs(wz) > 1e-3:
+            R = vx / wz  # signed turn radius
+
+            # Geometric Ackermann: atan(L / (R +/- T/2))
+            steering['front_left'] = math.atan2(
+                self.wheel_base, R - self.half_track
+            ) if abs(R - self.half_track) > 1e-3 else math.copysign(
+                math.pi / 2, wz
+            )
+            steering['front_right'] = math.atan2(
+                self.wheel_base, R + self.half_track
+            ) if abs(R + self.half_track) > 1e-3 else math.copysign(
+                math.pi / 2, wz
+            )
+
+            # Differential wheel speeds
+            vel_diff = wz * self.half_track / self.wheel_radius
+            velocities['front_left'] = base_vel - vel_diff
+            velocities['front_right'] = base_vel + vel_diff
+            velocities['rear_left'] = base_vel - vel_diff
+            velocities['rear_right'] = base_vel + vel_diff
         else:
-            if abs(wz) < 0.001:
-                steering_angle = 0.0
-            else:
-                R = abs(vx / wz) if abs(wz) > 0.001 else 1000.0
-                steering_angle = math.atan(self.wheel_base / R)
-                if wz < 0:
-                    steering_angle = -steering_angle
+            velocities = {w: base_vel for w in WHEELS}
 
-            if abs(steering_angle) > 0.001:
-                if steering_angle > 0:
-                    angle_inner = steering_angle * 1.1
-                    angle_outer = steering_angle * 0.9
-                    steering = {
-                        'front_left': angle_inner, 'front_right': angle_outer,
-                        'rear_left': 0.0, 'rear_right': 0.0
-                    }
-                else:
-                    angle_inner = steering_angle * 1.1
-                    angle_outer = steering_angle * 0.9
-                    steering = {
-                        'front_left': angle_outer, 'front_right': angle_inner,
-                        'rear_left': 0.0, 'rear_right': 0.0
-                    }
-            else:
-                steering = {
-                    'front_left': 0.0, 'front_right': 0.0,
-                    'rear_left': 0.0, 'rear_right': 0.0
-                }
-
-            base_vel = vx / self.wheel_radius
-
-            if abs(wz) > 0.001:
-                vel_diff = wz * self.track_width / (2.0 * self.wheel_radius)
-                velocities = {
-                    'front_left': base_vel - vel_diff,
-                    'front_right': base_vel + vel_diff,
-                    'rear_left': base_vel - vel_diff,
-                    'rear_right': base_vel + vel_diff
-                }
-            else:
-                velocities = {
-                    'front_left': base_vel, 'front_right': base_vel,
-                    'rear_left': base_vel, 'rear_right': base_vel
-                }
-
-        for key in steering:
-            steering[key] = self.clamp(steering[key], -self.max_steering_angle, self.max_steering_angle)
+        for w in WHEELS:
+            steering[w] = self._clamp(
+                steering[w], -self.max_steering_angle, self.max_steering_angle
+            )
 
         return steering, velocities
 
-    def compute_crab(self, vx, vy):
-        """Crab mode: Lateral movement with opposed front/rear wheels"""
-        if abs(vx) < 0.001 and abs(vy) < 0.001:
-            steering = {
-                'front_left': 0.0, 'front_right': 0.0,
-                'rear_left': 0.0, 'rear_right': 0.0
-            }
-            velocities = {
-                'front_left': 0.0, 'front_right': 0.0,
-                'rear_left': 0.0, 'rear_right': 0.0
-            }
+    def _compute_crab(self, vx, vy):
+        """All wheels same angle, front/rear opposed for lateral movement."""
+        steering = {w: 0.0 for w in WHEELS}
+        velocities = {w: 0.0 for w in WHEELS}
+
+        if abs(vx) < 1e-3 and abs(vy) < 1e-3:
+            return steering, velocities
+
+        if abs(vy) > 1e-3:
+            lateral_angle = math.atan2(abs(vy), abs(vx)) if abs(vx) > 1e-3 else math.pi / 2
+            lateral_angle = self._clamp(lateral_angle, 0.0, self.max_steering_angle)
+            front_angle = math.copysign(lateral_angle, vy)
+            rear_angle = -front_angle
         else:
-            total_speed = math.sqrt(vx**2 + vy**2)
+            front_angle = 0.0
+            rear_angle = 0.0
 
-            if abs(vy) > 0.001:
-                lateral_angle = math.atan2(abs(vy), abs(vx)) if abs(vx) > 0.001 else math.pi / 2
-                lateral_angle = self.clamp(lateral_angle, 0.0, self.max_steering_angle)
+        for w in WHEELS:
+            steering[w] = front_angle if 'front' in w else rear_angle
 
-                if vy > 0:
-                    front_angle = lateral_angle
-                    rear_angle = -lateral_angle
-                else:
-                    front_angle = -lateral_angle
-                    rear_angle = lateral_angle
-            else:
-                front_angle = 0.0
-                rear_angle = 0.0
-
-            steering = {
-                'front_left': front_angle, 'front_right': front_angle,
-                'rear_left': rear_angle, 'rear_right': rear_angle
-            }
-
-            wheel_vel = total_speed / self.wheel_radius
-            if vx < 0:
-                wheel_vel = -wheel_vel
-
-            velocities = {
-                'front_left': wheel_vel, 'front_right': wheel_vel,
-                'rear_left': wheel_vel, 'rear_right': wheel_vel
-            }
+        wheel_vel = math.hypot(vx, vy) / self.wheel_radius
+        if vx < 0:
+            wheel_vel = -wheel_vel
+        velocities = {w: wheel_vel for w in WHEELS}
 
         return steering, velocities
 
-    def publish_commands(self, steering, velocities):
-        """Publish steering and velocity commands to all wheels via Gz Sim"""
-        # Publish steering velocities (proportional control to reach target angle)
-        for wheel, target_angle in steering.items():
-            current_angle = self.current_steering[wheel]
+    # -- Publishing --
 
-            #TODO(olmerg) aqui se obtiene el angulo que deberia ser lo que se envie al carro directamente 
-
-            error = self.compute_shortest_path(current_angle, target_angle)
-
-            target_normalized = self.normalize_angle(target_angle)
-            if abs(target_normalized) > self.max_physical_steering:
-                self.get_logger().warn(f'{wheel} target angle {target_normalized:.2f} exceeds physical limit')
-                error = 0.0
-
-            steering_velocity = self.kp_steering * error
-            steering_velocity = self.clamp(steering_velocity, -self.max_steering_vel, self.max_steering_vel)
+    def _publish_commands(self, steering, velocities):
+        """Publish steering positions and wheel velocities."""
+        for w in WHEELS:
+            msg = Float64()
+            msg.data = steering[w]
+            self.steering_pubs[w].publish(msg)
 
             msg = Float64()
-            msg.data = steering_velocity
+            msg.data = self._clamp(velocities[w], -100.0, 100.0)
+            self.wheel_pubs[w].publish(msg)
 
-            # REMOVE the velocity controller 
-            self.steering_pubs[wheel].publish(msg)
-
-        # Publish wheel velocities directly
-        for wheel, velocity in velocities.items():
-            velocity = self.clamp(velocity, -100.0, 100.0)
-
-            msg = Float64()
-            msg.data = velocity
-            self.wheel_pubs[wheel].publish(msg)
+    # -- Utilities --
 
     @staticmethod
-    def normalize_angle(angle):
-        """Normalize angle to [-pi, pi]"""
+    def _normalize_angle(angle):
+        """Normalize angle to [-pi, pi]."""
         while angle > math.pi:
-            angle -= 2 * math.pi
+            angle -= 2.0 * math.pi
         while angle < -math.pi:
-            angle += 2 * math.pi
+            angle += 2.0 * math.pi
         return angle
 
     @staticmethod
-    def normalize_steering_angle(target_angle):
-        """
-        Normalize steering angle to [-pi/2, pi/2] range
-        Returns: (normalized_angle, direction_multiplier)
-        """
-        angle = FourWSKinematicsNode.normalize_angle(target_angle)
+    def _normalize_steering(angle):
+        """Normalize steering angle to [-pi/2, pi/2], inverting wheel direction if needed."""
+        angle = FourWSKinematicsNode._normalize_angle(angle)
         direction = 1.0
-
         if angle > math.pi / 2:
-            angle = angle - math.pi
+            angle -= math.pi
             direction = -1.0
         elif angle < -math.pi / 2:
-            angle = angle + math.pi
+            angle += math.pi
             direction = -1.0
-
         return angle, direction
 
-    def compute_shortest_path(self, current_angle, target_angle):
-        """Compute shortest path from current to target angle"""
-        current = self.normalize_angle(current_angle)
-        target = self.normalize_angle(target_angle)
-
-        error = target - current
-        error = self.normalize_angle(error)
-
-        return error
-
     @staticmethod
-    def clamp(value, min_val, max_val):
-        """Clamp value between min and max"""
+    def _clamp(value, min_val, max_val):
         return max(min_val, min(max_val, value))
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = FourWSKinematicsNode()
-
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

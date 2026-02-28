@@ -25,3 +25,7 @@ CONTEXTO.md
 /backup_meshes
 /scripts
 
+# === Debug/generated files ===
+*.gv
+frames_*.pdf
+

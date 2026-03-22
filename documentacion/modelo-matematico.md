@@ -139,13 +139,13 @@ Donde theta es la orientacion del robot en el frame mundial.
 
 ## 5. Script de Analisis
 
-El archivo `src/tadeocar_control/tadeocar_control/cinematica.py` genera graficas de
+El archivo `documentacion/cinematica.py` genera graficas de
 contorno que muestran las velocidades angulares de las ruedas (RPM) y los angulos de
 steering (grados) en funcion de la velocidad lineal y angular deseada.
 
 Ejecutar:
 ```bash
-python3 src/tadeocar_control/tadeocar_control/cinematica.py
+python3 documentacion/cinematica.py
 ```
 
 ---

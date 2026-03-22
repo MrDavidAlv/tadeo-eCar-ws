@@ -1,85 +1,58 @@
 #!/usr/bin/env python3
+"""
+Web Control Node for TadeoeCar.
+WebSocket server that receives commands from a web interface and publishes
+Twist messages on /cmd_vel and mode on /robot_mode.
+
+The actual kinematics (cmd_pos / cmd_vel to joints) is handled by
+fourws_kinematics_node. This node only translates web inputs to cmd_vel + mode.
+"""
+
+import asyncio
+import json
+import math
+import threading
+
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float64
-from sensor_msgs.msg import JointState
-import asyncio
-import websockets
-import json
-import threading
-import math
+from geometry_msgs.msg import Twist
+from std_msgs.msg import String
+
+try:
+    import websockets
+except ImportError:
+    websockets = None
+
 
 class TadeoCarWebControl(Node):
+
     def __init__(self):
         super().__init__('tadeocar_web_control')
 
-        # Publishers for direct joint effort control
-        self.fl_steering_pub = self.create_publisher(Float64, '/model/tadeocar_v1/joint/front_left_steering_joint/cmd_effort', 10)
-        self.fl_wheel_pub = self.create_publisher(Float64, '/model/tadeocar_v1/joint/front_left_wheel_joint/cmd_effort', 10)
-        self.fr_steering_pub = self.create_publisher(Float64, '/model/tadeocar_v1/joint/front_right_steering_joint/cmd_effort', 10)
-        self.fr_wheel_pub = self.create_publisher(Float64, '/model/tadeocar_v1/joint/front_right_wheel_joint/cmd_effort', 10)
-        self.rl_steering_pub = self.create_publisher(Float64, '/model/tadeocar_v1/joint/rear_left_steering_joint/cmd_effort', 10)
-        self.rl_wheel_pub = self.create_publisher(Float64, '/model/tadeocar_v1/joint/rear_left_wheel_joint/cmd_effort', 10)
-        self.rr_steering_pub = self.create_publisher(Float64, '/model/tadeocar_v1/joint/rear_right_steering_joint/cmd_effort', 10)
-        self.rr_wheel_pub = self.create_publisher(Float64, '/model/tadeocar_v1/joint/rear_right_wheel_joint/cmd_effort', 10)
+        # Publishers
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.mode_pub = self.create_publisher(String, '/robot_mode', 10)
 
-        # Subscriber for joint states
-        self.joint_state_sub = self.create_subscription(JointState, '/joint_states', self.joint_state_callback, 10)
-
-        self.current_joint_states = {}
         self.connected_clients = set()
+        self._loop = None
 
-        self.get_logger().info('TadeoeCar Web Control Node Started')
+        self.get_logger().info('TadeoeCar Web Control Node started (cmd_vel mode)')
 
-    def joint_state_callback(self, msg):
-        for i, name in enumerate(msg.name):
-            if i < len(msg.position):
-                self.current_joint_states[name] = msg.position[i]
+    def _publish_mode(self, mode_name):
+        """Publish robot mode."""
+        msg = String()
+        msg.data = mode_name
+        self.mode_pub.publish(msg)
 
-    def set_steering_effort(self, fl, fr, rl, rr):
-        """Set steering efforts to reach target angles"""
-        # PID-like control: calculate effort based on error
-        target_angles = {
-            'front_left_steering_joint': fl,
-            'front_right_steering_joint': fr,
-            'rear_left_steering_joint': rl,
-            'rear_right_steering_joint': rr
-        }
-
-        kp = 20.0  # Proportional gain for effort control
-
-        for joint_name, target in target_angles.items():
-            current = self.current_joint_states.get(joint_name, 0.0)
-            error = target - current
-            effort = kp * error
-
-            # Clamp effort
-            effort = max(-50.0, min(50.0, effort))
-
-            if 'front_left' in joint_name:
-                self.publish_effort(self.fl_steering_pub, effort)
-            elif 'front_right' in joint_name:
-                self.publish_effort(self.fr_steering_pub, effort)
-            elif 'rear_left' in joint_name:
-                self.publish_effort(self.rl_steering_pub, effort)
-            elif 'rear_right' in joint_name:
-                self.publish_effort(self.rr_steering_pub, effort)
-
-    def set_wheel_effort(self, fl, fr, rl, rr):
-        """Set wheel efforts (torque)"""
-        self.publish_effort(self.fl_wheel_pub, fl)
-        self.publish_effort(self.fr_wheel_pub, fr)
-        self.publish_effort(self.rl_wheel_pub, rl)
-        self.publish_effort(self.rr_wheel_pub, rr)
-
-    def publish_effort(self, publisher, effort):
-        """Publish effort command"""
-        msg = Float64()
-        msg.data = float(effort)
-        publisher.publish(msg)
+    def _publish_twist(self, vx=0.0, vy=0.0, wz=0.0):
+        """Publish Twist on /cmd_vel."""
+        msg = Twist()
+        msg.linear.x = float(vx)
+        msg.linear.y = float(vy)
+        msg.angular.z = float(wz)
+        self.cmd_vel_pub.publish(msg)
 
     def process_command(self, command):
-        """Process command from web interface"""
         try:
             mode = command.get('mode', '')
             speed_factor = command.get('speed', 100.0) / 100.0
@@ -87,55 +60,50 @@ class TadeoCarWebControl(Node):
             if mode == 'omnidirectional':
                 x = command.get('x', 0.0)
                 y = command.get('y', 0.0)
-
-                # Omnidirectional: all wheels point in direction of motion
+                vel = math.hypot(x, y) * speed_factor * 3.0
                 angle = math.atan2(y, x) if (x != 0 or y != 0) else 0.0
-                effort = math.sqrt(x*x + y*y) * speed_factor * 3.0
-
-                self.set_steering_effort(angle, angle, angle, angle)
-                self.set_wheel_effort(effort, effort, effort, effort)
+                vx = vel * math.cos(angle)
+                vy = vel * math.sin(angle)
+                self._publish_mode('omnidirectional')
+                self._publish_twist(vx=vx, vy=vy)
 
             elif mode == 'ackermann':
                 steering = command.get('steering', 0.0)
                 throttle = command.get('throttle', 0.0)
-
-                # Ackermann: front wheels steer, rear wheels straight
-                front_angle = steering * 0.5 * speed_factor
-                effort = throttle * speed_factor * 3.0
-
-                self.set_steering_effort(front_angle, front_angle, 0.0, 0.0)
-                self.set_wheel_effort(effort, effort, effort, effort)
+                vx = throttle * speed_factor * 3.0
+                # Convert steering input to angular velocity
+                # steering is normalized [-1, 1], scale to max angular speed
+                wz = steering * speed_factor * 1.0
+                self._publish_mode('ackermann')
+                self._publish_twist(vx=vx, wz=wz)
 
             elif mode == 'halo':
                 global_angle = command.get('globalAngle', 0.0)
                 speed = command.get('speed', 0.0)
-
-                # Halo: all wheels point same direction
                 angle_rad = math.radians(global_angle)
-                effort = speed * speed_factor * 3.0
-
-                self.set_steering_effort(angle_rad, angle_rad, angle_rad, angle_rad)
-                self.set_wheel_effort(effort, effort, effort, effort)
+                vel = speed * speed_factor * 3.0
+                vx = vel * math.cos(angle_rad)
+                vy = vel * math.sin(angle_rad)
+                self._publish_mode('crab')
+                self._publish_twist(vx=vx, vy=vy)
 
             elif mode == 'spin':
                 spin_speed = command.get('spinSpeed', 0.0)
-
-                # Spin: wheels point tangent to circle, opposite velocities
-                effort = spin_speed * speed_factor * 3.0
-                self.set_steering_effort(0.785, -0.785, -0.785, 0.785)  # ±45 degrees
-                self.set_wheel_effort(effort, -effort, effort, -effort)
+                wz = spin_speed * speed_factor * 3.0
+                self._publish_mode('omnidirectional')
+                self._publish_twist(wz=wz)
 
             elif mode == 'stop':
-                self.set_wheel_effort(0.0, 0.0, 0.0, 0.0)
+                self._publish_twist()
 
         except Exception as e:
             self.get_logger().error(f'Error processing command: {e}')
 
     async def websocket_handler(self, websocket):
-        """Handle WebSocket connections"""
         self.connected_clients.add(websocket)
-        self.get_logger().info(f'Client connected. Total clients: {len(self.connected_clients)}')
-
+        self.get_logger().info(
+            f'Client connected. Total: {len(self.connected_clients)}'
+        )
         try:
             async for message in websocket:
                 try:
@@ -146,21 +114,28 @@ class TadeoCarWebControl(Node):
         except websockets.exceptions.ConnectionClosed:
             pass
         finally:
-            self.connected_clients.remove(websocket)
-            self.get_logger().info(f'Client disconnected. Total clients: {len(self.connected_clients)}')
+            self.connected_clients.discard(websocket)
+            self.get_logger().info(
+                f'Client disconnected. Total: {len(self.connected_clients)}'
+            )
 
     async def start_websocket_server(self):
-        """Start WebSocket server"""
         server = await websockets.serve(self.websocket_handler, '0.0.0.0', 8765)
-        self.get_logger().info('WebSocket server started on ws://0.0.0.0:8765')
+        self.get_logger().info('WebSocket server on ws://0.0.0.0:8765')
         await server.wait_closed()
 
+
 def main(args=None):
+    if websockets is None:
+        print('ERROR: websockets package not installed. Run: pip3 install websockets')
+        return
+
     rclpy.init(args=args)
     node = TadeoCarWebControl()
 
-    # Run WebSocket server in separate thread
     loop = asyncio.new_event_loop()
+    node._loop = loop
+
     def run_asyncio_loop():
         asyncio.set_event_loop(loop)
         loop.run_until_complete(node.start_websocket_server())
@@ -173,8 +148,11 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
+        if loop.is_running():
+            loop.call_soon_threadsafe(loop.stop)
         node.destroy_node()
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

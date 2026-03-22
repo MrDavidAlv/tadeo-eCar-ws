@@ -73,14 +73,15 @@ def generate_launch_description():
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
             # Joint States (Gz -> ROS2)
             '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
-            # Joint Commands (ROS2 -> Gz) - 4 steering + 4 wheel
-            '/model/tadeocar/joint/front_left_steering_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
+            # Steering Commands (ROS2 -> Gz) - position control
+            '/model/tadeocar/joint/front_left_steering_joint/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            '/model/tadeocar/joint/front_right_steering_joint/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            '/model/tadeocar/joint/rear_left_steering_joint/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            '/model/tadeocar/joint/rear_right_steering_joint/cmd_pos@std_msgs/msg/Float64]gz.msgs.Double',
+            # Wheel Commands (ROS2 -> Gz) - velocity control
             '/model/tadeocar/joint/front_left_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
-            '/model/tadeocar/joint/front_right_steering_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
             '/model/tadeocar/joint/front_right_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
-            '/model/tadeocar/joint/rear_left_steering_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
             '/model/tadeocar/joint/rear_left_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
-            '/model/tadeocar/joint/rear_right_steering_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
             '/model/tadeocar/joint/rear_right_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
             # Cameras (Gz -> ROS2)
             '/camera/left/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',

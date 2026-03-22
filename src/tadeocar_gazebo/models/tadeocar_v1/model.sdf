@@ -885,17 +885,44 @@
       <joint_name>rear_right_wheel_joint</joint_name>
     </plugin>
 
-    <!-- Joint Controllers (velocity control for each joint) -->
-    <!--TODO(olmerg) change from velocity controller to position controller https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1systems_1_1JointPositionController.html-->
-    <!-- Front Left Steering -->
-    <plugin filename="ignition-gazebo-joint-controller-system"
-            name="ignition::gazebo::systems::JointController">
+    <!-- Steering Joint Position Controllers (position control for servo-like behavior) -->
+    <plugin filename="ignition-gazebo-joint-position-controller-system"
+            name="ignition::gazebo::systems::JointPositionController">
       <joint_name>front_left_steering_joint</joint_name>
-      <topic>model/tadeocar/joint/front_left_steering_joint/cmd_vel</topic>
-      <use_velocity_commands>true</use_velocity_commands>
+      <topic>model/tadeocar/joint/front_left_steering_joint/cmd_pos</topic>
+      <p_gain>50.0</p_gain>
+      <i_gain>0.0</i_gain>
+      <d_gain>10.0</d_gain>
     </plugin>
 
-    <!-- Front Left Wheel -->
+    <plugin filename="ignition-gazebo-joint-position-controller-system"
+            name="ignition::gazebo::systems::JointPositionController">
+      <joint_name>front_right_steering_joint</joint_name>
+      <topic>model/tadeocar/joint/front_right_steering_joint/cmd_pos</topic>
+      <p_gain>50.0</p_gain>
+      <i_gain>0.0</i_gain>
+      <d_gain>10.0</d_gain>
+    </plugin>
+
+    <plugin filename="ignition-gazebo-joint-position-controller-system"
+            name="ignition::gazebo::systems::JointPositionController">
+      <joint_name>rear_left_steering_joint</joint_name>
+      <topic>model/tadeocar/joint/rear_left_steering_joint/cmd_pos</topic>
+      <p_gain>50.0</p_gain>
+      <i_gain>0.0</i_gain>
+      <d_gain>10.0</d_gain>
+    </plugin>
+
+    <plugin filename="ignition-gazebo-joint-position-controller-system"
+            name="ignition::gazebo::systems::JointPositionController">
+      <joint_name>rear_right_steering_joint</joint_name>
+      <topic>model/tadeocar/joint/rear_right_steering_joint/cmd_pos</topic>
+      <p_gain>50.0</p_gain>
+      <i_gain>0.0</i_gain>
+      <d_gain>10.0</d_gain>
+    </plugin>
+
+    <!-- Wheel Joint Velocity Controllers (velocity control for drive wheels) -->
     <plugin filename="ignition-gazebo-joint-controller-system"
             name="ignition::gazebo::systems::JointController">
       <joint_name>front_left_wheel_joint</joint_name>
@@ -903,15 +930,6 @@
       <use_velocity_commands>true</use_velocity_commands>
     </plugin>
 
-    <!-- Front Right Steering -->
-    <plugin filename="ignition-gazebo-joint-controller-system"
-            name="ignition::gazebo::systems::JointController">
-      <joint_name>front_right_steering_joint</joint_name>
-      <topic>model/tadeocar/joint/front_right_steering_joint/cmd_vel</topic>
-      <use_velocity_commands>true</use_velocity_commands>
-    </plugin>
-
-    <!-- Front Right Wheel -->
     <plugin filename="ignition-gazebo-joint-controller-system"
             name="ignition::gazebo::systems::JointController">
       <joint_name>front_right_wheel_joint</joint_name>
@@ -919,15 +937,6 @@
       <use_velocity_commands>true</use_velocity_commands>
     </plugin>
 
-    <!-- Rear Left Steering -->
-    <plugin filename="ignition-gazebo-joint-controller-system"
-            name="ignition::gazebo::systems::JointController">
-      <joint_name>rear_left_steering_joint</joint_name>
-      <topic>model/tadeocar/joint/rear_left_steering_joint/cmd_vel</topic>
-      <use_velocity_commands>true</use_velocity_commands>
-    </plugin>
-
-    <!-- Rear Left Wheel -->
     <plugin filename="ignition-gazebo-joint-controller-system"
             name="ignition::gazebo::systems::JointController">
       <joint_name>rear_left_wheel_joint</joint_name>
@@ -935,15 +944,6 @@
       <use_velocity_commands>true</use_velocity_commands>
     </plugin>
 
-    <!-- Rear Right Steering -->
-    <plugin filename="ignition-gazebo-joint-controller-system"
-            name="ignition::gazebo::systems::JointController">
-      <joint_name>rear_right_steering_joint</joint_name>
-      <topic>model/tadeocar/joint/rear_right_steering_joint/cmd_vel</topic>
-      <use_velocity_commands>true</use_velocity_commands>
-    </plugin>
-
-    <!-- Rear Right Wheel -->
     <plugin filename="ignition-gazebo-joint-controller-system"
             name="ignition::gazebo::systems::JointController">
       <joint_name>rear_right_wheel_joint</joint_name>

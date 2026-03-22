@@ -1,0 +1,202 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 680" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <style>
+      .box { rx: 8; ry: 8; stroke-width: 2; }
+      .label { font-size: 12px; font-weight: 600; fill: #ffffff; }
+      .label-sm { font-size: 10px; font-weight: 600; fill: #ffffff; }
+      .detail { font-size: 9px; fill: #d1d5db; }
+      .detail-dark { font-size: 9px; fill: #6b7280; }
+      .topic { font-size: 8.5px; font-family: 'Courier New', monospace; fill: #94a3b8; }
+      .topic-dark { font-size: 8.5px; font-family: 'Courier New', monospace; fill: #64748b; }
+      .arrow { stroke-width: 2; fill: none; marker-end: url(#ah); }
+      .arrow-bidi { stroke-width: 2; fill: none; marker-end: url(#ah); marker-start: url(#ah-rev); }
+      .arrow-power { stroke-width: 2.5; fill: none; stroke-dasharray: 6,3; }
+      .section-label { font-size: 10px; font-weight: 700; fill: #6b7280; text-transform: uppercase; letter-spacing: 1.5px; }
+      .layer-bg { rx: 10; ry: 10; stroke-width: 1.5; }
+    </style>
+    <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <marker id="ah-rev" markerWidth="10" markerHeight="7" refX="1" refY="3.5" orient="auto">
+      <polygon points="10 0, 0 3.5, 10 7" fill="#475569"/>
+    </marker>
+    <marker id="ah-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="680" fill="#fafbfc" rx="12"/>
+  <rect x="0" y="0" width="960" height="50" fill="#1a1a2e" rx="12"/>
+  <rect x="0" y="25" width="960" height="25" fill="#1a1a2e"/>
+  <text x="480" y="33" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">Hardware Architecture - Real Robot</text>
+
+  <!-- ===== POWER LAYER (bottom) ===== -->
+  <rect x="15" y="590" width="930" height="75" class="layer-bg" fill="#fef2f2" stroke="#fecaca"/>
+  <text x="35" y="610" class="section-label" fill="#991b1b">POWER</text>
+
+  <rect x="160" y="618" width="170" height="40" class="box" fill="#991b1b" stroke="#7f1d1d"/>
+  <text x="245" y="636" text-anchor="middle" class="label">Battery A</text>
+  <text x="245" y="650" text-anchor="middle" class="detail">LiPo / 24V</text>
+
+  <rect x="620" y="618" width="170" height="40" class="box" fill="#991b1b" stroke="#7f1d1d"/>
+  <text x="705" y="636" text-anchor="middle" class="label">Battery B</text>
+  <text x="705" y="650" text-anchor="middle" class="detail">LiPo / 24V</text>
+
+  <!-- ===== ACTUATOR LAYER ===== -->
+  <rect x="15" y="410" width="930" height="170" class="layer-bg" fill="#f0f4ff" stroke="#c7d2fe"/>
+  <text x="35" y="432" class="section-label" fill="#3730a3">ACTUATORS</text>
+
+  <!-- ODrive Front -->
+  <rect x="50" y="445" width="190" height="55" class="box" fill="#3730a3" stroke="#312e81"/>
+  <text x="145" y="467" text-anchor="middle" class="label">ODrive S3 (Front)</text>
+  <text x="145" y="484" text-anchor="middle" class="detail">2x BLDC motors + encoders</text>
+
+  <!-- ODrive Rear -->
+  <rect x="50" y="515" width="190" height="55" class="box" fill="#3730a3" stroke="#312e81"/>
+  <text x="145" y="537" text-anchor="middle" class="label">ODrive S3 (Rear)</text>
+  <text x="145" y="554" text-anchor="middle" class="detail">2x BLDC motors + encoders</text>
+
+  <!-- Front wheels -->
+  <rect x="290" y="445" width="105" height="25" class="box" fill="#4338ca" stroke="#3730a3"/>
+  <text x="342" y="462" text-anchor="middle" class="label-sm">FL Motor</text>
+  <rect x="405" y="445" width="105" height="25" class="box" fill="#4338ca" stroke="#3730a3"/>
+  <text x="457" y="462" text-anchor="middle" class="label-sm">FR Motor</text>
+
+  <rect x="290" y="475" width="105" height="22" rx="4" fill="#e0e7ff" stroke="#a5b4fc"/>
+  <text x="342" y="490" text-anchor="middle" class="detail-dark">Encoder FL</text>
+  <rect x="405" y="475" width="105" height="22" rx="4" fill="#e0e7ff" stroke="#a5b4fc"/>
+  <text x="457" y="490" text-anchor="middle" class="detail-dark">Encoder FR</text>
+
+  <!-- Rear wheels -->
+  <rect x="290" y="515" width="105" height="25" class="box" fill="#4338ca" stroke="#3730a3"/>
+  <text x="342" y="532" text-anchor="middle" class="label-sm">RL Motor</text>
+  <rect x="405" y="515" width="105" height="25" class="box" fill="#4338ca" stroke="#3730a3"/>
+  <text x="457" y="532" text-anchor="middle" class="label-sm">RR Motor</text>
+
+  <rect x="290" y="545" width="105" height="22" rx="4" fill="#e0e7ff" stroke="#a5b4fc"/>
+  <text x="342" y="560" text-anchor="middle" class="detail-dark">Encoder RL</text>
+  <rect x="405" y="545" width="105" height="22" rx="4" fill="#e0e7ff" stroke="#a5b4fc"/>
+  <text x="457" y="560" text-anchor="middle" class="detail-dark">Encoder RR</text>
+
+  <!-- Servos -->
+  <rect x="570" y="445" width="175" height="55" class="box" fill="#4a6741" stroke="#3d5636"/>
+  <text x="657" y="465" text-anchor="middle" class="label">4x Servo Industrial</text>
+  <text x="657" y="482" text-anchor="middle" class="detail">270 deg | PWM / Serial</text>
+  <text x="657" y="495" text-anchor="middle" class="topic">FL | FR | RL | RR steering</text>
+
+  <!-- Servo detail boxes -->
+  <rect x="570" y="510" width="82" height="22" class="box" fill="#3d5636" stroke="#2d4220"/>
+  <text x="611" y="525" text-anchor="middle" font-size="8" fill="#d1d5db">FL Servo</text>
+  <rect x="663" y="510" width="82" height="22" class="box" fill="#3d5636" stroke="#2d4220"/>
+  <text x="704" y="525" text-anchor="middle" font-size="8" fill="#d1d5db">FR Servo</text>
+  <rect x="570" y="540" width="82" height="22" class="box" fill="#3d5636" stroke="#2d4220"/>
+  <text x="611" y="555" text-anchor="middle" font-size="8" fill="#d1d5db">RL Servo</text>
+  <rect x="663" y="540" width="82" height="22" class="box" fill="#3d5636" stroke="#2d4220"/>
+  <text x="704" y="555" text-anchor="middle" font-size="8" fill="#d1d5db">RR Servo</text>
+
+  <!-- ODrive -> motors arrows -->
+  <path d="M240 465 L290 458" class="arrow" stroke="#475569"/>
+  <path d="M240 472 L290 458" class="arrow" stroke="#475569"/>
+  <path d="M240 540 L290 528" class="arrow" stroke="#475569"/>
+  <path d="M240 540 L290 528" class="arrow" stroke="#475569"/>
+
+  <!-- Power arrows -->
+  <path d="M245 618 L200 570" class="arrow-power" stroke="#dc2626" marker-end="url(#ah-red)"/>
+  <path d="M245 618 L200 570" class="arrow-power" stroke="#dc2626"/>
+  <path d="M705 618 L700 570" class="arrow-power" stroke="#dc2626"/>
+  <text x="170" y="600" font-size="8" fill="#991b1b" font-weight="600">24V</text>
+  <text x="720" y="600" font-size="8" fill="#991b1b" font-weight="600">24V</text>
+
+  <!-- ===== COMPUTE LAYER ===== -->
+  <rect x="15" y="230" width="930" height="170" class="layer-bg" fill="#f0fdf4" stroke="#bbf7d0"/>
+  <text x="35" y="252" class="section-label" fill="#166534">COMPUTE + MIDDLEWARE</text>
+
+  <!-- Jetson Nano -->
+  <rect x="320" y="262" width="310" height="125" class="box" fill="#166534" stroke="#14532d"/>
+  <rect x="330" y="270" width="290" height="20" rx="4" fill="#14532d"/>
+  <text x="475" y="284" text-anchor="middle" font-size="11" font-weight="700" fill="#86efac">NVIDIA Jetson Nano 4GB</text>
+
+  <!-- ROS2 inside Jetson -->
+  <rect x="335" y="298" width="130" height="38" class="box" fill="#1e3a5f" stroke="#16304d"/>
+  <text x="400" y="315" text-anchor="middle" class="label-sm">ROS2 Humble</text>
+  <text x="400" y="328" text-anchor="middle" class="detail">4WS Kinematics</text>
+
+  <rect x="475" y="298" width="145" height="38" class="box" fill="#1e3a5f" stroke="#16304d"/>
+  <text x="547" y="315" text-anchor="middle" class="label-sm">micro-ROS Agent</text>
+  <text x="547" y="328" text-anchor="middle" class="detail">Serial / USB bridge</text>
+
+  <!-- Nav2 + SLAM -->
+  <rect x="335" y="345" width="130" height="35" class="box" fill="#6b4c8a" stroke="#5a3d76"/>
+  <text x="400" y="362" text-anchor="middle" class="label-sm">Nav2 + SLAM</text>
+  <text x="400" y="374" text-anchor="middle" class="detail">RTAB-Map / SLAM Toolbox</text>
+
+  <rect x="475" y="345" width="145" height="35" class="box" fill="#0e4a6f" stroke="#0c3d5c"/>
+  <text x="547" y="362" text-anchor="middle" class="label-sm">twist_mux</text>
+  <text x="547" y="374" text-anchor="middle" class="detail">Priority arbiter</text>
+
+  <!-- Comm protocols labels -->
+  <rect x="365" y="395" width="60" height="18" rx="9" fill="#e0e7ff" stroke="#a5b4fc"/>
+  <text x="395" y="408" text-anchor="middle" font-size="8" font-weight="600" fill="#3730a3">USB</text>
+  <rect x="445" y="395" width="60" height="18" rx="9" fill="#e0e7ff" stroke="#a5b4fc"/>
+  <text x="475" y="408" text-anchor="middle" font-size="8" font-weight="600" fill="#3730a3">USB</text>
+  <rect x="530" y="395" width="70" height="18" rx="9" fill="#dcfce7" stroke="#86efac"/>
+  <text x="565" y="408" text-anchor="middle" font-size="8" font-weight="600" fill="#166534">PWM/Serial</text>
+
+  <!-- ===== SENSOR LAYER ===== -->
+  <rect x="15" y="62" width="930" height="158" class="layer-bg" fill="#fefce8" stroke="#fde68a"/>
+  <text x="35" y="82" class="section-label" fill="#854d0e">SENSORS</text>
+
+  <!-- ZED2i -->
+  <rect x="50" y="95" width="220" height="110" class="box" fill="#1e3a5f" stroke="#16304d"/>
+  <text x="160" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">ZED2i Stereo Camera</text>
+  <line x1="65" y1="125" x2="255" y2="125" stroke="#2d4a6f"/>
+  <text x="160" y="140" text-anchor="middle" class="detail">Baseline: 0.12m | HFOV: 110 deg</text>
+  <text x="160" y="155" text-anchor="middle" class="detail">1280x720 @ 30fps | IMU 400Hz</text>
+  <text x="160" y="170" text-anchor="middle" class="topic">/zed/zed_node/left/image_rect_color</text>
+  <text x="160" y="182" text-anchor="middle" class="topic">/zed/zed_node/imu/data_raw</text>
+  <text x="160" y="198" text-anchor="middle" font-size="8" fill="#93c5fd">USB 3.0 to Jetson</text>
+
+  <!-- YDLidar X2 -->
+  <rect x="310" y="95" width="200" height="85" class="box" fill="#4a6741" stroke="#3d5636"/>
+  <text x="410" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">YDLidar X2</text>
+  <line x1="325" y1="125" x2="495" y2="125" stroke="#3d5636"/>
+  <text x="410" y="140" text-anchor="middle" class="detail">360 deg | 8m range | 3000 Hz</text>
+  <text x="410" y="155" text-anchor="middle" class="topic">/scan (LaserScan)</text>
+  <text x="410" y="172" text-anchor="middle" font-size="8" fill="#86efac">USB / UART to Jetson</text>
+
+  <!-- Encoders -->
+  <rect x="550" y="95" width="175" height="85" class="box" fill="#4a3860" stroke="#3d2d52"/>
+  <text x="637" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">4x Encoders</text>
+  <line x1="565" y1="125" x2="710" y2="125" stroke="#3d2d52"/>
+  <text x="637" y="140" text-anchor="middle" class="detail">Wheel odometry (ticks)</text>
+  <text x="637" y="155" text-anchor="middle" class="topic">/odom (via ODrive)</text>
+  <text x="637" y="172" text-anchor="middle" font-size="8" fill="#c4b5fd">Integrated in ODrive</text>
+
+  <!-- IMU (from ZED) note -->
+  <rect x="765" y="95" width="160" height="85" class="box" fill="#374151" stroke="#4b5563"/>
+  <text x="845" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">IMU (BMI088)</text>
+  <line x1="780" y1="125" x2="910" y2="125" stroke="#4b5563"/>
+  <text x="845" y="140" text-anchor="middle" class="detail">400 Hz | 6-axis</text>
+  <text x="845" y="155" text-anchor="middle" class="detail">Built into ZED2i</text>
+  <text x="845" y="172" text-anchor="middle" class="topic">/zed/zed_node/imu/data_raw</text>
+
+  <!-- ===== CONNECTION ARROWS ===== -->
+  <!-- Sensors -> Jetson -->
+  <path d="M160 205 L400 262" class="arrow" stroke="#475569"/>
+  <path d="M410 180 L440 262" class="arrow" stroke="#475569"/>
+  <path d="M637 180 L530 262" class="arrow" stroke="#475569"/>
+  <path d="M845 180 L500 262" class="arrow" stroke="#475569"/>
+
+  <!-- Jetson -> Actuators -->
+  <path d="M395 413 L145 445" class="arrow" stroke="#475569"/>
+  <path d="M395 413 L145 515" class="arrow" stroke="#475569"/>
+  <path d="M565 413 L657 445" class="arrow" stroke="#475569"/>
+
+  <!-- Protocol labels on arrows -->
+  <rect x="780" y="440" width="145" height="55" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="852" y="458" text-anchor="middle" font-size="9" font-weight="600" fill="#475569">Communication</text>
+  <text x="852" y="472" text-anchor="middle" font-size="8" fill="#64748b">ODrive: USB / CAN bus</text>
+  <text x="852" y="484" text-anchor="middle" font-size="8" fill="#64748b">Servos: PWM / Serial</text>
+  <text x="852" y="496" text-anchor="middle" font-size="8" fill="#64748b">ZED2i: USB 3.0</text>
+</svg>

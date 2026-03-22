@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 480" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <style>
+      .frame { rx: 6; ry: 6; stroke-width: 1.5; }
+      .frame-label { font-size: 10.5px; font-weight: 600; fill: #ffffff; }
+      .joint-line { stroke-width: 2; stroke: #64748b; }
+      .joint-label { font-size: 8px; fill: #94a3b8; font-style: italic; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="780" height="480" fill="#fafbfc" rx="12"/>
+  <rect x="0" y="0" width="780" height="50" fill="#1a1a2e" rx="12"/>
+  <rect x="0" y="25" width="780" height="25" fill="#1a1a2e"/>
+  <text x="390" y="33" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">TF Frame Tree</text>
+
+  <!-- map -->
+  <rect x="340" y="65" width="100" height="32" class="frame" fill="#8b6f47" stroke="#76603e"/>
+  <text x="390" y="86" text-anchor="middle" class="frame-label">map</text>
+
+  <line x1="390" y1="97" x2="390" y2="115" class="joint-line"/>
+
+  <!-- odom -->
+  <rect x="340" y="115" width="100" height="32" class="frame" fill="#8b6f47" stroke="#76603e"/>
+  <text x="390" y="136" text-anchor="middle" class="frame-label">odom</text>
+
+  <line x1="390" y1="147" x2="390" y2="165" class="joint-line"/>
+
+  <!-- base_footprint -->
+  <rect x="325" y="165" width="130" height="32" class="frame" fill="#4a6741" stroke="#3d5636"/>
+  <text x="390" y="186" text-anchor="middle" class="frame-label">base_footprint</text>
+
+  <line x1="390" y1="197" x2="390" y2="215" class="joint-line"/>
+
+  <!-- base_link -->
+  <rect x="340" y="215" width="100" height="32" class="frame" fill="#1e3a5f" stroke="#16304d"/>
+  <text x="390" y="236" text-anchor="middle" class="frame-label">base_link</text>
+
+  <!-- Lines from base_link to children -->
+  <line x1="390" y1="247" x2="390" y2="265" class="joint-line"/>
+
+  <!-- Horizontal spread line -->
+  <line x1="70" y1="265" x2="710" y2="265" class="joint-line"/>
+
+  <!-- Verticals down from spread -->
+  <line x1="70" y1="265" x2="70" y2="285" class="joint-line"/>
+  <line x1="195" y1="265" x2="195" y2="285" class="joint-line"/>
+  <line x1="320" y1="265" x2="320" y2="285" class="joint-line"/>
+  <line x1="445" y1="265" x2="445" y2="285" class="joint-line"/>
+  <line x1="570" y1="265" x2="570" y2="285" class="joint-line"/>
+  <line x1="710" y1="265" x2="710" y2="285" class="joint-line"/>
+
+  <!-- chasis_link -->
+  <rect x="18" y="285" width="105" height="30" class="frame" fill="#374151" stroke="#4b5563"/>
+  <text x="70" y="304" text-anchor="middle" class="frame-label">chasis_link</text>
+
+  <!-- base_scan -->
+  <rect x="145" y="285" width="100" height="30" class="frame" fill="#4a6741" stroke="#3d5636"/>
+  <text x="195" y="304" text-anchor="middle" class="frame-label">base_scan</text>
+
+  <!-- FL steering -->
+  <rect x="255" y="285" width="130" height="30" class="frame" fill="#6b4c8a" stroke="#5a3d76"/>
+  <text x="320" y="304" text-anchor="middle" class="frame-label">FL steering</text>
+
+  <!-- FR steering -->
+  <rect x="390" y="285" width="110" height="30" class="frame" fill="#6b4c8a" stroke="#5a3d76"/>
+  <text x="445" y="304" text-anchor="middle" class="frame-label">FR steering</text>
+
+  <!-- RL steering -->
+  <rect x="515" y="285" width="110" height="30" class="frame" fill="#6b4c8a" stroke="#5a3d76"/>
+  <text x="570" y="304" text-anchor="middle" class="frame-label">RL steering</text>
+
+  <!-- RR steering -->
+  <rect x="650" y="285" width="120" height="30" class="frame" fill="#6b4c8a" stroke="#5a3d76"/>
+  <text x="710" y="304" text-anchor="middle" class="frame-label">RR steering</text>
+
+  <!-- Wheel links -->
+  <line x1="320" y1="315" x2="320" y2="340" class="joint-line"/>
+  <rect x="265" y="340" width="110" height="28" class="frame" fill="#2d4a6f" stroke="#22314E"/>
+  <text x="320" y="358" text-anchor="middle" class="frame-label">FL wheel</text>
+
+  <line x1="445" y1="315" x2="445" y2="340" class="joint-line"/>
+  <rect x="390" y="340" width="110" height="28" class="frame" fill="#2d4a6f" stroke="#22314E"/>
+  <text x="445" y="358" text-anchor="middle" class="frame-label">FR wheel</text>
+
+  <line x1="570" y1="315" x2="570" y2="340" class="joint-line"/>
+  <rect x="515" y="340" width="110" height="28" class="frame" fill="#2d4a6f" stroke="#22314E"/>
+  <text x="570" y="358" text-anchor="middle" class="frame-label">RL wheel</text>
+
+  <line x1="710" y1="315" x2="710" y2="340" class="joint-line"/>
+  <rect x="655" y="340" width="110" height="28" class="frame" fill="#2d4a6f" stroke="#22314E"/>
+  <text x="710" y="358" text-anchor="middle" class="frame-label">RR wheel</text>
+
+  <!-- ZED2i from base_link -->
+  <!-- Vertical from base_link spread at x=390, add ZED2i branch -->
+  <line x1="70" y1="315" x2="70" y2="345" class="joint-line"/>
+
+  <!-- ZED2i camera link -->
+  <rect x="10" y="345" width="120" height="30" class="frame" fill="#1e3a5f" stroke="#16304d"/>
+  <text x="70" y="364" text-anchor="middle" class="frame-label">zed2i_camera</text>
+
+  <!-- ZED2i children spread -->
+  <line x1="70" y1="375" x2="70" y2="390" class="joint-line"/>
+  <line x1="10" y1="390" x2="195" y2="390" class="joint-line"/>
+  <line x1="10" y1="390" x2="10" y2="405" class="joint-line"/>
+  <line x1="70" y1="390" x2="70" y2="405" class="joint-line"/>
+  <line x1="195" y1="390" x2="195" y2="405" class="joint-line"/>
+
+  <!-- ZED2i optical frames -->
+  <rect x="-38" y="405" width="96" height="28" class="frame" fill="#0e4a6f" stroke="#0c3d5c"/>
+  <text x="10" y="424" text-anchor="middle" font-size="9" font-weight="600" fill="#ffffff">left_optical</text>
+
+  <rect x="25" y="440" width="90" height="28" class="frame" fill="#0e4a6f" stroke="#0c3d5c"/>
+  <text x="70" y="459" text-anchor="middle" font-size="9" font-weight="600" fill="#ffffff">imu_link</text>
+
+  <line x1="70" y1="433" x2="70" y2="440" class="joint-line"/>
+
+  <rect x="147" y="405" width="96" height="28" class="frame" fill="#0e4a6f" stroke="#0c3d5c"/>
+  <text x="195" y="424" text-anchor="middle" font-size="9" font-weight="600" fill="#ffffff">right_optical</text>
+
+  <!-- Legend -->
+  <rect x="570" y="395" width="195" height="75" rx="8" fill="#f3f4f6" stroke="#e5e7eb"/>
+  <text x="668" y="414" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">Frame Types</text>
+  <rect x="585" y="422" width="12" height="12" rx="3" fill="#8b6f47"/>
+  <text x="604" y="432" font-size="9" fill="#4b5563">World / Odom</text>
+  <rect x="585" y="438" width="12" height="12" rx="3" fill="#6b4c8a"/>
+  <text x="604" y="448" font-size="9" fill="#4b5563">Steering (continuous)</text>
+  <rect x="585" y="454" width="12" height="12" rx="3" fill="#2d4a6f"/>
+  <text x="604" y="464" font-size="9" fill="#4b5563">Wheels / Sensors</text>
+  <rect x="695" y="422" width="12" height="12" rx="3" fill="#1e3a5f"/>
+  <text x="714" y="432" font-size="9" fill="#4b5563">Body / Camera</text>
+  <rect x="695" y="438" width="12" height="12" rx="3" fill="#0e4a6f"/>
+  <text x="714" y="448" font-size="9" fill="#4b5563">Optical / IMU</text>
+</svg>

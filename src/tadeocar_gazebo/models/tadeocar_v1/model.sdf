@@ -890,36 +890,36 @@
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>front_left_steering_joint</joint_name>
       <topic>model/tadeocar/joint/front_left_steering_joint/cmd_pos</topic>
-      <p_gain>50.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>10.0</d_gain>
+      <p_gain>200.0</p_gain>
+      <i_gain>5.0</i_gain>
+      <d_gain>30.0</d_gain>
     </plugin>
 
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>front_right_steering_joint</joint_name>
       <topic>model/tadeocar/joint/front_right_steering_joint/cmd_pos</topic>
-      <p_gain>50.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>10.0</d_gain>
+      <p_gain>200.0</p_gain>
+      <i_gain>5.0</i_gain>
+      <d_gain>30.0</d_gain>
     </plugin>
 
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>rear_left_steering_joint</joint_name>
       <topic>model/tadeocar/joint/rear_left_steering_joint/cmd_pos</topic>
-      <p_gain>50.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>10.0</d_gain>
+      <p_gain>200.0</p_gain>
+      <i_gain>5.0</i_gain>
+      <d_gain>30.0</d_gain>
     </plugin>
 
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>rear_right_steering_joint</joint_name>
       <topic>model/tadeocar/joint/rear_right_steering_joint/cmd_pos</topic>
-      <p_gain>50.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>10.0</d_gain>
+      <p_gain>200.0</p_gain>
+      <i_gain>5.0</i_gain>
+      <d_gain>30.0</d_gain>
     </plugin>
 
     <!-- Wheel Joint Velocity Controllers (velocity control for drive wheels) -->

@@ -9,6 +9,7 @@
 
   <exec_depend>tadeocar_gazebo</exec_depend>
   <exec_depend>tadeocar_slam</exec_depend>
+  <exec_depend>tadeocar_vslam</exec_depend>
   <exec_depend>tadeocar_navigation</exec_depend>
   <exec_depend>tadeocar_control</exec_depend>
   <exec_depend>rviz2</exec_depend>

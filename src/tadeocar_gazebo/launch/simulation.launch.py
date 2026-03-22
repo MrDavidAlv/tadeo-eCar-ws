@@ -83,11 +83,13 @@ def generate_launch_description():
             '/model/tadeocar/joint/front_right_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
             '/model/tadeocar/joint/rear_left_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
             '/model/tadeocar/joint/rear_right_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
-            # Cameras (Gz -> ROS2)
-            '/camera/left/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-            '/camera/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-            '/camera/right/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-            '/camera/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            # ZED2i Cameras (Gz -> ROS2) - topics match real ZED SDK naming
+            '/zed/zed_node/left/image_rect_color@sensor_msgs/msg/Image[gz.msgs.Image',
+            '/zed/zed_node/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            '/zed/zed_node/right/image_rect_color@sensor_msgs/msg/Image[gz.msgs.Image',
+            '/zed/zed_node/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            # ZED2i IMU (Gz -> ROS2)
+            '/zed/zed_node/imu/data_raw@sensor_msgs/msg/Imu[gz.msgs.IMU',
         ],
         output='screen'
     )

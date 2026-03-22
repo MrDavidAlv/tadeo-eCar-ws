@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-Launch file for Xbox controller with 4WS kinematics
+Launch file for Xbox controller.
+Launches joy_node + xbox_control_node only.
+fourws_kinematics and twist_mux are launched by simulation.launch.py.
 """
 
 from launch import LaunchDescription
@@ -9,8 +11,6 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    """Generate launch description with Xbox control"""
-
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
 
     # Joy node (reads from /dev/input/js0)
@@ -26,7 +26,7 @@ def generate_launch_description():
         }]
     )
 
-    # Xbox Control Node (maps joy to cmd_vel)
+    # Xbox Control Node (maps joy -> /cmd_vel_joy + /robot_mode)
     xbox_control_node = Node(
         package='tadeocar_control',
         executable='xbox_control',
@@ -37,19 +37,7 @@ def generate_launch_description():
         }]
     )
 
-    # 4WS Kinematics Controller
-    fourws_kinematics_node = Node(
-        package='tadeocar_control',
-        executable='fourws_kinematics',
-        name='fourws_kinematics_node',
-        output='screen',
-        parameters=[{
-            'use_sim_time': use_sim_time
-        }]
-    )
-
     return LaunchDescription([
         joy_node,
         xbox_control_node,
-        fourws_kinematics_node
     ])

@@ -125,6 +125,20 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}]
     )
 
+    # twist_mux: multiplexes velocity sources by priority
+    # joy(100) > web(90) > teleop(50) > nav2(10)
+    pkg_tadeocar_control = get_package_share_directory('tadeocar_control')
+    twist_mux_config = os.path.join(pkg_tadeocar_control, 'config', 'twist_mux.yaml')
+
+    twist_mux = Node(
+        package='twist_mux',
+        executable='twist_mux',
+        name='twist_mux',
+        output='screen',
+        parameters=[twist_mux_config, {'use_sim_time': use_sim_time}],
+        remappings=[('/cmd_vel_out', '/cmd_vel')],
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
@@ -141,5 +155,6 @@ def generate_launch_description():
         bridge,
         robot_state_publisher,
         odom_to_tf,
+        twist_mux,
         fourws_kinematics,
     ])

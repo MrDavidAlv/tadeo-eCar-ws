@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Orchestrator: simulation + fourws_kinematics + Nav2 + RViz."""
+"""Orchestrator: simulation + fourws_kinematics + twist_mux + Nav2 + RViz."""
 import os
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import (
+    DeclareLaunchArgument,
+    GroupAction,
+    IncludeLaunchDescription,
+)
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
+from launch_ros.actions import Node, SetRemap
 from ament_index_python.packages import get_package_share_directory
 
 
@@ -17,6 +21,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time')
 
+    # Simulation (includes gz_sim + bridge + robot_state_pub + fourws_kinematics + twist_mux)
     simulation = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_tadeocar_gazebo, 'launch', 'simulation.launch.py')
@@ -24,14 +29,20 @@ def generate_launch_description():
         launch_arguments={'use_sim_time': use_sim_time}.items()
     )
 
-    navigation = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(pkg_tadeocar_navigation, 'launch', 'navigation.launch.py')
-        ),
-        launch_arguments={'use_sim_time': use_sim_time}.items()
+    # Nav2 with cmd_vel remapped to cmd_vel_nav so twist_mux handles priority
+    navigation = GroupAction(
+        actions=[
+            SetRemap('/cmd_vel', '/cmd_vel_nav'),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    os.path.join(
+                        pkg_tadeocar_navigation, 'launch', 'navigation.launch.py'
+                    )
+                ),
+                launch_arguments={'use_sim_time': use_sim_time}.items(),
+            ),
+        ]
     )
-
-    # Note: fourws_kinematics is already launched by simulation.launch.py
 
     # Static TF map->odom (until AMCL initializes)
     static_transform_publisher = Node(

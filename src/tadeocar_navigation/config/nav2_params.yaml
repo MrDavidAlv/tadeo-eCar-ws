@@ -6,11 +6,11 @@ map_server:
 amcl:
   ros__parameters:
     use_sim_time: True
-    # Parámetros del modelo de movimiento (más bajos = confía más en odometría)
-    alpha1: 0.05  # Rotación por rotación (reducido de 0.2)
-    alpha2: 0.05  # Rotación por traslación (reducido de 0.2)
-    alpha3: 0.05  # Traslación por traslación (reducido de 0.2)
-    alpha4: 0.05  # Traslación por rotación (reducido de 0.2)
+    # Parametros del modelo de movimiento (mas bajos = confia mas en odometria)
+    alpha1: 0.05  # Rotacion por rotacion (reducido de 0.2)
+    alpha2: 0.05  # Rotacion por traslacion (reducido de 0.2)
+    alpha3: 0.05  # Traslacion por traslacion (reducido de 0.2)
+    alpha4: 0.05  # Traslacion por rotacion (reducido de 0.2)
     alpha5: 0.05  # Ruido adicional (reducido de 0.2)
     base_frame_id: "base_link"
     beam_skip_distance: 0.5
@@ -23,11 +23,11 @@ amcl:
     laser_max_range: 10.0
     laser_min_range: 0.12
     laser_model_type: "likelihood_field"
-    max_beams: 120  # Aumentado de 60 para mejor precisión
+    max_beams: 120  # Aumentado de 60 para mejor precision
     max_particles: 5000  # Aumentado de 2000 para mejor tracking
     min_particles: 1000  # Aumentado de 500
     odom_frame_id: "odom"
-    pf_err: 0.01  # Reducido de 0.05 para mantener más partículas
+    pf_err: 0.01  # Reducido de 0.05 para mantener mas particulas
     pf_z: 0.99
     recovery_alpha_fast: 0.1  # Activado para recovery (era 0.0)
     recovery_alpha_slow: 0.001  # Activado para recovery (era 0.0)
@@ -37,14 +37,14 @@ amcl:
     sigma_hit: 0.2
     tf_broadcast: true
     transform_tolerance: 1.0
-    update_min_a: 0.1  # Reducido de 0.2 - actualiza más frecuentemente
-    update_min_d: 0.1  # Reducido de 0.25 - actualiza más frecuentemente
+    update_min_a: 0.1  # Reducido de 0.2 - actualiza mas frecuentemente
+    update_min_d: 0.1  # Reducido de 0.25 - actualiza mas frecuentemente
     z_hit: 0.5
     z_max: 0.05
     z_rand: 0.5
     z_short: 0.05
     scan_topic: scan
-    # Parámetros adicionales para mejor localización
+    # Parametros adicionales para mejor localizacion
     set_initial_pose: true
     initial_pose:
       x: 0.0

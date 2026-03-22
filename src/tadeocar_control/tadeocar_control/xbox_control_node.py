@@ -2,10 +2,10 @@
 """
 Xbox Controller Node for TadeoeCar 4WD4WS
 Dual joystick control:
-- Left joystick → Omnidirectional mode
-- Right joystick → Crab mode
-- RB (Right Bumper) → Accelerator (enables movement)
-- LB (Left Bumper) → Brake (immediate stop)
+- Left joystick: Omnidirectional mode
+- Right joystick: Crab mode
+- RB (Right Bumper): Accelerator (enables movement)
+- LB (Left Bumper): Brake (immediate stop)
 """
 
 import rclpy
@@ -59,7 +59,7 @@ class XboxControlNode(Node):
         self.last_brake = 0.0
 
         # Publishers
-        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel_joy', 10)
         self.mode_pub = self.create_publisher(String, '/robot_mode', 10)
 
         # Subscriber
@@ -75,13 +75,13 @@ class XboxControlNode(Node):
 
         self.get_logger().info('Xbox Control Node initialized')
         self.get_logger().info('Controls:')
-        self.get_logger().info('  Left joystick → Omnidirectional movement (direction)')
-        self.get_logger().info('  Right joystick → Crab movement (direction)')
-        self.get_logger().info('  RB (Right Bumper) → Accelerator (enables movement)')
-        self.get_logger().info('  LB (Left Bumper) → Brake (immediate stop)')
-        self.get_logger().info('  A button → Toggle to Omnidirectional mode')
-        self.get_logger().info('  B button → Toggle to Ackermann mode')
-        self.get_logger().info('  X button → Toggle to Crab mode')
+        self.get_logger().info('  Left joystick: Omnidirectional movement (direction)')
+        self.get_logger().info('  Right joystick: Crab movement (direction)')
+        self.get_logger().info('  RB (Right Bumper): Accelerator (enables movement)')
+        self.get_logger().info('  LB (Left Bumper): Brake (immediate stop)')
+        self.get_logger().info('  A button: Toggle to Omnidirectional mode')
+        self.get_logger().info('  B button: Toggle to Ackermann mode')
+        self.get_logger().info('  X button: Toggle to Crab mode')
 
     def joy_callback(self, msg):
         """Process joystick input and publish velocity commands"""
@@ -113,7 +113,7 @@ class XboxControlNode(Node):
         current_state = (throttle, brake_active)
         previous_state = (self.last_throttle, self.last_brake)
         if current_state != previous_state:
-            self.get_logger().info(f'Bumpers → RB: {throttle:.0f} (accel) | LB: {brake_active} (brake)')
+            self.get_logger().info(f'Bumpers - RB: {throttle:.0f} (accel) | LB: {brake_active} (brake)')
             self.last_throttle = throttle
             self.last_brake = brake_active
 
@@ -151,7 +151,7 @@ class XboxControlNode(Node):
         direction_y = 0.0
 
         if left_magnitude > 0.0:
-            # Left joystick → Omnidirectional mode
+            # Left joystick: Omnidirectional mode
             if self.current_mode != 'omnidirectional':
                 self.switch_mode('omnidirectional')
 
@@ -160,7 +160,7 @@ class XboxControlNode(Node):
             direction_y = left_horizontal
 
         elif right_magnitude > 0.0:
-            # Right joystick → Crab mode
+            # Right joystick: Crab mode
             if self.current_mode != 'crab':
                 self.switch_mode('crab')
 
@@ -171,17 +171,17 @@ class XboxControlNode(Node):
         # Apply throttle (RB) and brake (LB) to calculate final velocities
         # RB enables movement, joysticks control the DIRECTION
         if brake_active:
-            # LB pressed → immediate brake, wheels stop
+            # LB pressed: immediate brake, wheels stop
             twist.linear.x = 0.0
             twist.linear.y = 0.0
             twist.angular.z = 0.0
         elif throttle == 0.0:
-            # RB not pressed → wheels don't move
+            # RB not pressed: wheels don't move
             twist.linear.x = 0.0
             twist.linear.y = 0.0
             twist.angular.z = 0.0
         else:
-            # RB pressed → robot moves at full speed in joystick direction
+            # RB pressed: robot moves at full speed in joystick direction
             # Speed = max_speed * direction
             twist.linear.x = direction_x * self.max_linear_speed
             twist.linear.y = direction_y * self.max_linear_speed
@@ -189,7 +189,7 @@ class XboxControlNode(Node):
 
         # Debug: log published velocities when non-zero
         if abs(twist.linear.x) > 0.01 or abs(twist.linear.y) > 0.01:
-            self.get_logger().info(f'Publishing cmd_vel → vx: {twist.linear.x:.2f}, vy: {twist.linear.y:.2f} | throttle: {throttle:.2f}, brake: {brake_active}')
+            self.get_logger().info(f'Publishing cmd_vel_joy - vx: {twist.linear.x:.2f}, vy: {twist.linear.y:.2f} | throttle: {throttle:.2f}, brake: {brake_active}')
 
         # Publish velocity command
         self.cmd_vel_pub.publish(twist)

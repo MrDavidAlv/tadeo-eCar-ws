@@ -30,7 +30,7 @@ class TadeoCarWebControl(Node):
         super().__init__('tadeocar_web_control')
 
         # Publishers
-        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel_web', 10)
         self.mode_pub = self.create_publisher(String, '/robot_mode', 10)
 
         self.connected_clients = set()

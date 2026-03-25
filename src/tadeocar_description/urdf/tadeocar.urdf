@@ -15,10 +15,7 @@
     <visual name="base_visual">
       <origin xyz="0 0 0.155" rpy="0 0 0"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/chassis/chasis_base.dae</filename>
-          <scale>1 1 1</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/chassis/chasis_base.dae" scale="1 1 1"/>
       </geometry>
       <material name="blue">
         <color rgba="0.2 0.2 0.8 1.0"/>
@@ -31,10 +28,7 @@
     <visual name="chasis_visual">
       <origin xyz="-0.49 0.39 -0.126" rpy="1.5708 0 3.14159"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/chassis/chasis.dae</filename>
-          <scale>0.001 0.001 0.001</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/chassis/chasis.dae" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="red">
         <color rgba="0.8 0.2 0.2 1.0"/>
@@ -67,76 +61,47 @@
     <origin xyz="0.55 0 0.33" rpy="0 0 0"/>
   </joint>
 
-  <!-- ==================== STEREO CAMERA BASE ==================== -->
-  <link name="stereo_camera_base">
-    <visual name="stereo_base_visual">
-      <origin xyz="0 0 0" rpy="0 0 1.5708"/>
+  <!-- ==================== ZED2i STEREO CAMERA ==================== -->
+  <!-- ZED2i specs: baseline 0.12m, HFOV 110deg, 175g, IMU BMI088 -->
+  <link name="zed2i_camera_link">
+    <visual name="zed2i_visual">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size="0.15 0.05 0.03"/>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/sensors/zed2i.stl" scale="0.001 0.001 0.001"/>
       </geometry>
-      <material name="dark_gray2">
-        <color rgba="0.2 0.2 0.2 1.0"/>
+      <material name="zed2i_gray">
+        <color rgba="0.25 0.25 0.25 1.0"/>
       </material>
     </visual>
   </link>
 
-  <joint name="stereo_camera_base_joint" type="fixed">
+  <joint name="zed2i_camera_joint" type="fixed">
     <parent link="base_link"/>
-    <child link="stereo_camera_base"/>
+    <child link="zed2i_camera_link"/>
     <origin xyz="0.55 0 0.40" rpy="0 0 0"/>
   </joint>
 
-  <!-- ==================== LEFT CAMERA ==================== -->
-  <link name="camera_left">
-    <visual name="camera_left_visual">
-      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
-      <geometry>
-        <cylinder radius="0.01" length="0.01"/>
-      </geometry>
-      <material name="black">
-        <color rgba="0.05 0.05 0.05 1.0"/>
-      </material>
-    </visual>
-  </link>
-
-  <joint name="camera_left_joint" type="fixed">
-    <parent link="stereo_camera_base"/>
-    <child link="camera_left"/>
-    <origin xyz="0.03 0.06 0" rpy="0 0 0"/>
+  <!-- ZED2i Optical Frames (camera convention: Z forward, X right, Y down) -->
+  <link name="zed2i_left_camera_optical_frame"/>
+  <joint name="zed2i_left_optical_joint" type="fixed">
+    <parent link="zed2i_camera_link"/>
+    <child link="zed2i_left_camera_optical_frame"/>
+    <origin xyz="0.005 0.06 0" rpy="-1.5708 0 -1.5708"/>
   </joint>
 
-  <!-- ==================== RIGHT CAMERA ==================== -->
-  <link name="camera_right">
-    <visual name="camera_right_visual">
-      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
-      <geometry>
-        <cylinder radius="0.01" length="0.01"/>
-      </geometry>
-      <material name="black2">
-        <color rgba="0.05 0.05 0.05 1.0"/>
-      </material>
-    </visual>
-  </link>
-
-  <joint name="camera_right_joint" type="fixed">
-    <parent link="stereo_camera_base"/>
-    <child link="camera_right"/>
-    <origin xyz="0.03 -0.06 0" rpy="0 0 0"/>
+  <link name="zed2i_right_camera_optical_frame"/>
+  <joint name="zed2i_right_optical_joint" type="fixed">
+    <parent link="zed2i_camera_link"/>
+    <child link="zed2i_right_camera_optical_frame"/>
+    <origin xyz="0.005 -0.06 0" rpy="-1.5708 0 -1.5708"/>
   </joint>
 
-  <!-- ==================== CAMERA OPTICAL FRAMES ==================== -->
-  <link name="camera_left_optical"/>
-  <joint name="camera_left_optical_joint" type="fixed">
-    <parent link="camera_left"/>
-    <child link="camera_left_optical"/>
-    <origin xyz="0.005 0 0" rpy="-1.5708 0 -1.5708"/>
-  </joint>
-
-  <link name="camera_right_optical"/>
-  <joint name="camera_right_optical_joint" type="fixed">
-    <parent link="camera_right"/>
-    <child link="camera_right_optical"/>
-    <origin xyz="0.005 0 0" rpy="-1.5708 0 -1.5708"/>
+  <!-- ZED2i IMU frame -->
+  <link name="zed2i_imu_link"/>
+  <joint name="zed2i_imu_joint" type="fixed">
+    <parent link="zed2i_camera_link"/>
+    <child link="zed2i_imu_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
   <!-- ==================== FRONT LEFT STEERING ==================== -->
@@ -144,10 +109,7 @@
     <visual name="fl_steering_visual">
       <origin xyz="0 0 0.227" rpy="0 3.14159 3.14159"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae</filename>
-          <scale>1 1 1</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae" scale="1 1 1"/>
       </geometry>
       <material name="gray">
         <color rgba="0.5 0.5 0.5 1.0"/>
@@ -167,10 +129,7 @@
     <visual name="fl_wheel_visual">
       <origin xyz="0 0 0" rpy="1.5708 0 0"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae</filename>
-          <scale>1 1 1</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae" scale="1 1 1"/>
       </geometry>
       <material name="dark_wheel">
         <color rgba="0.2 0.2 0.2 1.0"/>
@@ -190,10 +149,7 @@
     <visual name="fr_steering_visual">
       <origin xyz="0 0 0.227" rpy="0 3.14159 -3.14159"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae</filename>
-          <scale>1 1 1</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae" scale="1 1 1"/>
       </geometry>
       <material name="gray2">
         <color rgba="0.5 0.5 0.5 1.0"/>
@@ -213,10 +169,7 @@
     <visual name="fr_wheel_visual">
       <origin xyz="0 0 0" rpy="1.5708 0 0"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae</filename>
-          <scale>1 1 1</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae" scale="1 1 1"/>
       </geometry>
       <material name="dark_wheel2">
         <color rgba="0.2 0.2 0.2 1.0"/>
@@ -236,10 +189,7 @@
     <visual name="rl_steering_visual">
       <origin xyz="0 0 0.227" rpy="0 3.14159 0"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae</filename>
-          <scale>1 1 1</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae" scale="1 1 1"/>
       </geometry>
       <material name="gray3">
         <color rgba="0.5 0.5 0.5 1.0"/>
@@ -259,10 +209,7 @@
     <visual name="rl_wheel_visual">
       <origin xyz="0 0 0" rpy="1.5708 0 0"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae</filename>
-          <scale>1 1 1</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae" scale="1 1 1"/>
       </geometry>
       <material name="dark_wheel3">
         <color rgba="0.2 0.2 0.2 1.0"/>
@@ -282,10 +229,7 @@
     <visual name="rr_steering_visual">
       <origin xyz="0 0 0.227" rpy="0 3.14159 0"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae</filename>
-          <scale>1 1 1</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/suspension/suspension.dae" scale="1 1 1"/>
       </geometry>
       <material name="gray4">
         <color rgba="0.5 0.5 0.5 1.0"/>
@@ -305,10 +249,7 @@
     <visual name="rr_wheel_visual">
       <origin xyz="0 0 0" rpy="1.5708 0 0"/>
       <geometry>
-        <mesh>
-          <filename>package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae</filename>
-          <scale>1 1 1</scale>
-        </mesh>
+        <mesh filename="package://tadeocar_description/models/tadeocar_v1/meshes/wheels/wheel.dae" scale="1 1 1"/>
       </geometry>
       <material name="dark_wheel4">
         <color rgba="0.2 0.2 0.2 1.0"/>

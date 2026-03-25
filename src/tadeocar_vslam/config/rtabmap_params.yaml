@@ -1,0 +1,67 @@
+rtabmap:
+  ros__parameters:
+    # Frames - must match URDF/SDF
+    frame_id: base_link
+    odom_frame_id: odom
+    map_frame_id: map
+
+    # Subscribed topics - ZED2i simulated topics (same as real ZED SDK)
+    subscribe_stereo: true
+    subscribe_depth: false
+    subscribe_rgb: false
+    subscribe_odom_info: false
+    approx_sync: true
+    queue_size: 10
+
+    # Stereo topics remapped in launch file
+    # left/image  -> /zed/zed_node/left/image_rect_color
+    # right/image -> /zed/zed_node/right/image_rect_color
+    # left/camera_info -> /zed/zed_node/left/camera_info
+    # right/camera_info -> /zed/zed_node/right/camera_info
+
+    # RTAB-Map core parameters
+    Rtabmap/DetectionRate: "1.0"
+    Rtabmap/CreateIntermediateNodes: "false"
+    Rtabmap/MaxRetrieved: "2"
+
+    # Memory
+    Mem/IncrementalMemory: "true"
+    Mem/InitWMWithAllNodes: "false"
+    Mem/STMSize: "30"
+
+    # Visual features - GFTT/BRIEF for speed in simulation
+    Kp/MaxFeatures: "400"
+    Kp/DetectorStrategy: "6"
+    Kp/DescriptorStrategy: "6"
+
+    # Stereo matching
+    Stereo/MaxDisparity: "128.0"
+    Stereo/MinDisparity: "0.5"
+    Stereo/WinSize: "15"
+
+    # Visual Odometry - use odom from Gazebo, not visual odom
+    Odom/Strategy: "0"
+    Odom/ResetCountdown: "0"
+
+    # Loop closure
+    RGBD/LoopClosureReextractFeatures: "true"
+    RGBD/OptimizeMaxError: "3.0"
+    RGBD/ProximityBySpace: "true"
+    RGBD/AngularUpdate: "0.05"
+    RGBD/LinearUpdate: "0.05"
+
+    # Grid map from stereo
+    Grid/FromDepth: "true"
+    Grid/MaxObstacleHeight: "2.0"
+    Grid/MinClusterSize: "20"
+    Grid/CellSize: "0.05"
+    Grid/RangeMax: "5.0"
+    Grid/RayTracing: "true"
+
+    # Optimizer
+    Optimizer/Strategy: "1"
+    Optimizer/Iterations: "10"
+    Optimizer/Slam2D: "true"
+
+    # Visualization
+    Rtabmap/PublishRAMUsage: "true"

@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <!--
-  Factory Campus World — 20m (X) × 15m (Y)
-  X: -10 → +10  |  Y: -7.5 → +7.5
-  Robot spawn: (0, 0, 0.1) — ~1.2m long, 0.55m wide
+  Factory Campus World - 20m (X) x 15m (Y)
+  X: -10 to +10  |  Y: -7.5 to +7.5
+  Robot spawn: (0, 0, 0.1) - ~1.2m long, 0.55m wide
 
   Layout:
-    · Main E-W corridor:   Y = -3.5 → +3.5  (7 m wide)
-    · Cross N-S aisle:     X = -1  → +1     (2 m gap in shelf rows)
-    · North storage zone:  Y = +4.3 → +7.5  (2 shelf rows)
-    · South storage zone:  Y = -7.5 → -4.3  (2 shelf rows)
-    · Machinery East:      X = +6  → +9.5   (two blocks, 3 m gap)
-    · Loading dock West:   X = -9.5 → -6.5  (raised platform)
-    · Pillars, crates, barrels scattered throughout
+    - Main E-W corridor:   Y = -3.5 to +3.5  (7 m wide)
+    - Cross N-S aisle:     X = -1  to +1     (2 m gap in shelf rows)
+    - North storage zone:  Y = +4.3 to +7.5  (2 shelf rows)
+    - South storage zone:  Y = -7.5 to -4.3  (2 shelf rows)
+    - Machinery East:      X = +6  to +9.5   (two blocks, 3 m gap)
+    - Loading dock West:   X = -9.5 to -6.5  (raised platform)
+    - Pillars, crates, barrels scattered throughout
 -->
 <sdf version="1.9">
   <world name="factory_campus">
@@ -171,12 +171,12 @@
       </link>
     </model>
 
-    <!-- ==================== STORAGE RACKS — NORTH SIDE ==================== -->
+    <!-- ==================== STORAGE RACKS - NORTH SIDE ==================== -->
     <!--
-      Rack N1 (first row):  Y=4.5,  from X=-9→-1  and  X=+1→+5.5
-      Rack N2 (second row): Y=6.0,  from X=-9→-1  and  X=+1→+5.5
-      Cross aisle gap:      X=-1→+1  (2 m wide)
-      Inter-rack aisle:     Y=4.7→5.8 (1.1 m clear)
+      Rack N1 (first row):  Y=4.5,  from X=-9 to -1  and  X=+1 to +5.5
+      Rack N2 (second row): Y=6.0,  from X=-9 to -1  and  X=+1 to +5.5
+      Cross aisle gap:      X=-1 to +1  (2 m wide)
+      Inter-rack aisle:     Y=4.7 to 5.8 (1.1 m clear)
     -->
     <model name="rack_n1a">
       <static>true</static>
@@ -226,7 +226,7 @@
       </link>
     </model>
 
-    <!-- ==================== STORAGE RACKS — SOUTH SIDE ==================== -->
+    <!-- ==================== STORAGE RACKS - SOUTH SIDE ==================== -->
     <model name="rack_s1a">
       <static>true</static>
       <pose>-5 -4.5 0.75 0 0 0</pose>
@@ -277,8 +277,8 @@
 
     <!-- ==================== MACHINERY (EAST) ==================== -->
     <!--
-      Machine NE: X=6→9.5, Y=1.75→5.25   (leaves 3.5m gap at Y=-1.75→+1.75)
-      Machine SE: X=6→9.5, Y=-5.25→-1.75
+      Machine NE: X=6 to 9.5, Y=1.75 to 5.25   (leaves 3.5m gap at Y=-1.75 to +1.75)
+      Machine SE: X=6 to 9.5, Y=-5.25 to -1.75
     -->
     <model name="machine_ne">
       <static>true</static>
@@ -330,7 +330,7 @@
     </model>
 
     <!-- ==================== LOADING DOCK (WEST) ==================== -->
-    <!-- Raised platform: X=-9.5→-6.5, Y=-2→+2 -->
+    <!-- Raised platform: X=-9.5 to -6.5, Y=-2 to +2 -->
     <model name="dock_platform">
       <static>true</static>
       <pose>-8 0 0.1 0 0 0</pose>
@@ -357,7 +357,7 @@
     </model>
 
     <!-- ==================== STRUCTURAL PILLARS ==================== -->
-    <!-- 4 pillars at corridor boundaries, 0.35×0.35m, 3m tall -->
+    <!-- 4 pillars at corridor boundaries, 0.35x0.35m, 3m tall -->
     <model name="pillar_nw">
       <static>true</static>
       <pose>-5 3.5 1.5 0 0 0</pose>

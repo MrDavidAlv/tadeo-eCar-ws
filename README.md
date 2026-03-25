@@ -8,16 +8,15 @@
 [![Gazebo](https://img.shields.io/badge/Gazebo-Fortress-orange)](#)
 [![Nav2](https://img.shields.io/badge/Nav2-Humble-00599C)](#)
 [![SLAM Toolbox](https://img.shields.io/badge/SLAM-Toolbox-green)](#)
-[![Python](https://img.shields.io/badge/Python-3.8+-yellow?logo=python)](#)
-[![Colcon](https://img.shields.io/badge/Build-Colcon-22314E)](#)
+[![RTAB--Map](https://img.shields.io/badge/RTAB--Map-Visual%20SLAM-8B5CF6)](#)
 
 </div>
 
-> Autonomous 4WD4WS robotic platform with full navigation, SLAM, and omnidirectional kinematics built on ROS2 Humble. Designed for indoor material transport in university environments.
+> Autonomous 4WD4WS robotic platform with LiDAR SLAM, Visual SLAM (RTAB-Map + ZED2i), and omnidirectional kinematics. Built on ROS2 Humble for indoor material transport.
 
 ---
 
-## Robot Gallery
+## Robot
 
 <div align="center">
 <table>
@@ -34,77 +33,91 @@
 
 ---
 
-## System Architecture
+## Package Architecture
+
+<div align="center">
+<img src="images/architecture-packages.svg" width="800"/>
+</div>
+
+---
+
+## Control Flow
+
+<div align="center">
+<img src="images/control-flow.svg" width="800"/>
+</div>
+
+---
+
+## Sensor Pipeline
+
+<div align="center">
+<img src="images/sensor-pipeline.svg" width="800"/>
+</div>
+
+---
+
+## Hardware Architecture (Real Robot)
+
+<div align="center">
+<img src="images/hardware-architecture.svg" width="850"/>
+</div>
+
+---
+
+## TF Frame Tree
+
+<div align="center">
+<img src="images/tf-tree.svg" width="700"/>
+</div>
+
+---
+
+## Simulation Screenshots
 
 <div align="center">
 <table>
   <tr>
-    <th>Transform Tree (TF)</th>
-    <th>SLAM System</th>
+    <th>SLAM</th>
+    <th>Navigation</th>
   </tr>
   <tr>
-    <td><img src="images/URDF-TF.png" width="480"/></td>
-    <td><img src="images/SLAM.png" width="480"/></td>
-  </tr>
-  <tr>
-    <th>Navigation (Nav2)</th>
-    <th>Mathematical Model</th>
-  </tr>
-  <tr>
-    <td><img src="images/Navigation.png" width="480"/></td>
-    <td><img src="images/modelo.png" width="480"/></td>
+    <td><img src="images/SLAM.png" width="450"/></td>
+    <td><img src="images/Navigation.png" width="450"/></td>
   </tr>
 </table>
 </div>
 
 ---
 
-## Packages and Launch Files
+## Specifications
 
-| Package | Launch File | Description |
-|---------|-------------|-------------|
-| `tadeocar_bringup` | `slam_bringup.launch.py` | Full simulation with SLAM (Gazebo + kinematics + SLAM Toolbox + RViz2) |
-| `tadeocar_bringup` | `navigation_bringup.launch.py` | Full simulation with Nav2 (Gazebo + kinematics + Nav2 + RViz2) |
-| `tadeocar_control` | `control.launch.py` | Kinematics node only |
-| `tadeocar_control` | `fourws_control.launch.py` | 4WS kinematics with joint state publishing |
-| `tadeocar_control` | `xbox_control.launch.py` | Kinematics + Xbox controller |
-| `tadeocar_description` | `display.launch.py` | URDF/TF visualization in RViz2 |
-| `tadeocar_gazebo` | `simulation.launch.py` | Gazebo Fortress simulation (includes kinematics node) |
-| `tadeocar_navigation` | `navigation.launch.py` | Nav2 stack (AMCL + global planner + DWB) |
-| `tadeocar_slam` | `slam.launch.py` | SLAM Toolbox (async mapping) |
-| `tadeocar_slam` | `save_map.launch.py` | Save the generated map |
-
-### Control Architecture
-
-- **Steering joints**: Position control via `JointPositionController` (Gz Sim). Replicates the behavior of 270-degree industrial servomotors used on the physical robot.
-- **Wheel joints**: Velocity control via `JointController` (Gz Sim).
-- **Kinematics node**: Converts `/cmd_vel` (Twist) into individual joint commands for 4 steering + 4 wheel joints.
+| Parameter | Simulation | Real Robot |
+|-----------|-----------|------------|
+| Wheelbase | 1.058 m | 1.058 m |
+| Track width | 0.55 m | 0.55 m |
+| Steering | 4WS | 4x Industrial servos 270 deg |
+| Drive | 4WD | 4x BLDC (2x ODrive S3) |
+| Compute | Host PC | Jetson Nano 4GB |
+| Camera | ZED2i (simulated) | ZED2i (USB 3.0) |
+| LiDAR | 2D, 360 deg, 3.5m | YDLidar X2 (8m) |
+| Power | N/A | 2x LiPo 24V |
 
 ---
 
 ## Installation
 
-### Dependencies
-
 ```bash
+# Dependencies
 sudo apt install -y \
-  ros-humble-ros-gz \
-  ros-humble-navigation2 \
-  ros-humble-nav2-bringup \
-  ros-humble-slam-toolbox \
-  ros-humble-joy \
-  ros-humble-teleop-twist-joy \
-  ros-humble-rviz2 \
-  ros-humble-xacro \
-  ros-humble-robot-state-publisher \
-  ros-humble-joint-state-publisher
+  ros-humble-ros-gz ros-humble-navigation2 ros-humble-nav2-bringup \
+  ros-humble-slam-toolbox ros-humble-rtabmap-ros ros-humble-twist-mux \
+  ros-humble-joy ros-humble-teleop-twist-joy ros-humble-rviz2 \
+  ros-humble-xacro ros-humble-robot-state-publisher
 
 pip3 install websockets numpy
-```
 
-### Build
-
-```bash
+# Build
 source /opt/ros/humble/setup.bash
 colcon build --symlink-install
 source install/setup.bash
@@ -115,29 +128,30 @@ source install/setup.bash
 ## Usage
 
 ```bash
-# SLAM mapping
+# LiDAR SLAM
 ros2 launch tadeocar_bringup slam_bringup.launch.py
 
-# Save map
-ros2 launch tadeocar_slam save_map.launch.py
+# Visual SLAM (RTAB-Map + ZED2i)
+ros2 launch tadeocar_bringup vslam_bringup.launch.py
 
 # Autonomous navigation
 ros2 launch tadeocar_bringup navigation_bringup.launch.py
 
-# Model visualization
-ros2 launch tadeocar_description display.launch.py
-```
+# Xbox controller
+ros2 launch tadeocar_control xbox_control.launch.py
 
-Maps are saved to `src/tadeocar_navigation/maps/`.
+# Save map
+ros2 launch tadeocar_slam save_map.launch.py
+```
 
 ---
 
 ## Documentation
 
-Technical documentation including the mathematical model is in the [documentacion/](documentacion/) directory.
+Technical documentation and mathematical model in [documentacion/](documentacion/).
 
 ---
 
 <div align="center">
-Developed by the Semillero Robotica - Universidad de Bogota Jorge Tadeo Lozano
+Semillero de Robotica - Universidad de Bogota Jorge Tadeo Lozano
 </div>

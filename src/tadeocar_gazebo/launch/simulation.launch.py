@@ -83,11 +83,13 @@ def generate_launch_description():
             '/model/tadeocar/joint/front_right_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
             '/model/tadeocar/joint/rear_left_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
             '/model/tadeocar/joint/rear_right_wheel_joint/cmd_vel@std_msgs/msg/Float64]gz.msgs.Double',
-            # Cameras (Gz -> ROS2)
-            '/camera/left/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-            '/camera/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
-            '/camera/right/image_raw@sensor_msgs/msg/Image[gz.msgs.Image',
-            '/camera/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            # ZED2i Cameras (Gz -> ROS2) - topics match real ZED SDK naming
+            '/zed/zed_node/left/image_rect_color@sensor_msgs/msg/Image[gz.msgs.Image',
+            '/zed/zed_node/left/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            '/zed/zed_node/right/image_rect_color@sensor_msgs/msg/Image[gz.msgs.Image',
+            '/zed/zed_node/right/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            # ZED2i IMU (Gz -> ROS2)
+            '/zed/zed_node/imu/data_raw@sensor_msgs/msg/Imu[gz.msgs.IMU',
         ],
         output='screen'
     )
@@ -125,6 +127,20 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}]
     )
 
+    # twist_mux: multiplexes velocity sources by priority
+    # joy(100) > web(90) > teleop(50) > nav2(10)
+    pkg_tadeocar_control = get_package_share_directory('tadeocar_control')
+    twist_mux_config = os.path.join(pkg_tadeocar_control, 'config', 'twist_mux.yaml')
+
+    twist_mux = Node(
+        package='twist_mux',
+        executable='twist_mux',
+        name='twist_mux',
+        output='screen',
+        parameters=[twist_mux_config, {'use_sim_time': use_sim_time}],
+        remappings=[('/cmd_vel_out', '/cmd_vel')],
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
@@ -141,5 +157,6 @@ def generate_launch_description():
         bridge,
         robot_state_publisher,
         odom_to_tf,
+        twist_mux,
         fourws_kinematics,
     ])

@@ -691,182 +691,149 @@
       <child>base_scan</child>
     </joint>
 
-    <!-- ==================== STEREO CAMERA BASE ==================== -->
-    <link name="stereo_camera_base">
+    <!-- ==================== ZED2i STEREO CAMERA ==================== -->
+    <!-- ZED2i specs: baseline 0.12m, HFOV 110deg, 175g, IMU BMI088 -->
+    <!-- Topics match real ZED SDK naming for sim-to-real compatibility -->
+
+    <link name="zed2i_camera_link">
       <pose>0.55 0 0.50 0 0 0</pose>
 
       <inertial>
-        <mass>0.5</mass>
+        <mass>0.175</mass>
         <inertia>
-          <ixx>0.001</ixx>
-          <iyy>0.001</iyy>
-          <izz>0.001</izz>
+          <ixx>0.0004</ixx>
+          <iyy>0.0001</iyy>
+          <izz>0.0004</izz>
           <ixy>0</ixy>
           <ixz>0</ixz>
           <iyz>0</iyz>
         </inertia>
       </inertial>
 
-      <visual name="stereo_camera_base_visual">
-        <pose>0 0 0 0 0 1.5708</pose>
+      <collision name="zed2i_collision">
         <geometry>
           <box>
-            <size>0.15 0.05 0.03</size>
+            <size>0.033 0.175 0.030</size>
           </box>
         </geometry>
+      </collision>
+
+      <visual name="zed2i_visual">
+        <geometry>
+          <mesh>
+            <uri>meshes/sensors/zed2i.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
         <material>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.2 0.2 0.2 1</diffuse>
+          <ambient>0.25 0.25 0.25 1</ambient>
+          <diffuse>0.25 0.25 0.25 1</diffuse>
         </material>
       </visual>
+
+      <!-- ZED2i Left Camera (baseline/2 = +0.06m from center) -->
+      <sensor name="zed2i_left_camera" type="camera">
+        <pose>0.005 0.06 0 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>15</update_rate>
+        <visualize>false</visualize>
+        <topic>zed/zed_node/left/image_rect_color</topic>
+        <gz_frame_id>zed2i_left_camera_optical_frame</gz_frame_id>
+        <camera name="zed2i_left">
+          <horizontal_fov>1.919862</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>720</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>20.0</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.005</stddev>
+          </noise>
+        </camera>
+      </sensor>
+
+      <!-- ZED2i Right Camera (baseline/2 = -0.06m from center) -->
+      <sensor name="zed2i_right_camera" type="camera">
+        <pose>0.005 -0.06 0 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>15</update_rate>
+        <visualize>false</visualize>
+        <topic>zed/zed_node/right/image_rect_color</topic>
+        <gz_frame_id>zed2i_right_camera_optical_frame</gz_frame_id>
+        <camera name="zed2i_right">
+          <horizontal_fov>1.919862</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>720</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>20.0</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.005</stddev>
+          </noise>
+        </camera>
+      </sensor>
+
+      <!-- ZED2i IMU (BMI088) -->
+      <sensor name="zed2i_imu" type="imu">
+        <always_on>true</always_on>
+        <update_rate>400</update_rate>
+        <topic>zed/zed_node/imu/data_raw</topic>
+        <gz_frame_id>zed2i_imu_link</gz_frame_id>
+        <imu>
+          <angular_velocity>
+            <x><noise type="gaussian"><mean>0.0</mean><stddev>0.0002</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0.0</mean><stddev>0.0002</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0.0</mean><stddev>0.0002</stddev></noise></z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x><noise type="gaussian"><mean>0.0</mean><stddev>0.017</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0.0</mean><stddev>0.017</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0.0</mean><stddev>0.017</stddev></noise></z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
     </link>
 
-    <joint name="stereo_camera_base_joint" type="fixed">
+    <joint name="zed2i_camera_joint" type="fixed">
       <parent>base_link</parent>
-      <child>stereo_camera_base</child>
+      <child>zed2i_camera_link</child>
     </joint>
 
-    <!-- ==================== LEFT CAMERA ==================== -->
-    <link name="camera_left">
-      <pose>0.58 0.06 0.50 0 0 0</pose>
-
-      <inertial>
-        <mass>0.2</mass>
-        <inertia>
-          <ixx>0.0001</ixx>
-          <iyy>0.0001</iyy>
-          <izz>0.0001</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <visual name="camera_left_visual">
-        <pose>0 0 0 0 1.5708 0</pose>
-        <geometry>
-          <cylinder>
-            <radius>0.01</radius>
-            <length>0.01</length>
-          </cylinder>
-        </geometry>
-        <material>
-          <ambient>0.1 0.1 0.1 1</ambient>
-          <diffuse>0.1 0.1 0.1 1</diffuse>
-        </material>
-      </visual>
-
-      <sensor name="camera_left_sensor" type="camera">
-        <pose>0.005 0 0 0 0 0</pose>
-        <always_on>true</always_on>
-        <update_rate>30</update_rate>
-        <visualize>true</visualize>
-        <topic>camera/left/image_raw</topic>
-        <gz_frame_id>camera_left_optical</gz_frame_id>
-        <camera name="camera_left">
-          <horizontal_fov>1.3962634</horizontal_fov>
-          <image>
-            <width>1280</width>
-            <height>720</height>
-            <format>R8G8B8</format>
-          </image>
-          <clip>
-            <near>0.02</near>
-            <far>300</far>
-          </clip>
-          <noise>
-            <type>gaussian</type>
-            <mean>0.0</mean>
-            <stddev>0.007</stddev>
-          </noise>
-        </camera>
-      </sensor>
+    <!-- ZED2i Optical Frames (camera convention: Z forward, X right, Y down) -->
+    <link name="zed2i_left_camera_optical_frame">
+      <pose>0.555 0.06 0.50 -1.5708 0 -1.5708</pose>
     </link>
-
-    <joint name="camera_left_joint" type="fixed">
-      <parent>stereo_camera_base</parent>
-      <child>camera_left</child>
+    <joint name="zed2i_left_optical_joint" type="fixed">
+      <parent>zed2i_camera_link</parent>
+      <child>zed2i_left_camera_optical_frame</child>
     </joint>
 
-    <!-- ==================== RIGHT CAMERA ==================== -->
-    <link name="camera_right">
-      <pose>0.58 -0.06 0.50 0 0 0</pose>
-
-      <inertial>
-        <mass>0.2</mass>
-        <inertia>
-          <ixx>0.0001</ixx>
-          <iyy>0.0001</iyy>
-          <izz>0.0001</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <visual name="camera_right_visual">
-        <pose>0 0 0 0 1.5708 0</pose>
-        <geometry>
-          <cylinder>
-            <radius>0.01</radius>
-            <length>0.01</length>
-          </cylinder>
-        </geometry>
-        <material>
-          <ambient>0.1 0.1 0.1 1</ambient>
-          <diffuse>0.1 0.1 0.1 1</diffuse>
-        </material>
-      </visual>
-
-      <sensor name="camera_right_sensor" type="camera">
-        <pose>0.005 0 0 0 0 0</pose>
-        <always_on>true</always_on>
-        <update_rate>30</update_rate>
-        <visualize>true</visualize>
-        <topic>camera/right/image_raw</topic>
-        <gz_frame_id>camera_right_optical</gz_frame_id>
-        <camera name="camera_right">
-          <horizontal_fov>1.3962634</horizontal_fov>
-          <image>
-            <width>1280</width>
-            <height>720</height>
-            <format>R8G8B8</format>
-          </image>
-          <clip>
-            <near>0.02</near>
-            <far>300</far>
-          </clip>
-          <noise>
-            <type>gaussian</type>
-            <mean>0.0</mean>
-            <stddev>0.007</stddev>
-          </noise>
-        </camera>
-      </sensor>
+    <link name="zed2i_right_camera_optical_frame">
+      <pose>0.555 -0.06 0.50 -1.5708 0 -1.5708</pose>
     </link>
-
-    <joint name="camera_right_joint" type="fixed">
-      <parent>stereo_camera_base</parent>
-      <child>camera_right</child>
+    <joint name="zed2i_right_optical_joint" type="fixed">
+      <parent>zed2i_camera_link</parent>
+      <child>zed2i_right_camera_optical_frame</child>
     </joint>
 
-    <!-- ==================== CAMERA OPTICAL FRAMES ==================== -->
-    <link name="camera_left_optical">
-      <pose>0.585 0.06 0.50 -1.5708 0 -1.5708</pose>
+    <link name="zed2i_imu_link">
+      <pose>0.55 0 0.50 0 0 0</pose>
     </link>
-
-    <joint name="camera_left_optical_joint" type="fixed">
-      <parent>camera_left</parent>
-      <child>camera_left_optical</child>
-    </joint>
-
-    <link name="camera_right_optical">
-      <pose>0.585 -0.06 0.50 -1.5708 0 -1.5708</pose>
-    </link>
-
-    <joint name="camera_right_optical_joint" type="fixed">
-      <parent>camera_right</parent>
-      <child>camera_right_optical</child>
+    <joint name="zed2i_imu_joint" type="fixed">
+      <parent>zed2i_camera_link</parent>
+      <child>zed2i_imu_link</child>
     </joint>
 
     <!-- ==================== GZ SIM PLUGINS ==================== -->
@@ -890,36 +857,36 @@
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>front_left_steering_joint</joint_name>
       <topic>model/tadeocar/joint/front_left_steering_joint/cmd_pos</topic>
-      <p_gain>50.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>10.0</d_gain>
+      <p_gain>200.0</p_gain>
+      <i_gain>5.0</i_gain>
+      <d_gain>30.0</d_gain>
     </plugin>
 
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>front_right_steering_joint</joint_name>
       <topic>model/tadeocar/joint/front_right_steering_joint/cmd_pos</topic>
-      <p_gain>50.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>10.0</d_gain>
+      <p_gain>200.0</p_gain>
+      <i_gain>5.0</i_gain>
+      <d_gain>30.0</d_gain>
     </plugin>
 
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>rear_left_steering_joint</joint_name>
       <topic>model/tadeocar/joint/rear_left_steering_joint/cmd_pos</topic>
-      <p_gain>50.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>10.0</d_gain>
+      <p_gain>200.0</p_gain>
+      <i_gain>5.0</i_gain>
+      <d_gain>30.0</d_gain>
     </plugin>
 
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>rear_right_steering_joint</joint_name>
       <topic>model/tadeocar/joint/rear_right_steering_joint/cmd_pos</topic>
-      <p_gain>50.0</p_gain>
-      <i_gain>0.0</i_gain>
-      <d_gain>10.0</d_gain>
+      <p_gain>200.0</p_gain>
+      <i_gain>5.0</i_gain>
+      <d_gain>30.0</d_gain>
     </plugin>
 
     <!-- Wheel Joint Velocity Controllers (velocity control for drive wheels) -->

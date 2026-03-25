@@ -13,6 +13,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
+        (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
         (os.path.join('share', package_name, 'web'), glob('web/*')),
     ],
     install_requires=['setuptools', 'websockets'],
@@ -26,7 +27,6 @@ setup(
             'web_control = tadeocar_control.web_control_node:main',
             'fourws_kinematics = tadeocar_control.fourws_kinematics_node:main',
             'xbox_control = tadeocar_control.xbox_control_node:main',
-            'cmd_vel_relay = tadeocar_control.cmd_vel_relay_node:main',
         ],
     },
 )

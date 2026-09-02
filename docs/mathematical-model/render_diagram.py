@@ -386,31 +386,68 @@ def render(out):
     # ----------------------------------------------------------- 3 modes ----
     ax = panel(fig, [0.503, 0.400, 0.469, 0.212],
                '3 · THREE MODES, THREE WHEEL PATTERNS', ACCENT)
+    # The wheel angles are COMPUTED from the same equations the controller
+    # uses, for one representative twist per mode, rather than drawn by hand.
+    # Hand-drawn is how the omnidirectional glyph came to show both front
+    # wheels at one angle and both rear at another - which is counter-phase
+    # steering, a pattern this mode never produces. Every wheel points along
+    # its own velocity, so in general all four angles differ.
+    def fold(a):
+        a = math.atan2(math.sin(a), math.cos(a))
+        if a > math.pi / 2:
+            return a - math.pi
+        if a < -math.pi / 2:
+            return a + math.pi
+        return a
+
+    positions = ((fx, ht), (fx, -ht), (rx, ht), (rx, -ht))     # FL FR RL RR
+
+    def omni(vx, vy, wz):
+        return [math.degrees(fold(math.atan2(vy + wz * px, vx - wz * py)))
+                for px, py in positions]
+
+    def ackermann(vx, wz):
+        R = vx / wz
+        return [math.degrees(math.atan(L / (R - ht))),
+                math.degrees(math.atan(L / (R + ht))), 0.0, 0.0]
+
+    def crab(vx, vy):
+        a = math.degrees(fold(math.atan2(vy, vx)))
+        return [a, a, a, a]
+
     for k, (name, angles, note) in enumerate((
-            ('omnidirectional', (-35, -35, 35, 35), 'any twist, exactly'),
-            ('ackermann', (24, 16, 0, 0), 'a car; rear stays straight'),
-            ('crab', (55, 55, 55, 55), 'translate, heading held'))):
+            ('omnidirectional', omni(0.6, 0.0, 0.5),
+             'vx 0.6, wz 0.5: four different angles'),
+            ('ackermann', ackermann(0.6, 0.5),
+             'same turn, rear axle straight'),
+            ('crab', crab(0.35, 0.35),
+             'vx = vy: all four equal, heading held'))):
         cx = 0.175 + 0.325 * k
         m = fig.add_axes([0.516 + 0.152 * k, 0.452, 0.118, 0.093])
         m.set_aspect('equal')
         m.axis('off')
-        m.add_patch(Rectangle((-0.55, -0.30), 1.10, 0.60, fill=True,
+        # Deck and wheel positions to the robot's own proportions, so the
+        # asymmetric wheelbase shows here too. Forward is to the right.
+        m.add_patch(Rectangle((-0.757, -0.408), 1.418, 0.815, fill=True,
                               facecolor='#eef1f6', edgecolor=MUTED, lw=1.0))
-        for (px, py), a in zip(((0.42, 0.26), (0.42, -0.26),
-                                (-0.42, 0.26), (-0.42, -0.26)), angles):
+        for (px, py), a in zip(positions, angles):
             th = math.radians(a)
-            m.plot([px - 0.13 * math.cos(th), px + 0.13 * math.cos(th)],
-                   [py - 0.13 * math.sin(th), py + 0.13 * math.sin(th)],
-                   color=INK, lw=4.2, solid_capstyle='round')
-        m.set_xlim(-0.62, 0.62)
-        m.set_ylim(-0.42, 0.42)
+            m.plot([px - 0.17 * math.cos(th), px + 0.17 * math.cos(th)],
+                   [py - 0.17 * math.sin(th), py + 0.17 * math.sin(th)],
+                   color=INK, lw=4.6, solid_capstyle='round')
+        m.annotate('', xy=(0.42, 0), xytext=(0.0, 0),
+                   arrowprops=dict(arrowstyle='-|>', color=ACCENT, lw=1.4))
+        m.text(0.50, 0.0, 'fwd', color=ACCENT, fontsize=7.6,
+               fontweight='bold', va='center')
+        m.set_xlim(-0.95, 1.05)
+        m.set_ylim(-0.62, 0.62)
         ax.text(cx, 0.845, name, transform=ax.transAxes, fontsize=11,
                 fontweight='bold', color=INK, ha='center', va='top')
-        ax.text(cx, 0.19, note, transform=ax.transAxes, fontsize=9.4,
+        ax.text(cx, 0.19, note, transform=ax.transAxes, fontsize=9.0,
                 color=MUTED, ha='center')
     ax.text(0.5, 0.075,
-            'crab holds heading with counter-phase steering off the fused yaw; '
-            'the wheels cannot see that error themselves',
+            'angles computed from the controller\'s own equations, not drawn: '
+            'in omnidirectional mode all four genuinely differ',
             transform=ax.transAxes, fontsize=9.6, color=ACCENT, ha='center')
 
     # ---------------------------------------------------------- 4 limits ----

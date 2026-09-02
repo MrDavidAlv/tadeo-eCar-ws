@@ -54,6 +54,9 @@ def generate_launch_description():
             launch_arguments={
                 'use_sim_time': use_sim_time,
                 'map': LaunchConfiguration('map'),
+                # AMCL's initial pose has to match where the robot spawns,
+                # which is a property of the world rather than of the map.
+                'world': world,
             }.items()),
     ])
 

@@ -210,7 +210,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /zed/zed_node/left/image_rect_color
+        Value: /zed/zed_node/rgb/image_rect_color
       Value: false
       Visibility:
         Camera Right: true
@@ -232,7 +232,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /zed/zed_node/right/image_rect_color
+        Value: /zed/zed_node/depth/depth_registered
       Value: false
       Visibility:
         Camera Left: true

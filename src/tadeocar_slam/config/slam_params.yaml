@@ -12,7 +12,11 @@ slam_toolbox:
     # ROS Parameters
     odom_frame: odom
     map_frame: map
-    base_frame: base_link
+    # base_footprint, not base_link. Every pose in this stack - the wheel
+    # odometry, the EKF, Nav2 - is reported for base_footprint, and base_link
+    # is one wheel radius above it. Mixing the two puts a 0.125 m offset
+    # between the map SLAM builds and the map everything else believes in.
+    base_frame: base_footprint
     scan_topic: /scan
     use_map_saver: true
     mode: mapping
@@ -27,10 +31,15 @@ slam_toolbox:
     debug_logging: false
     throttle_scans: 1
     transform_publish_period: 0.02
-    map_update_interval: 5.0
+    map_update_interval: 2.0
     resolution: 0.05
-    max_laser_range: 3.5
-    minimum_time_interval: 0.5
+    # The sensor is a YDLIDAR X2: 8 m, not the 3.5 m this file used to claim.
+    # Under-declaring it does not make the scan safer, it throws away every
+    # return past 3.5 m - which in a 20 x 15 m building is most of the walls
+    # that would have anchored the pose along the length of the floor.
+    max_laser_range: 8.0
+    # The scan turns at 7 Hz, so this used to discard three scans out of four.
+    minimum_time_interval: 0.15
     transform_timeout: 2.0
     tf_buffer_duration: 60.0
     stack_size_to_use: 40000000
@@ -39,13 +48,22 @@ slam_toolbox:
     # General Parameters
     use_scan_matching: true
     use_scan_barycenter: true
-    minimum_travel_distance: 0.15
-    minimum_travel_heading: 0.2
+    # A node every 0.2 m or 0.15 rad. The robot is 1.16 m long and drives at up
+    # to 1 m/s, so this is roughly five nodes per body length - dense enough
+    # that consecutive scans overlap heavily, sparse enough that the graph does
+    # not grow faster than the optimiser can keep up with.
+    minimum_travel_distance: 0.2
+    minimum_travel_heading: 0.15
     scan_buffer_size: 70
-    scan_buffer_maximum_scan_distance: 10.0
+    # Matched to the sensor. Buffering scans from further away than it can see
+    # only holds stale geometry in the running window.
+    scan_buffer_maximum_scan_distance: 8.5
     link_match_minimum_response_fine: 0.35
-    link_scan_maximum_distance: 2.0
-    loop_search_maximum_distance: 6.0
+    link_scan_maximum_distance: 3.0
+    # Loop closure has to reach across the factory's cross aisle, which is 3 m
+    # of gap between two rack rows 8 m long. At 6 m the return leg down the
+    # other side of the building never got compared with the outbound one.
+    loop_search_maximum_distance: 10.0
     do_loop_closing: true
     loop_match_minimum_chain_size: 8
     loop_match_maximum_variance_coarse: 4.0
@@ -63,9 +81,16 @@ slam_toolbox:
     loop_search_space_smear_deviation: 0.03
 
     # Scan Matcher Parameters
-    # Tuned for Gazebo ground truth odometry (high confidence)
-    distance_variance_penalty: 0.5
-    angle_variance_penalty: 1.0
+    #
+    # These penalise a match that moves the pose away from where odometry says
+    # it is, so they encode how much the odometry is worth. The comment here
+    # used to say "tuned for Gazebo ground truth odometry (high confidence)",
+    # which was true of the input at the time: /odom carried the model's world
+    # pose. It carries dead reckoning now - real wheel and steering
+    # measurements, drifting the way the physical robot's will - so the scan
+    # matcher is the more trustworthy of the two and these come down.
+    distance_variance_penalty: 0.3
+    angle_variance_penalty: 0.6
 
     fine_search_angle_offset: 0.00349
     coarse_search_angle_offset: 0.349

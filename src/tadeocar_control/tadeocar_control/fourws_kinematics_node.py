@@ -45,6 +45,7 @@ class FourWSKinematicsNode(Node):
         self.declare_parameter('max_angular_speed', 1.0)
         self.declare_parameter('max_steering_angle', 2.356)
         self.declare_parameter('steering_tolerance', 0.20)
+        self.declare_parameter('gate_speed_threshold', 0.25)
         self.declare_parameter('mode', 'omnidirectional')
         # Crab heading hold. See _crab for what it is for and why it needs an
         # estimate the wheels cannot provide.
@@ -60,6 +61,7 @@ class FourWSKinematicsNode(Node):
         self.max_angular_speed = self.get_parameter('max_angular_speed').value
         self.max_steering_angle = self.get_parameter('max_steering_angle').value
         self.steering_tolerance = self.get_parameter('steering_tolerance').value
+        self.gate_speed = self.get_parameter('gate_speed_threshold').value
         self.mode = self.get_parameter('mode').value
         self.crab_hold = self.get_parameter('crab_heading_hold').value
         self.crab_gain = self.get_parameter('crab_heading_gain').value
@@ -299,7 +301,19 @@ class FourWSKinematicsNode(Node):
         """
         moving = [w for w in WHEELS if speeds[w] != 0.0]
         gate = 1.0
-        if self.have_joint_states and moving:
+        # Scrubbing costs in proportion to how fast the tyre is being dragged,
+        # so below a crawl the gate has nothing to prevent and closing it does
+        # real harm. Nav2 sets off at the slowest sample its acceleration limit
+        # allows, about 0.09 m/s, and at that speed the omnidirectional
+        # solution asks for wheel angles of 20 to 40 degrees even though the
+        # body is barely turning. Gating on that error stopped the robot, which
+        # kept its measured velocity at zero, which kept Nav2 at its slowest
+        # sample: a standoff that had the controller reporting "failed to make
+        # progress" while the wheels aimed and re-aimed. Measured over a 3 m
+        # leg, the robot crawled the whole way at 0.09 m/s.
+        fastest = max((abs(speeds[w]) for w in moving), default=0.0)
+        if (self.have_joint_states and moving
+                and fastest * self.wheel_radius > self.gate_speed):
             worst = max(abs(self._wrap(steering[w] - self.current_steering[w]))
                         for w in moving)
             if worst > self.steering_tolerance:

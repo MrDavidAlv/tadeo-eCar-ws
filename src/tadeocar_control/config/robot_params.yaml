@@ -64,3 +64,9 @@
     crab_heading_hold: true
     crab_heading_gain: 2.0
     crab_heading_max: 0.35
+
+    # Below this body speed the drive gate does not engage. Scrub costs in
+    # proportion to speed, so at a crawl there is nothing to prevent - and
+    # gating a crawl deadlocks Nav2, which starts every leg at the slowest
+    # velocity sample its acceleration limit allows.
+    gate_speed_threshold: 0.25

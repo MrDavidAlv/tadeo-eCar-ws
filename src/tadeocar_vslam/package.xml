@@ -4,7 +4,7 @@
   <name>tadeocar_vslam</name>
   <version>1.0.0</version>
   <description>TadeoeCar Visual SLAM with RTAB-Map and ZED2i stereo camera</description>
-  <maintainer email="davidalvarez33@gmail.com">axioma</maintainer>
+  <maintainer email="davidalvarezzzzzzzz@gmail.com">MrDavidAlv</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_python</buildtool_depend>

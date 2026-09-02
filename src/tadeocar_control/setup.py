@@ -21,7 +21,7 @@ setup(
     maintainer='MrDavidAlv',
     maintainer_email='davidalvarezzzzzzzz@gmail.com',
     description='Control system for TadeoeCar 4WS4WD robot',
-    license='MIT',
+    license='Apache-2.0',
     entry_points={
         'console_scripts': [
             'web_control = tadeocar_control.web_control_node:main',

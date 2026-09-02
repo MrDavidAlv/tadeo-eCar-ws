@@ -1,0 +1,144 @@
+# Mathematical Model of the TadeoeCar 4WD4WS Robot
+
+The TadeoeCar is a four wheel drive, four wheel steering electric platform:
+every wheel drives and every wheel steers, independently. That combination is
+what makes it interesting and what makes none of the standard mobile robot
+models fit.
+
+This directory documents the model that is actually implemented, with the
+numbers that were measured to justify it. Where a value is an assumption it is
+labelled as one.
+
+---
+
+## Contents
+
+| Document | What it covers |
+|---|---|
+| [kinematics.md](kinematics.md) | Geometry, the three driving modes, odometry by least squares, and what a wheel encoder cannot know |
+| [control.md](control.md) | Command arbitration, the steering loop, the drive gate, path following, and measured accuracy |
+| [parameters.md](parameters.md) | Every physical constant, with its source |
+
+Implementation: `tadeocar_control/tadeocar_control/fourws_kinematics_node.py`
+and `wheel_odometry_node.py`; parameters in
+`tadeocar_control/config/robot_params.yaml`, which both nodes load so they
+cannot disagree.
+
+---
+
+## Notation
+
+### Frames
+
+| Frame | Meaning |
+|---|---|
+| $\{W\}$ | world: `map`, or `odom` before a map exists |
+| $\{R\}$ | robot body: `base_footprint` on the ground, `base_link` one wheel radius above |
+| $\{i\}$ | wheel $i$, at its steering axis |
+
+Wheel indices are FL, FR, RL, RR.
+
+### Variables
+
+| Symbol | Meaning | Unit |
+|---|---|---|
+| $v_x, v_y$ | body linear velocity | m/s |
+| $\omega_z$ | body angular velocity | rad/s |
+| $\delta_i$ | steering angle of wheel $i$ | rad |
+| $\omega_i$ | rotation rate of wheel $i$ | rad/s |
+| $\mathbf{p}_i = (p_{x,i}, p_{y,i})$ | steering axis of wheel $i$ in $\{R\}$ | m |
+| $r$ | wheel radius | m |
+| $L$, $T$ | wheelbase, track | m |
+| $\theta$ | heading in $\{W\}$ | rad |
+
+---
+
+## The two equations everything else follows from
+
+### Forward: body twist to wheels
+
+The velocity of the body at the point $\mathbf{p}_i$ is
+$\mathbf{v}_i = (v_x - \omega_z p_{y,i},\ v_y + \omega_z p_{x,i})$, so a wheel
+that neither slides nor scrubs points along it and turns at its magnitude:
+
+$$\delta_i = \operatorname{atan2}\big(v_y + \omega_z p_{x,i},\ v_x - \omega_z p_{y,i}\big),
+\qquad \omega_i = \frac{\lVert \mathbf{v}_i \rVert}{r}$$
+
+### Inverse: wheels to body twist
+
+Eight measurements, three unknowns, solved by least squares:
+
+$$\boldsymbol{\xi} = \mathbf{A}^{+}\mathbf{b}, \qquad
+\mathbf{b}_{2i} = \omega_i r \cos\delta_i, \quad
+\mathbf{b}_{2i+1} = \omega_i r \sin\delta_i$$
+
+Being overdetermined is the point: the wheels disagree whenever one slips, and
+least squares spreads the disagreement over all four rather than trusting
+whichever pair a closed form happened to pick.
+
+---
+
+## Main parameters
+
+| Parameter | Symbol | Value |
+|---|---|---|
+| Wheel radius | $r$ | 0.125 m |
+| Wheelbase | $L$ | 1.058 m |
+| Track | $T$ | 0.550 m |
+| Front axle | | $x = +0.478$ m |
+| Rear axle | | $x = -0.580$ m |
+| Deck | | $1.418 \times 0.815 \times 0.246$ m |
+| Mass | | 98.7 kg |
+| Steering range | | $\pm 135^\circ$ |
+| Max speed | | 1.0 m/s, 1.0 rad/s |
+
+The wheelbase midpoint is 51 mm behind `base_link`. The robot is not symmetric
+about its own origin, and treating it as if it were puts the kinematic centre
+in the wrong place — see [kinematics.md](kinematics.md) §2.2.
+
+---
+
+## What the model cannot do
+
+It is planar. There is no term for $z$, roll or pitch anywhere in it, because
+a wheel encoder cannot tell forward from up. Driving the yard world's 6.72
+degree ramp, the wheels report the full distance as horizontal travel and never
+change $z$:
+
+| | ground truth | wheel odometry | EKF |
+|---|---|---|---|
+| $z$ on the dock platform | 0.350 m | 0.000 m | 0.352 m |
+| pitch, mid-ramp | −6.72° | 0.00° | −6.72° |
+
+Closing that gap is `tadeocar_perception`'s job, not this model's: an
+accelerometer at rest sees gravity, so roll and pitch follow without
+integrating anything, and the EKF integrates the wheels' speed through the
+attitude the IMU measures instead of through an assumed-flat world.
+
+---
+
+## Validation
+
+All figures are against Gazebo's ground-truth pose, published on `/odom_truth`
+and consumed by nothing in the estimation chain.
+
+| Test | Result |
+|---|---|
+| 4 m straight at 0.5 m/s | 3.98 m travelled, < 15 mm lateral, < 0.7° heading |
+| Wheel odometry over that run | within 0.3 % |
+| 90° steering step | 0.48 s to 90 %, settled at 0.65 s, 0.3 % overshoot |
+| Crab 1.8 m sideways | heading held to 0.6–3.6° (4–14° open loop) |
+| SLAM over a 100 m lap | 97 % of mapped cells within 10 cm, mean 2.1 cm |
+| EKF after that lap | 0.55 m, 0.6° |
+| Wheel odometry after that lap | 5.2 m, 21° |
+| Nav2 | 5/5 goals, 22–32 cm |
+| RGB-D SLAM over a 45 m lap | 0.26 m |
+
+---
+
+## Conventions
+
+- Vectors are bold lower case, matrices bold upper case, scalars italic.
+- Angles are radians in equations and code, degrees in prose and tables.
+- Positive $\omega_z$ is counter-clockwise seen from above, and positive
+  $\delta_i$ turns the wheel to the left. ROS convention throughout.

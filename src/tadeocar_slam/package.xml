@@ -4,7 +4,7 @@
   <name>tadeocar_slam</name>
   <version>1.0.0</version>
   <description>TadeoeCar SLAM configuration and launch files</description>
-  <maintainer email="davidalvarez33@gmail.com">axioma</maintainer>
+  <maintainer email="davidalvarezzzzzzzz@gmail.com">MrDavidAlv</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_python</buildtool_depend>

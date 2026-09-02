@@ -188,21 +188,21 @@
 </head>
 <body>
     <div class="container">
-        <h1>🚗 TadeoeCar</h1>
+        <h1>TadeoeCar</h1>
 
         <div id="status" class="status disconnected">
             DESCONECTADO
         </div>
 
         <div class="mode-selector">
-            <button class="mode-btn active" data-mode="omnidirectional">Omnidireccional</button>
+            <button class="mode-btn active" data-mode="omnidirectional">Omnidirectional</button>
             <button class="mode-btn" data-mode="ackermann">Ackermann</button>
-            <button class="mode-btn" data-mode="halo">Halo</button>
-            <button class="mode-btn" data-mode="spin">Giro</button>
+            <button class="mode-btn" data-mode="halo">Crab</button>
+            <button class="mode-btn" data-mode="spin">Spin</button>
         </div>
 
         <div class="slider-container">
-            <label for="speedSlider">Velocidad: <span id="speedValue">100</span>%</label>
+            <label for="speedSlider">Speed: <span id="speedValue">100</span>%</label>
             <input type="range" id="speedSlider" min="0" max="100" value="100">
         </div>
 
@@ -211,18 +211,18 @@
             <div class="joystick-container" id="joystick">
                 <div class="joystick-handle" id="joystickHandle"></div>
             </div>
-            <div class="info">Mueve el joystick para controlar</div>
+            <div class="info">Drag the joystick to drive</div>
         </div>
 
         <!-- Ackermann Control -->
         <div id="ackermann-panel" class="control-panel">
             <div class="slider-container">
-                <label>Dirección</label>
+                <label>Steering</label>
                 <input type="range" id="steeringSlider" min="-100" max="100" value="0">
                 <div class="value-display" id="steeringValue">0</div>
             </div>
             <div class="slider-container">
-                <label>Aceleración</label>
+                <label>Throttle</label>
                 <input type="range" id="throttleSlider" min="-100" max="100" value="0">
                 <div class="value-display" id="throttleValue">0</div>
             </div>
@@ -231,12 +231,12 @@
         <!-- Halo Control -->
         <div id="halo-panel" class="control-panel">
             <div class="slider-container">
-                <label>Ángulo Global</label>
+                <label>Heading</label>
                 <input type="range" id="angleSlider" min="0" max="360" value="0">
                 <div class="value-display" id="angleValue">0°</div>
             </div>
             <div class="slider-container">
-                <label>Velocidad</label>
+                <label>Speed</label>
                 <input type="range" id="haloSpeedSlider" min="0" max="100" value="0">
                 <div class="value-display" id="haloSpeedValue">0</div>
             </div>
@@ -245,13 +245,13 @@
         <!-- Spin Control -->
         <div id="spin-panel" class="control-panel">
             <div class="slider-container">
-                <label>Velocidad de Giro</label>
+                <label>Spin rate</label>
                 <input type="range" id="spinSlider" min="-100" max="100" value="0">
                 <div class="value-display" id="spinValue">0</div>
             </div>
         </div>
 
-        <button class="stop-btn" id="stopBtn">⏹ DETENER</button>
+        <button class="stop-btn" id="stopBtn">STOP</button>
     </div>
 
     <script src="control.js"></script>

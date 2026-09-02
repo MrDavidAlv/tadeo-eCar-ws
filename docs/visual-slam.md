@@ -1,111 +1,95 @@
-# Visual SLAM: what works and what does not
+# Visual SLAM
 
-`tadeocar_vslam` runs RTAB-Map on the ZED 2i's RGB-D stream. This document
-exists because the honest answer to "does the visual SLAM work" has two parts.
-
----
-
-## What works
-
-RTAB-Map builds the map, closes loops, publishes a dense 3D cloud and an
-occupancy grid derived from the depth image. Over a 45 m lap of the factory it
-tracked ground truth to **0.26 m**, and the accumulated cloud came to 100 270
-points.
+`tadeocar_vslam` runs RTAB-Map on the ZED 2i's RGB-D stream. Camera-only
+odometry is the default, and it works:
 
 ```bash
 ros2 launch tadeocar_bringup vslam_bringup.launch.py
 ```
 
+Over a 45 m lap of the factory, with nothing but the images deciding where the
+robot is:
+
+| Metric | Result |
+|---|---|
+| Final pose error | **0.37 m**, 0.9° |
+| Failed registrations | **1 in 400 frames** |
+| Odometry resets | 0 |
+| Feature inliers | median 211, peak 683 |
+| Accumulated 3D cloud | 116 865 points |
+
+For comparison, on the same lap the EKF — wheels fused with the IMU — ends
+0.06 m out. Mapping on the fused pose is available and more accurate, but it
+demonstrates less, because the camera is no longer the thing being tested:
+
+```bash
+ros2 launch tadeocar_bringup vslam_bringup.launch.py odom_source:=ekf
+```
+
 ---
 
-## What it maps on top of
+## How it got there, because the first version did not work
 
-`odom_source` decides who publishes `odom -> base_footprint`:
+The first working version of this package tracked nothing. Registration failed
+on 13 % of frames, always while the robot was turning, each failure triggering
+"Odometry automatically reset", and the estimate ended **18 m** from ground
+truth over the same lap.
 
-| Value | Who owns the transform | Status |
-|---|---|---|
-| `ekf` (default) | the fused wheel-and-IMU pose | works |
-| `visual` | `rgbd_odometry`, camera only | measurably not good enough here |
-
-The default is `ekf`, and that is a measured decision rather than a preference.
-
----
-
-## Why camera-only odometry is not the default
-
-On its own visual odometry, over the same lap:
-
-- registration **failed on 13 % of frames**, always while the robot was turning
-- each failure triggered "Odometry automatically reset", which breaks the
-  trajectory's continuity
-- the estimate ended **18 m** from ground truth
-
-### The first problem was the world, and it is fixed
-
-A flat-shaded box has an intensity gradient nowhere except at its silhouette,
-and a corner detector needs gradients. On the untextured factory world, visual
-odometry ran at **0 to 9 inliers** against a threshold of 10 and lost tracking
-within seconds of the robot moving.
-
-Three changes addressed that, all of them in the world rather than the tuning:
-
-1. **Textures.** `generate_textures.py` emits seven tileable textures, each
-   carrying hard edges — slab joints, panel seams, plank lines, rivets — at a
-   scale the camera resolves from a few metres away.
-2. **Panelled walls.** One box is one texture tile stretched over the whole
-   run, which is a smooth gradient and no help. Long walls are emitted as 2.5 m
-   panels so a seam falls every couple of metres.
-3. **A roof.** The camera sits 0.30 m off the ground with a 110 degree field of
-   view. Without a roof it spent the top third of every frame on empty
-   background: 27 % of depth pixels came back non-finite.
-
-With those, inliers went from 0–9 to **53–65**.
-
-### The second problem is not fixed
-
-Even with good inlier counts, registration still fails during turns. What was
-tried, and what it did:
+Every reasonable tuning knob was tried against that and none of them helped:
 
 | Change | Result |
 |---|---|
-| `Vis/MinInliers` 10 → 8 | fewer rejections, no improvement in the trajectory |
+| `Vis/MinInliers` 10 → 8 | fewer rejections, same trajectory |
 | `GFTT/MinDistance` 7 → 5, `Kp/MaxFeatures` 400 → 750 | more features, same failures |
-| `Vis/CorGuessWinSize` 20 → 40 | intended for exactly this, not enough on its own |
+| `Vis/CorGuessWinSize` 20 → 40 | intended for exactly this, no change |
 | `OdomF2M/MaxSize` 2000 → 3000 | larger local map, no change |
 | `Odom/Strategy` frame-to-map → frame-to-frame | **worse**: 33 % of frames failed |
 
-The pattern that remains is consistent: a 110 degree field of view sweeping at
-0.6 rad/s moves a feature further between frames than the correspondence search
-expects, and this world has no far-field structure to hold onto while the near
-field sweeps past.
+The tuning was not the problem. **The world was flat-shaded**, and a flat-shaded
+box has an intensity gradient nowhere except at its silhouette. A corner
+detector needs gradients.
 
-### What would probably fix it
+### What actually fixed it
 
-In rough order of expected value:
+Three changes, all in the world rather than in RTAB-Map:
 
-1. **A motion prior from the wheels.** RTAB-Map's `rgbd_odometry` accepts a
-   guess through `guess_frame_id`, which needs the wheel odometry published on
-   a frame of its own. The obstacle is that a frame has one parent, so this
-   needs a second transform tree rather than a parameter change.
-2. **More far-field structure in the world**: signage on the walls, gantries,
-   anything with texture at 6 to 8 m that stays in view through a turn.
-3. **A slower angular velocity limit while visual odometry owns the pose**,
-   which is a real mitigation on hardware too.
+**1. The textures had to load.** They were being emitted into
+`models/materials/textures/` and referenced as `materials/textures/x.png` from
+the world file. Gazebo resolves a relative texture URI **against the directory
+of the file that names it**, not against `GZ_SIM_RESOURCE_PATH`, so the server
+was looking in `worlds/materials/textures/` and logging
 
-None of these has been tried. They are listed so the next person does not start
-from the beginning.
-
----
-
-## Running the visual mode anyway
-
-```bash
-ros2 launch tadeocar_bringup vslam_bringup.launch.py odom_source:=visual
-ros2 launch tadeocar_bringup vslam_bringup.launch.py odom_source:=visual rtabmap_viz:=true
+```
+[Err] [SceneManager.cc:862] Unable to find file [materials/textures/concrete.png]
 ```
 
-`rtabmap_viz` shows the feature matches frame by frame, which is the fastest
-way to see a registration failure happen rather than infer it from a log.
+for every surface in the world, then rendering it flat. The error scrolls past
+during startup and nothing downstream complains — the simulation runs, the
+camera publishes, the images simply have nothing in them. The textures live
+next to the worlds now.
+
+**2. The building needed a roof, and the roof needed lights.** The camera sits
+0.30 m off the ground with a 110 degree field of view. Without a roof it spent
+the top third of every frame on empty background: 27 % of depth pixels came
+back non-finite. With a roof and no luminaires it spent them on an unlit
+ceiling. The factory has twelve bay lights on the same grid as its trusses.
+
+**3. Long walls are emitted as 2.5 m panels.** One box is one texture tile
+stretched over the whole run, which is a smooth gradient and no help; panelling
+puts a seam every couple of metres.
+
+The measurable difference, same lap, same RTAB-Map configuration:
+
+| | flat-shaded world | textured and lit |
+|---|---|---|
+| Inliers | 53–65 | median 211, peak 683 |
+| Failed registrations | 13 % of frames | 0.25 % |
+| Odometry resets over the lap | 34 | 0 |
+| Final pose error | 18 m | 0.37 m |
+
+The lesson worth keeping is not about RTAB-Map. It is that a synthetic world is
+a *sensor input*, and a visual algorithm tested against an untextured one is
+being tested against a scene that could not exist.
 
 ---
 
@@ -121,8 +105,8 @@ RGB-D is `subscribe_depth` alone; setting both leaves rtabmap choosing between
 two incompatible input configurations at startup.
 
 **`Grid/3D: true`** is why `/cloud_map` is the room rather than a flat slice of
-it — 100 270 points against 3 586. RTAB-Map still projects it down to the 2D
-`/map` that Nav2 reads, so nothing downstream loses anything.
+it — over a hundred thousand points against three and a half thousand.
+RTAB-Map still projects it down to the 2D `/map` that Nav2 reads.
 
 **Gazebo's own point cloud is not bridged.** gz-sensors emits an
 `rgbd_camera`'s cloud in the sensor's body axes, x forward, while `camera_info`
@@ -131,3 +115,18 @@ topics. Whichever convention it names, the other is wrong. The cloud ROS sees
 is reprojected from the depth image through `camera_info`, which lands it in
 the optical frame by construction and is the same projection the ZED SDK
 performs on real hardware.
+
+---
+
+## Watching it work
+
+```bash
+# RTAB-Map's own window, with the feature matches frame by frame
+ros2 launch tadeocar_bringup vslam_bringup.launch.py rtabmap_viz:=true
+
+# reuse a map already built instead of starting a new one
+ros2 launch tadeocar_bringup vslam_bringup.launch.py localization:=true
+```
+
+`rtabmap_viz` is the fastest way to see a registration succeed or fail rather
+than infer it from a log.

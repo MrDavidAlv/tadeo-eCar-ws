@@ -95,16 +95,18 @@ localisation error.
 
 ## Results: RGB-D visual SLAM
 
-Over a 45 m lap of the factory, RTAB-Map mapping on the fused pose:
+Over a 45 m lap of the factory:
 
-| Metric | Value |
-|---|---|
-| Final pose error | 0.26 m |
-| Accumulated 3D cloud | 100 270 points |
-| Occupancy grid from depth | 424 × 326 at 5 cm |
+| Metric | camera-only odometry | mapping on the fused pose |
+|---|---|---|
+| Final pose error | 0.37 m, 0.9° | 0.06 m |
+| Failed registrations | 1 in 400 frames | n/a |
+| Feature inliers | median 211, peak 683 | n/a |
+| Accumulated 3D cloud | 116 865 points | 100 270 points |
 
-Camera-only odometry is a different story, and [visual-slam.md](visual-slam.md)
-tells it honestly.
+Camera-only odometry did not work at first, and the reason was the world rather
+than the algorithm: every texture in it was silently failing to load and the
+scene rendered flat. [visual-slam.md](visual-slam.md) has the full account.
 
 ---
 

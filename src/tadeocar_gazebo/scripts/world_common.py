@@ -255,6 +255,25 @@ class Layout:
 
     # --------------------------------------------------------------- SDF ----
     @staticmethod
+    def _lights(lights):
+        out = ''
+        for i, (x, y, z) in enumerate(lights):
+            out += f"""
+    <light type='point' name='bay_light_{i}'>
+      <pose>{x} {y} {z} 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>"""
+        return out
+
+    @staticmethod
     def _surface(mu):
         return f"""
           <surface>
@@ -272,8 +291,9 @@ class Layout:
         tex = TEXTURE.get(mat)
         pbr = ''
         if tex:
-            # Resolved through GZ_SIM_RESOURCE_PATH, which simulation.launch.py
-            # points at tadeocar_gazebo/models.
+            # Relative to the WORLD file's own directory. Gazebo resolves a
+            # texture URI against the directory of the file that names it, not
+            # against GZ_SIM_RESOURCE_PATH, so these live in worlds/materials.
             pbr = f"""
             <pbr>
               <metal>
@@ -320,7 +340,14 @@ class Layout:
     </model>"""
 
     def sdf(self, ground_mu=MU_CEMENT, ground_mat=CEMENT, ambient=0.55,
-            background=(0.75, 0.80, 0.85)):
+            background=(0.75, 0.80, 0.85), lights=()):
+        """``lights`` are (x, y, z) point lights, for a world with a roof.
+
+        A roofed building lit only by the sun is a building with the lights
+        off: the camera sees a dark, low-contrast scene and the feature
+        detector has little to work with. Real warehouses have luminaires, and
+        so does this one.
+        """
         body = ''.join(self._box_model(*b) for b in self.boxes)
         body += ''.join(self._cyl_model(*c) for c in self.cylinders)
         br, bg, bb = background
@@ -356,6 +383,7 @@ class Layout:
       <shadows>true</shadows>
     </scene>
 
+{self._lights(lights)}
     <light type='directional' name='sun'>
       <cast_shadows>true</cast_shadows>
       <pose>0 0 12 0 0 0</pose>

@@ -149,8 +149,14 @@ TEXTURES = {
 
 if __name__ == '__main__':
     here = os.path.dirname(os.path.abspath(__file__))
+    # Next to the worlds, not next to the models. Gazebo resolves a relative
+    # texture URI against the directory of the file that names it, NOT against
+    # GZ_SIM_RESOURCE_PATH: with the textures under models/ the server logged
+    # "Unable to find file [materials/textures/concrete.png]" for every one of
+    # them and rendered the whole world flat-shaded, which is precisely the
+    # condition the textures exist to remove.
     out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-        os.path.dirname(here), 'models', 'materials', 'textures')
+        os.path.dirname(here), 'worlds', 'materials', 'textures')
     os.makedirs(out, exist_ok=True)
     for name, fn in TEXTURES.items():
         path = os.path.join(out, f'{name}.png')

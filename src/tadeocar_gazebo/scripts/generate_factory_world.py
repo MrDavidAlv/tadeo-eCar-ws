@@ -131,8 +131,13 @@ f.check(corridors=(
     ('cross aisle', -1.2, 1.2, -HALF_Y + T, HALF_Y - T),
 ))
 
-world = f.sdf(ground_mu=MU_CEMENT, ground_mat=CEMENT, ambient=0.6,
-              background=(0.70, 0.72, 0.75))
+# Bay luminaires under the roof, on the same 5 m grid as the trusses. Without
+# them the building is lit only by whatever the sun reaches through the doorway
+# gap, and a camera in a dark building is a camera with no features.
+BAY_LIGHTS = [(x, y, 3.0) for x in (-7.5, -2.5, 2.5, 7.5) for y in (-4.5, 0.0, 4.5)]
+
+world = f.sdf(ground_mu=MU_CEMENT, ground_mat=CEMENT, ambient=0.72,
+              background=(0.70, 0.72, 0.75), lights=BAY_LIGHTS)
 
 if __name__ == '__main__':
     here = os.path.dirname(os.path.abspath(__file__))

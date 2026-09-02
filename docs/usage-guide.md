@@ -88,15 +88,17 @@ reprojected from the depth image, and what RTAB-Map has accumulated.
 # RTAB-Map's own window, with the feature matches frame by frame
 ros2 launch tadeocar_bringup vslam_bringup.launch.py rtabmap_viz:=true
 
-# camera-only odometry: nothing but the images says where the robot is
-ros2 launch tadeocar_bringup vslam_bringup.launch.py odom_source:=visual
+# map on the fused wheel-and-IMU pose instead of the camera's own estimate
+ros2 launch tadeocar_bringup vslam_bringup.launch.py odom_source:=ekf
 
 # reuse a map already built instead of starting a new one
 ros2 launch tadeocar_bringup vslam_bringup.launch.py localization:=true
 ```
 
-`odom_source` defaults to `ekf`, which is a measured decision rather than a
-preference — [visual-slam.md](visual-slam.md) has the numbers.
+`odom_source` defaults to `visual`: over a 45 m lap the camera alone ends 0.37 m
+from ground truth, with one failed registration in 400 frames. `ekf` maps on
+the fused pose instead and reaches 0.06 m, at the cost of no longer testing the
+camera. [visual-slam.md](visual-slam.md) has the numbers and the history.
 
 ---
 

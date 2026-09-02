@@ -90,6 +90,13 @@ Lozano.
 </table>
 </div>
 
+And the same machine in simulation, with the LiDAR on its mast and the ZED 2i
+on the front bumper:
+
+<div align="center">
+<img src="images/sim-robot.png" width="740"/>
+</div>
+
 ---
 
 ## What makes 4WD4WS different
@@ -126,6 +133,19 @@ that produces the Gazebo world **and** the Nav2 occupancy grid from the same
 list of primitives, so the map and the building cannot disagree.
 
 ![Generated worlds](images/worlds.png)
+
+<div align="center">
+<table>
+  <tr>
+    <td><img src="images/sim-factory.png" width="430"/></td>
+    <td><img src="images/sim-yard.png" width="430"/></td>
+  </tr>
+  <tr>
+    <td align="center"><i>Factory: racks, pillars, roof trusses, bay lighting</i></td>
+    <td align="center"><i>Yard: the dock platform and both ramps, seen from the apron</i></td>
+  </tr>
+</table>
+</div>
 
 **Factory** — 20 × 15 m of warehouse: rack rows, machinery, pillars, crates,
 a loading bay. Flat, textured, roofed. This is where planning and mapping are
@@ -231,6 +251,10 @@ far the tyre rolled, not which way "along the ground" was pointing at the time.
 Drive the yard world's ramp and the consequence is exact rather than
 approximate.
 
+<div align="center">
+<img src="images/sim-ramp.png" width="740"/>
+</div>
+
 ![Ramp estimators](images/ramp-estimators.png)
 
 | | ground truth | wheel odometry | EKF |
@@ -316,8 +340,25 @@ ros2 launch tadeocar_bringup vslam_bringup.launch.py
 
 ![ZED 2i colour and depth](images/zed-view.png)
 
-RTAB-Map on the ZED 2i's RGB-D stream, tracking ground truth to **0.26 m** over
-a 45 m lap and accumulating a 100 000-point 3D cloud.
+RTAB-Map on the ZED 2i's RGB-D stream, with **camera-only odometry**: nothing
+but the images decides where the robot is.
+
+| Metric | Result over a 45 m lap |
+|---|---|
+| Final pose error | 0.37 m, 0.9° |
+| Failed registrations | 1 in 400 frames |
+| Feature inliers | median 211, peak 683 |
+| Accumulated 3D cloud | 116 865 points |
+
+The first version of this tracked nothing — 13 % of frames failed registration
+and the estimate ended 18 m out — and no amount of RTAB-Map tuning moved it.
+The cause was that the worlds were rendering **flat-shaded**: Gazebo resolves a
+relative texture URI against the directory of the file that names it, not
+against `GZ_SIM_RESOURCE_PATH`, so every `albedo_map` in the world silently
+failed to load. A corner detector needs intensity gradients, and a flat-shaded
+box has none anywhere except its silhouette. Fixing the path, roofing and
+lighting the building, and emitting long walls as 2.5 m panels took the inlier
+count from 53–65 to a median of 211.
 
 The ZED is simulated as a single `rgbd_camera` at 672 × 376, the camera's own
 VGA mode. Its point cloud is **reprojected from the depth image through
@@ -327,10 +368,9 @@ cannot label both conventions. The reprojection is also what the ZED SDK does
 on real hardware. ROS-side topic names match `zed-ros2-wrapper`, so swapping
 the simulated camera for the physical one changes nothing above the bridge.
 
-Camera-only odometry is available (`odom_source:=visual`) and is honestly
-documented as not yet good enough in this world — what was tried, what it
-measured, and what would probably fix it are in
-[docs/visual-slam.md](docs/visual-slam.md).
+Mapping on the fused EKF pose instead (`odom_source:=ekf`) reaches 0.06 m and
+demonstrates less. The full account, including everything that did not work, is
+in [docs/visual-slam.md](docs/visual-slam.md).
 
 ---
 

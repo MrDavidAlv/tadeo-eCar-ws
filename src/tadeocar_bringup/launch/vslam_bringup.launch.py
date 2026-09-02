@@ -7,15 +7,17 @@
     ros2 launch tadeocar_bringup vslam_bringup.launch.py rtabmap_viz:=true
 
 RTAB-Map builds the map, closes loops and publishes the 3D cloud. What it maps
-on top of is the odom_source argument, and the default is deliberate:
+on top of is the odom_source argument:
 
-  ekf     (default) the fused wheel-and-IMU pose owns odom -> base_footprint
-          and RTAB-Map corrects it with map -> odom. This is an ordinary RGB-D
-          SLAM setup and it is the one that works here.
+  visual  (default) rgbd_odometry owns odom -> base_footprint and nothing but
+          the camera says where the robot is. Over a 45 m lap of the factory
+          it ends 0.37 m and 0.9 degrees from ground truth, with one failed
+          registration in 400 frames.
 
-  visual  rgbd_odometry owns the transform and nothing but the camera says
-          where the robot is. Honest, and measurably not good enough in this
-          world yet: see docs/visual-slam.md for the numbers and why.
+  ekf     the fused wheel-and-IMU pose owns the transform instead and RTAB-Map
+          corrects it with map -> odom. More accurate - 0.06 m over the same
+          lap - and it demonstrates less, because the camera is no longer the
+          thing being tested.
 
 Either way the EKF runs, so /odometry/filtered is always there to compare
 against.
@@ -90,7 +92,7 @@ def generate_launch_description():
                               choices=['true', 'false']),
         DeclareLaunchArgument('rtabmap_viz', default_value='false',
                               choices=['true', 'false']),
-        DeclareLaunchArgument('odom_source', default_value='ekf',
+        DeclareLaunchArgument('odom_source', default_value='visual',
                               choices=['visual', 'ekf'],
                               description='Whose pose RTAB-Map maps on top of'),
         DeclareLaunchArgument('localization', default_value='false',

@@ -129,7 +129,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument(
-            'odom_source', default_value='ekf', choices=['visual', 'ekf'],
+            'odom_source', default_value='visual', choices=['visual', 'ekf'],
             description='visual runs rgbd_odometry and lets it own '
                         'odom -> base_footprint; ekf maps on the fused pose'),
         DeclareLaunchArgument(

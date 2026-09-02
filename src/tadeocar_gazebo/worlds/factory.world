@@ -24,11 +24,156 @@
     </physics>
 
     <scene>
-      <ambient>0.6 0.6 0.6 1</ambient>
+      <ambient>0.72 0.72 0.72 1</ambient>
       <background>0.7 0.72 0.75 1</background>
       <shadows>true</shadows>
     </scene>
 
+
+    <light type='point' name='bay_light_0'>
+      <pose>-7.5 -4.5 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_1'>
+      <pose>-7.5 0.0 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_2'>
+      <pose>-7.5 4.5 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_3'>
+      <pose>-2.5 -4.5 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_4'>
+      <pose>-2.5 0.0 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_5'>
+      <pose>-2.5 4.5 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_6'>
+      <pose>2.5 -4.5 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_7'>
+      <pose>2.5 0.0 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_8'>
+      <pose>2.5 4.5 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_9'>
+      <pose>7.5 -4.5 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_10'>
+      <pose>7.5 0.0 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
+    <light type='point' name='bay_light_11'>
+      <pose>7.5 4.5 3.0 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <diffuse>0.75 0.74 0.70 1</diffuse>
+      <specular>0.12 0.12 0.12 1</specular>
+      <attenuation>
+        <range>26</range>
+        <constant>0.42</constant>
+        <linear>0.02</linear>
+        <quadratic>0.002</quadratic>
+      </attenuation>
+    </light>
     <light type='directional' name='sun'>
       <cast_shadows>true</cast_shadows>
       <pose>0 0 12 0 0 0</pose>

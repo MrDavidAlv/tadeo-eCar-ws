@@ -111,6 +111,15 @@ f.box('dock_wall', -9.4, 0.0, 0.6, 0.3, 4.4, 1.2, STEEL)
 f.box('dock_rail_north', -7.7, 2.2, 0.5, 2.4, 0.15, 1.0, STEEL)
 f.box('dock_rail_south', -7.7, -2.2, 0.5, 2.4, 0.15, 1.0, STEEL)
 
+# -------------------------------------------------------------------- roof --
+# Steel deck at 3.2 m on trusses. The trusses matter as much as the deck: a
+# flat ceiling is one more large uniform surface, while beams every 2.5 m put
+# hard edges across the top of the camera's field of view.
+f.ceiling('roof', 0.0, 0.0, 2 * HALF_X + T, 2 * HALF_Y + T, 3.2, STEEL)
+for i in range(-4, 5):
+    f.box(f'truss_{i + 4}', i * 2.5, 0.0, 3.05, 0.25, 2 * HALF_Y, 0.30, STEEL,
+          MU_CEMENT, 0.0, 'ceiling')
+
 # ------------------------------------------------------------------ checks --
 # Lanes the planner is entitled to assume exist. The cross aisle at x = -0.5 is
 # the one worth asserting on: it is the only way between the north and south

@@ -205,13 +205,18 @@ def resolve(context, *args, **kwargs):
             'publish_tf': odom_source == 'wheel',
         }])
 
+    # The EKF runs whenever it is not the wheels' turn to dead reckon on their
+    # own, including when odom_source is 'none' and something outside this file
+    # owns the transform. In that case it publishes no TF but still publishes
+    # /odometry/filtered, which is what makes the visual SLAM demo comparable:
+    # two independent estimates of the same trajectory, side by side in RViz.
     ekf = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_perception, 'launch', 'ekf.launch.py')),
         launch_arguments={
             'use_sim_time': LaunchConfiguration('use_sim_time'),
-            'publish_tf': 'true',
-        }.items()) if odom_source == 'ekf' else None
+            'publish_tf': 'true' if odom_source == 'ekf' else 'false',
+        }.items()) if odom_source in ('ekf', 'none') else None
 
     twist_mux = Node(
         package='twist_mux', executable='twist_mux', name='twist_mux',

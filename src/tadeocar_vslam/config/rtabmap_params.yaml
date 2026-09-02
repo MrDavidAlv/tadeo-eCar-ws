@@ -1,67 +1,96 @@
-rtabmap:
+# RTAB-Map, RGB-D, tuned for the simulated ZED 2i.
+#
+# The subscription and frame settings live in vslam.launch.py, because they
+# depend on which node is being started and on whether visual odometry or the
+# EKF owns the transform. What is here is everything that is a property of the
+# scene and the camera rather than of the launch configuration.
+#
+# Every value is a string. RTAB-Map's own parameters are typed as strings on
+# its side, and launch_ros infers a parameter's type from the Python value it
+# is given, so a bare `false` arrives as a bool and the node aborts with
+# InvalidParameterTypeException before publishing anything.
+/**:
   ros__parameters:
-    # Frames - must match URDF/SDF
-    frame_id: base_link
-    odom_frame_id: odom
-    map_frame_id: map
 
-    # Subscribed topics - ZED2i simulated topics (same as real ZED SDK)
-    subscribe_stereo: true
-    subscribe_depth: false
-    subscribe_rgb: false
-    subscribe_odom_info: false
-    approx_sync: true
-    queue_size: 10
-
-    # Stereo topics remapped in launch file
-    # left/image  -> /zed/zed_node/left/image_rect_color
-    # right/image -> /zed/zed_node/right/image_rect_color
-    # left/camera_info -> /zed/zed_node/left/camera_info
-    # right/camera_info -> /zed/zed_node/right/camera_info
-
-    # RTAB-Map core parameters
-    Rtabmap/DetectionRate: "1.0"
-    Rtabmap/CreateIntermediateNodes: "false"
-    Rtabmap/MaxRetrieved: "2"
-
-    # Memory
-    Mem/IncrementalMemory: "true"
-    Mem/InitWMWithAllNodes: "false"
-    Mem/STMSize: "30"
-
-    # Visual features - GFTT/BRIEF for speed in simulation
-    Kp/MaxFeatures: "400"
+    # ---------------------------------------------------------- features --
+    # GFTT corners with BRIEF descriptors: cheap, and good enough on a scene
+    # whose surfaces are flat-shaded boxes.
     Kp/DetectorStrategy: "6"
-    Kp/DescriptorStrategy: "6"
+    Kp/MaxFeatures: "750"
+    Vis/FeatureType: "6"
+    Vis/MaxFeatures: "1500"
 
-    # Stereo matching
-    Stereo/MaxDisparity: "128.0"
-    Stereo/MinDisparity: "0.5"
-    Stereo/WinSize: "15"
+    # The simulated factory is painted boxes under one directional light, so
+    # corner response is far weaker than in a real room. At RTAB-Map's default
+    # quality level the detector returned around 20 features per frame against
+    # a Vis/MinInliers of 20, and registration failed within seconds of moving
+    # - "Too low inliers after bundle adjustment: 18<20". From there the motion
+    # model extrapolated until the prediction was metres off and matches fell
+    # into single digits. Lowering the quality threshold is what makes the
+    # detector find corners in flat shading at all.
+    GFTT/QualityLevel: "0.0003"
+    GFTT/MinDistance: "5"
+    Vis/MinInliers: "8"
+    Vis/InlierDistance: "0.1"
+    # A wider correspondence window around the motion guess. Registration
+    # failed 52 times in 822 frames with the default 20 px, always at 5 to 9
+    # inliers against a threshold of 10 and always while the robot was turning:
+    # a 110 degree field of view sweeping at 0.6 rad/s moves a feature further
+    # between frames than the window allowed, so the match was rejected as an
+    # outlier rather than found further out. Each failure triggered
+    # "Odometry automatically reset", and the resets are what turned a drifting
+    # estimate into a lost one.
+    Vis/CorGuessWinSize: "40"
+    # A bigger local map to match against, which is the other half of the same
+    # problem: after a turn the features in view were no longer in the window.
+    OdomF2M/MaxSize: "3000"
 
-    # Visual Odometry - use odom from Gazebo, not visual odom
+    # ------------------------------------------------------------- odometry --
+    # Reset rather than coast when registration fails. Coasting through a
+    # failure is what turns one bad frame into a lost track.
+    Odom/ResetCountdown: "1"
+    # Frame-to-map. Frame-to-frame was tried and is worse here by a wide
+    # margin - 33 % of frames failed registration against F2M's 13 % - because
+    # comparing only two consecutive frames throws away the accumulated
+    # evidence that makes a weakly textured scene tractable at all.
     Odom/Strategy: "0"
-    Odom/ResetCountdown: "0"
+    Odom/GuessMotion: "true"
 
-    # Loop closure
-    RGBD/LoopClosureReextractFeatures: "true"
-    RGBD/OptimizeMaxError: "3.0"
-    RGBD/ProximityBySpace: "true"
+    # ------------------------------------------------------- loop closure --
+    Rtabmap/DetectionRate: "1.0"
+    Rtabmap/TimeThr: "0"
+    Rtabmap/CreateIntermediateNodes: "false"
     RGBD/AngularUpdate: "0.05"
     RGBD/LinearUpdate: "0.05"
+    RGBD/ProximityBySpace: "true"
+    RGBD/OptimizeMaxError: "3.0"
+    RGBD/LoopClosureReextractFeatures: "true"
+    Mem/STMSize: "30"
 
-    # Grid map from stereo
+    # ------------------------------------------------------------- 2D grid --
+    # The occupancy grid RTAB-Map publishes for Nav2. Built from the depth
+    # image, so it is limited by what the camera sees: a 110 degree cone ahead
+    # of the robot, against the LiDAR's full circle.
     Grid/FromDepth: "true"
-    Grid/MaxObstacleHeight: "2.0"
-    Grid/MinClusterSize: "20"
     Grid/CellSize: "0.05"
-    Grid/RangeMax: "5.0"
+    Grid/RangeMax: "8.0"
+    Grid/MaxObstacleHeight: "2.0"
+    # Anything within a wheel radius of the floor is floor, not an obstacle.
+    Grid/MaxGroundHeight: "0.12"
+    Grid/MinGroundHeight: "-0.3"
+    Grid/NormalsSegmentation: "false"
     Grid/RayTracing: "true"
+    # 3D, so /cloud_map is the room rather than a flat slice of it. RTAB-Map
+    # still projects it down to the 2D /map that Nav2 reads, so nothing
+    # downstream loses anything, and the accumulated cloud goes from about
+    # 3.5 k points to something worth looking at in RViz.
+    Grid/3D: "true"
 
-    # Optimizer
+    # ------------------------------------------------------------ optimiser --
     Optimizer/Strategy: "1"
-    Optimizer/Iterations: "10"
+    Optimizer/Iterations: "20"
+    # The robot drives on a floor and the yard's ramps are gentle, so a 2D pose
+    # graph is the right shape for the problem and converges far faster.
     Optimizer/Slam2D: "true"
-
-    # Visualization
-    Rtabmap/PublishRAMUsage: "true"
+    Reg/Force3DoF: "true"
+    Reg/Strategy: "0"

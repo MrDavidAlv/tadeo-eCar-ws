@@ -376,6 +376,20 @@ in [docs/visual-slam.md](docs/visual-slam.md).
 
 ## Mathematical model
 
+![Kinematic model](images/mathematical-model.png)
+
+That sheet is generated, not drawn. Every value on it is read from
+`tadeocar.urdf.xacro`, `model.sdf`, `robot_params.yaml`, `nav2_params.yaml`
+and `slam_params.yaml` at render time, and the robot is drawn from its own
+visual meshes seen from above:
+
+```bash
+source /opt/ros/humble/setup.bash
+python3 docs/mathematical-model/render_diagram.py
+```
+
+Change a parameter and re-run it; the figure cannot go stale.
+
 The kinematics, the control loops and every physical constant, with the
 measurements that justify them:
 

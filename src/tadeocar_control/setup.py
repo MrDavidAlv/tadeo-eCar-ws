@@ -18,15 +18,16 @@ setup(
     ],
     install_requires=['setuptools', 'websockets'],
     zip_safe=True,
-    maintainer='axioma',
-    maintainer_email='davidalvarez33@gmail.com',
+    maintainer='MrDavidAlv',
+    maintainer_email='davidalvarezzzzzzzz@gmail.com',
     description='Control system for TadeoeCar 4WS4WD robot',
-    license='MIT',
+    license='Apache-2.0',
     entry_points={
         'console_scripts': [
             'web_control = tadeocar_control.web_control_node:main',
             'fourws_kinematics = tadeocar_control.fourws_kinematics_node:main',
             'xbox_control = tadeocar_control.xbox_control_node:main',
+            'wheel_odometry = tadeocar_control.wheel_odometry_node:main',
         ],
     },
 )

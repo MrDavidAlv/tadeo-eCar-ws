@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>tadeocar_perception</name>
+  <version>1.0.0</version>
+  <description>
+    State estimation for the TadeoeCar: an EKF that fuses wheel odometry with
+    the ZED 2i IMU so the robot's pose stays right when the ground is not flat,
+    plus the launch file for the physical camera.
+  </description>
+  <maintainer email="davidalvarezzzzzzzz@gmail.com">MrDavidAlv</maintainer>
+  <license>Apache-2.0</license>
+
+  <exec_depend>robot_localization</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+
+  <!-- zed_wrapper is deliberately NOT declared. It is not in rosdistro: it is
+       built from source against the Stereolabs SDK, and declaring it here
+       would break `rosdep install` for anyone who only wants the simulation. -->
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

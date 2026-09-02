@@ -4,8 +4,8 @@
   <name>tadeocar_control</name>
   <version>1.0.0</version>
   <description>Control system for TadeoeCar 4WS4WD robot (Gz Sim compatible)</description>
-  <maintainer email="davidalvarez33@gmail.com">axioma</maintainer>
-  <license>MIT</license>
+  <maintainer email="davidalvarezzzzzzzz@gmail.com">MrDavidAlv</maintainer>
+  <license>Apache-2.0</license>
 
   <depend>rclpy</depend>
   <depend>std_msgs</depend>

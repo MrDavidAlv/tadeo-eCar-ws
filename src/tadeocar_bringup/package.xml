@@ -4,7 +4,7 @@
   <name>tadeocar_bringup</name>
   <version>1.0.0</version>
   <description>Orchestrator launch files for TadeoeCar robot</description>
-  <maintainer email="davidalvarez33@gmail.com">axioma</maintainer>
+  <maintainer email="davidalvarezzzzzzzz@gmail.com">MrDavidAlv</maintainer>
   <license>Apache-2.0</license>
 
   <exec_depend>tadeocar_gazebo</exec_depend>

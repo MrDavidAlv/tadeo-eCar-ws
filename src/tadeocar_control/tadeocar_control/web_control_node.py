@@ -52,6 +52,13 @@ class TadeoCarWebControl(Node):
         msg.angular.z = float(wz)
         self.cmd_vel_pub.publish(msg)
 
+    # The robot's own limits, from tadeocar_control/config/robot_params.yaml.
+    # The web interface used to scale its inputs to 3.0 m/s and 3.0 rad/s
+    # against a robot that clamps at 1.0 of each, so a joystick was saturated
+    # at a third of its travel and the speed slider did nothing above 34 %.
+    MAX_LINEAR = 1.0
+    MAX_ANGULAR = 1.0
+
     def process_command(self, command):
         try:
             mode = command.get('mode', '')
@@ -60,7 +67,7 @@ class TadeoCarWebControl(Node):
             if mode == 'omnidirectional':
                 x = command.get('x', 0.0)
                 y = command.get('y', 0.0)
-                vel = math.hypot(x, y) * speed_factor * 3.0
+                vel = math.hypot(x, y) * speed_factor * self.MAX_LINEAR
                 angle = math.atan2(y, x) if (x != 0 or y != 0) else 0.0
                 vx = vel * math.cos(angle)
                 vy = vel * math.sin(angle)
@@ -70,10 +77,10 @@ class TadeoCarWebControl(Node):
             elif mode == 'ackermann':
                 steering = command.get('steering', 0.0)
                 throttle = command.get('throttle', 0.0)
-                vx = throttle * speed_factor * 3.0
+                vx = throttle * speed_factor * self.MAX_LINEAR
                 # Convert steering input to angular velocity
                 # steering is normalized [-1, 1], scale to max angular speed
-                wz = steering * speed_factor * 1.0
+                wz = steering * speed_factor * self.MAX_ANGULAR
                 self._publish_mode('ackermann')
                 self._publish_twist(vx=vx, wz=wz)
 
@@ -81,7 +88,7 @@ class TadeoCarWebControl(Node):
                 global_angle = command.get('globalAngle', 0.0)
                 speed = command.get('speed', 0.0)
                 angle_rad = math.radians(global_angle)
-                vel = speed * speed_factor * 3.0
+                vel = speed * speed_factor * self.MAX_LINEAR
                 vx = vel * math.cos(angle_rad)
                 vy = vel * math.sin(angle_rad)
                 self._publish_mode('crab')
@@ -89,7 +96,7 @@ class TadeoCarWebControl(Node):
 
             elif mode == 'spin':
                 spin_speed = command.get('spinSpeed', 0.0)
-                wz = spin_speed * speed_factor * 3.0
+                wz = spin_speed * speed_factor * self.MAX_ANGULAR
                 self._publish_mode('omnidirectional')
                 self._publish_twist(wz=wz)
 

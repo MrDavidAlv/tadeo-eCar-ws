@@ -18,8 +18,8 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='axioma',
-    maintainer_email='davidalvarez33@gmail.com',
+    maintainer='MrDavidAlv',
+    maintainer_email='davidalvarezzzzzzzz@gmail.com',
     description='TadeoeCar SLAM configuration and launch files',
     license='Apache-2.0',
     extras_require={

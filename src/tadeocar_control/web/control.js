@@ -39,10 +39,10 @@ class TadeoCarController {
         const statusEl = document.getElementById('status');
         if (connected) {
             statusEl.className = 'status connected';
-            statusEl.textContent = '✓ CONECTADO';
+            statusEl.textContent = 'CONNECTED';
         } else {
             statusEl.className = 'status disconnected';
-            statusEl.textContent = '✗ DESCONECTADO';
+            statusEl.textContent = 'DISCONNECTED';
         }
     }
 

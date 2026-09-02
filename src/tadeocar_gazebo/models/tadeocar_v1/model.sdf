@@ -1,687 +1,145 @@
 <?xml version="1.0"?>
+<!--
+  TadeoeCar 4WD4WS - Gz Sim (Fortress) model.
+
+  Geometry here mirrors tadeocar_description/urdf/tadeocar.urdf.xacro exactly.
+  The two files exist because one describes shape for TF and the other adds
+  mass, friction and sensors for physics; where they overlap they must agree,
+  and tadeocar_description/test/test_urdf_sdf_match.py fails the build if they
+  stop agreeing.
+
+  Link poses are absolute heights in the model frame, so z = 0 is the ground
+  and base_link sits at one wheel radius, 0.125 m.
+-->
 <sdf version="1.9">
   <model name="tadeocar">
     <static>false</static>
 
-    <!-- ==================== BASE LINK ==================== -->
+    <!-- ==================== DECK ==================== -->
+    <!-- The flatbed, and the whole robot: the 1.27 m tall chassis frame that
+         used to sit on top of it is on the concept render, not on the machine
+         in images/robot3.jpg. Carrying it in simulation cost more than looks -
+         it enclosed both sensors, which is why the LiDAR was clipped to 320
+         degrees with a 0.36 m minimum range to hide the self-hits. -->
     <link name="base_link">
-      <pose>0 0 0.1 0 0 0</pose>
+      <pose>0 0 0.125 0 0 0</pose>
 
       <inertial>
         <mass>50.0</mass>
+        <pose>-0.048 0 0.141 0 0 0</pose>
         <inertia>
-          <ixx>3.042</ixx>
-          <iyy>6.375</iyy>
-          <izz>8.667</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
+          <ixx>3.020</ixx>
+          <iyy>8.630</iyy>
+          <izz>11.146</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
         </inertia>
       </inertial>
 
-      <collision name="base_collision">
+      <collision name="deck_collision">
+        <pose>-0.048 0 0.141 0 0 0</pose>
+        <geometry><box><size>1.418 0.815 0.246</size></box></geometry>
+        <surface>
+          <friction><ode><mu>0.6</mu><mu2>0.6</mu2></ode></friction>
+        </surface>
+      </collision>
+
+      <visual name="deck_visual">
         <pose>0 0 0.155 0 0 0</pose>
         <geometry>
-          <mesh>
-            <uri>meshes/chassis/chasis_base.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-      </collision>
-
-      <visual name="base_visual">
-        <pose>0 0 0.155 0 0 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/chassis/chasis_base.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
+          <mesh><uri>meshes/chassis/chasis_base.dae</uri><scale>1 1 1</scale></mesh>
         </geometry>
         <material>
-          <ambient>0.2 0.2 0.8 1</ambient>
-          <diffuse>0.2 0.2 0.8 1</diffuse>
+          <ambient>0.08 0.08 0.09 1</ambient>
+          <diffuse>0.15 0.15 0.17 1</diffuse>
         </material>
       </visual>
     </link>
 
-    <!-- ==================== CHASIS SUPERIOR ==================== -->
-    <link name="chasis_link">
-      <pose>0 0 0.45 0 0 0</pose>
-
+    <!-- ==================== SENSOR MAST ==================== -->
+    <link name="sensor_mast_link">
+      <pose>0.60 0 0.390 0 0 0</pose>
       <inertial>
-        <mass>10.0</mass>
-        <pose>0 0 -0.05 0 0 0</pose>
+        <mass>0.3</mass>
         <inertia>
-          <ixx>0.433</ixx>
-          <iyy>0.667</iyy>
-          <izz>0.833</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
+          <ixx>0.0004</ixx><iyy>0.0004</iyy><izz>0.0002</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
         </inertia>
       </inertial>
-
-      <collision name="chasis_collision">
-        <pose>-0.49 0.39 -0.126 1.5708 0 3.14159</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/chassis/chasis.dae</uri>
-            <scale>0.001 0.001 0.001</scale>
-          </mesh>
-        </geometry>
+      <collision name="mast_collision">
+        <geometry><box><size>0.07 0.07 0.09</size></box></geometry>
       </collision>
-
-      <visual name="chasis_visual">
-        <pose>-0.49 0.39 -0.126 1.5708 0 3.14159</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/chassis/chasis.dae</uri>
-            <scale>0.001 0.001 0.001</scale>
-          </mesh>
-        </geometry>
+      <visual name="mast_visual">
+        <geometry><box><size>0.07 0.07 0.09</size></box></geometry>
         <material>
-          <ambient>0.8 0.2 0.2 1</ambient>
-          <diffuse>0.8 0.2 0.2 1</diffuse>
+          <ambient>0.22 0.22 0.24 1</ambient>
+          <diffuse>0.45 0.45 0.48 1</diffuse>
         </material>
       </visual>
     </link>
 
-    <joint name="chasis_joint" type="fixed">
+    <joint name="sensor_mast_joint" type="fixed">
       <parent>base_link</parent>
-      <child>chasis_link</child>
+      <child>sensor_mast_link</child>
     </joint>
 
-    <!-- ==================== FRONT LEFT STEERING ==================== -->
-    <link name="front_left_steering_link">
-      <pose>0.478 0.275 0.1 0 0 0</pose>
+    <!-- ==================== LiDAR: YDLIDAR X2 ==================== -->
+    <!-- Datasheet, not guesswork: 0.12 to 8 m, 3000 ranging samples per
+         second, 7 Hz rotation, which is 428 points per revolution. The model
+         used to claim 3.5 m at 20 Hz over 320 degrees, and 3.5 m on a 20 x 15 m
+         floor leaves scan matching with nothing to hold onto down the long
+         axis of the building.
 
-      <inertial>
-        <mass>6.0</mass>
-        <inertia>
-          <ixx>0.05</ixx>
-          <iyy>0.05</iyy>
-          <izz>0.05</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <collision name="front_left_steering_collision">
-        <pose>0 0 0.227 0 3.14159 3.14159</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/suspension/suspension.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-      </collision>
-
-      <visual name="front_left_steering_visual">
-        <pose>0 0 0.227 0 3.14159 3.14159</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/suspension/suspension.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <material>
-          <ambient>0.5 0.5 0.5 1</ambient>
-          <diffuse>0.5 0.5 0.5 1</diffuse>
-        </material>
-      </visual>
-    </link>
-
-    <joint name="front_left_steering_joint" type="revolute">
-      <parent>base_link</parent>
-      <child>front_left_steering_link</child>
-      <axis>
-        <xyz>0 0 1</xyz>
-        <limit>
-          <lower>-2.356</lower>
-          <upper>2.356</upper>
-          <effort>100</effort>
-          <velocity>1.0</velocity>
-        </limit>
-        <dynamics>
-          <damping>5.0</damping>
-          <friction>2.0</friction>
-        </dynamics>
-      </axis>
-    </joint>
-
-    <!-- ==================== FRONT LEFT WHEEL ==================== -->
-    <link name="front_left_wheel_link">
-      <pose>0.528 0.275 0.1 0 0 0</pose>
-
-      <inertial>
-        <mass>6.0</mass>
-        <inertia>
-          <ixx>0.0364</ixx>
-          <iyy>0.06</iyy>
-          <izz>0.0364</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <collision name="front_left_wheel_collision">
-        <pose>0 0 0 1.5708 0 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/wheels/wheel.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <surface>
-          <friction>
-            <ode>
-              <mu>2.5</mu>
-              <mu2>2.5</mu2>
-              <slip1>0.0</slip1>
-              <slip2>0.0</slip2>
-            </ode>
-          </friction>
-          <contact>
-            <ode>
-              <kp>1000000.0</kp>
-              <kd>100.0</kd>
-              <min_depth>0.001</min_depth>
-            </ode>
-          </contact>
-        </surface>
-      </collision>
-
-      <visual name="front_left_wheel_visual">
-        <pose>0 0 0 1.5708 0 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/wheels/wheel.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <material>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.2 0.2 0.2 1</diffuse>
-        </material>
-      </visual>
-    </link>
-
-    <joint name="front_left_wheel_joint" type="revolute">
-      <parent>front_left_steering_link</parent>
-      <child>front_left_wheel_link</child>
-      <axis>
-        <xyz>0 1 0</xyz>
-        <limit>
-          <effort>200.0</effort>
-          <velocity>100</velocity>
-        </limit>
-        <dynamics>
-          <damping>0.01</damping>
-          <friction>0.01</friction>
-        </dynamics>
-      </axis>
-    </joint>
-
-    <!-- ==================== FRONT RIGHT STEERING ==================== -->
-    <link name="front_right_steering_link">
-      <pose>0.478 -0.275 0.1 0 0 0</pose>
-
-      <inertial>
-        <mass>6.0</mass>
-        <inertia>
-          <ixx>0.05</ixx>
-          <iyy>0.05</iyy>
-          <izz>0.05</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <collision name="front_right_steering_collision">
-        <pose>0 0 0.227 0 3.14159 -3.14159</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/suspension/suspension.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-      </collision>
-
-      <visual name="front_right_steering_visual">
-        <pose>0 0 0.227 0 3.14159 -3.14159</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/suspension/suspension.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <material>
-          <ambient>0.5 0.5 0.5 1</ambient>
-          <diffuse>0.5 0.5 0.5 1</diffuse>
-        </material>
-      </visual>
-    </link>
-
-    <joint name="front_right_steering_joint" type="revolute">
-      <parent>base_link</parent>
-      <child>front_right_steering_link</child>
-      <axis>
-        <xyz>0 0 1</xyz>
-        <limit>
-          <lower>-2.356</lower>
-          <upper>2.356</upper>
-          <effort>100</effort>
-          <velocity>1.0</velocity>
-        </limit>
-        <dynamics>
-          <damping>5.0</damping>
-          <friction>2.0</friction>
-        </dynamics>
-      </axis>
-    </joint>
-
-    <!-- ==================== FRONT RIGHT WHEEL ==================== -->
-    <link name="front_right_wheel_link">
-      <pose>0.528 -0.275 0.1 0 0 0</pose>
-
-      <inertial>
-        <mass>6.0</mass>
-        <inertia>
-          <ixx>0.0364</ixx>
-          <iyy>0.06</iyy>
-          <izz>0.0364</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <collision name="front_right_wheel_collision">
-        <pose>0 0 0 1.5708 0 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/wheels/wheel.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <surface>
-          <friction>
-            <ode>
-              <mu>2.5</mu>
-              <mu2>2.5</mu2>
-              <slip1>0.0</slip1>
-              <slip2>0.0</slip2>
-            </ode>
-          </friction>
-          <contact>
-            <ode>
-              <kp>1000000.0</kp>
-              <kd>100.0</kd>
-              <min_depth>0.001</min_depth>
-            </ode>
-          </contact>
-        </surface>
-      </collision>
-
-      <visual name="front_right_wheel_visual">
-        <pose>0 0 0 1.5708 0 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/wheels/wheel.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <material>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.2 0.2 0.2 1</diffuse>
-        </material>
-      </visual>
-    </link>
-
-    <joint name="front_right_wheel_joint" type="revolute">
-      <parent>front_right_steering_link</parent>
-      <child>front_right_wheel_link</child>
-      <axis>
-        <xyz>0 1 0</xyz>
-        <limit>
-          <effort>200.0</effort>
-          <velocity>100</velocity>
-        </limit>
-        <dynamics>
-          <damping>0.01</damping>
-          <friction>0.01</friction>
-        </dynamics>
-      </axis>
-    </joint>
-
-    <!-- ==================== REAR LEFT STEERING ==================== -->
-    <link name="rear_left_steering_link">
-      <pose>-0.58 0.275 0.1 0 0 0</pose>
-
-      <inertial>
-        <mass>6.0</mass>
-        <inertia>
-          <ixx>0.05</ixx>
-          <iyy>0.05</iyy>
-          <izz>0.05</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <collision name="rear_left_steering_collision">
-        <pose>0 0 0.227 0 3.14159 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/suspension/suspension.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-      </collision>
-
-      <visual name="rear_left_steering_visual">
-        <pose>0 0 0.227 0 3.14159 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/suspension/suspension.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <material>
-          <ambient>0.5 0.5 0.5 1</ambient>
-          <diffuse>0.5 0.5 0.5 1</diffuse>
-        </material>
-      </visual>
-    </link>
-
-    <joint name="rear_left_steering_joint" type="revolute">
-      <parent>base_link</parent>
-      <child>rear_left_steering_link</child>
-      <axis>
-        <xyz>0 0 1</xyz>
-        <limit>
-          <lower>-2.356</lower>
-          <upper>2.356</upper>
-          <effort>100</effort>
-          <velocity>1.0</velocity>
-        </limit>
-        <dynamics>
-          <damping>5.0</damping>
-          <friction>2.0</friction>
-        </dynamics>
-      </axis>
-    </joint>
-
-    <!-- ==================== REAR LEFT WHEEL ==================== -->
-    <link name="rear_left_wheel_link">
-      <pose>-0.63 0.275 0.1 0 0 0</pose>
-
-      <inertial>
-        <mass>6.0</mass>
-        <inertia>
-          <ixx>0.0364</ixx>
-          <iyy>0.06</iyy>
-          <izz>0.0364</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <collision name="rear_left_wheel_collision">
-        <pose>0 0 0 1.5708 0 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/wheels/wheel.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <surface>
-          <friction>
-            <ode>
-              <mu>2.5</mu>
-              <mu2>2.5</mu2>
-              <slip1>0.0</slip1>
-              <slip2>0.0</slip2>
-            </ode>
-          </friction>
-          <contact>
-            <ode>
-              <kp>1000000.0</kp>
-              <kd>100.0</kd>
-              <min_depth>0.001</min_depth>
-            </ode>
-          </contact>
-        </surface>
-      </collision>
-
-      <visual name="rear_left_wheel_visual">
-        <pose>0 0 0 1.5708 0 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/wheels/wheel.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <material>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.2 0.2 0.2 1</diffuse>
-        </material>
-      </visual>
-    </link>
-
-    <joint name="rear_left_wheel_joint" type="revolute">
-      <parent>rear_left_steering_link</parent>
-      <child>rear_left_wheel_link</child>
-      <axis>
-        <xyz>0 1 0</xyz>
-        <limit>
-          <effort>200.0</effort>
-          <velocity>100</velocity>
-        </limit>
-        <dynamics>
-          <damping>0.01</damping>
-          <friction>0.01</friction>
-        </dynamics>
-      </axis>
-    </joint>
-
-    <!-- ==================== REAR RIGHT STEERING ==================== -->
-    <link name="rear_right_steering_link">
-      <pose>-0.58 -0.275 0.1 0 0 0</pose>
-
-      <inertial>
-        <mass>6.0</mass>
-        <inertia>
-          <ixx>0.05</ixx>
-          <iyy>0.05</iyy>
-          <izz>0.05</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <collision name="rear_right_steering_collision">
-        <pose>0 0 0.227 0 3.14159 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/suspension/suspension.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-      </collision>
-
-      <visual name="rear_right_steering_visual">
-        <pose>0 0 0.227 0 3.14159 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/suspension/suspension.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <material>
-          <ambient>0.5 0.5 0.5 1</ambient>
-          <diffuse>0.5 0.5 0.5 1</diffuse>
-        </material>
-      </visual>
-    </link>
-
-    <joint name="rear_right_steering_joint" type="revolute">
-      <parent>base_link</parent>
-      <child>rear_right_steering_link</child>
-      <axis>
-        <xyz>0 0 1</xyz>
-        <limit>
-          <lower>-2.356</lower>
-          <upper>2.356</upper>
-          <effort>100</effort>
-          <velocity>1.0</velocity>
-        </limit>
-        <dynamics>
-          <damping>5.0</damping>
-          <friction>2.0</friction>
-        </dynamics>
-      </axis>
-    </joint>
-
-    <!-- ==================== REAR RIGHT WHEEL ==================== -->
-    <link name="rear_right_wheel_link">
-      <pose>-0.63 -0.275 0.1 0 0 0</pose>
-
-      <inertial>
-        <mass>6.0</mass>
-        <inertia>
-          <ixx>0.0364</ixx>
-          <iyy>0.06</iyy>
-          <izz>0.0364</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
-        </inertia>
-      </inertial>
-
-      <collision name="rear_right_wheel_collision">
-        <pose>0 0 0 1.5708 0 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/wheels/wheel.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <surface>
-          <friction>
-            <ode>
-              <mu>2.5</mu>
-              <mu2>2.5</mu2>
-              <slip1>0.0</slip1>
-              <slip2>0.0</slip2>
-            </ode>
-          </friction>
-          <contact>
-            <ode>
-              <kp>1000000.0</kp>
-              <kd>100.0</kd>
-              <min_depth>0.001</min_depth>
-            </ode>
-          </contact>
-        </surface>
-      </collision>
-
-      <visual name="rear_right_wheel_visual">
-        <pose>0 0 0 1.5708 0 0</pose>
-        <geometry>
-          <mesh>
-            <uri>meshes/wheels/wheel.dae</uri>
-            <scale>1 1 1</scale>
-          </mesh>
-        </geometry>
-        <material>
-          <ambient>0.2 0.2 0.2 1</ambient>
-          <diffuse>0.2 0.2 0.2 1</diffuse>
-        </material>
-      </visual>
-    </link>
-
-    <joint name="rear_right_wheel_joint" type="revolute">
-      <parent>rear_right_steering_link</parent>
-      <child>rear_right_wheel_link</child>
-      <axis>
-        <xyz>0 1 0</xyz>
-        <limit>
-          <effort>200.0</effort>
-          <velocity>100</velocity>
-        </limit>
-        <dynamics>
-          <damping>0.01</damping>
-          <friction>0.01</friction>
-        </dynamics>
-      </axis>
-    </joint>
-
-    <!-- ==================== LiDAR SENSOR ==================== -->
+         The scan plane is 0.450 m above the ground: 61 mm over the deck's top
+         face, which is what buys a clean 360 degrees. -->
     <link name="base_scan">
-      <pose>0.55 0 0.43 0 0 0</pose>
+      <pose>0.60 0 0.450 0 0 0</pose>
 
       <inertial>
-        <mass>0.125</mass>
+        <mass>0.2</mass>
         <inertia>
-          <ixx>0.001</ixx>
-          <iyy>0.001</iyy>
-          <izz>0.001</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
+          <ixx>0.0001</ixx><iyy>0.0001</iyy><izz>0.0001</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
         </inertia>
       </inertial>
 
-      <collision name="lidar_sensor_collision">
-        <geometry>
-          <cylinder>
-            <radius>0.035</radius>
-            <length>0.030</length>
-          </cylinder>
-        </geometry>
+      <collision name="lidar_collision">
+        <geometry><cylinder><radius>0.0375</radius><length>0.030</length></cylinder></geometry>
       </collision>
 
-      <visual name="lidar_sensor_visual">
-        <geometry>
-          <cylinder>
-            <radius>0.035</radius>
-            <length>0.030</length>
-          </cylinder>
-        </geometry>
+      <visual name="lidar_visual">
+        <geometry><cylinder><radius>0.0375</radius><length>0.030</length></cylinder></geometry>
         <material>
-          <ambient>0.1 0.1 0.1 1</ambient>
-          <diffuse>0.1 0.1 0.1 1</diffuse>
+          <ambient>0.12 0.12 0.12 1</ambient>
+          <diffuse>0.25 0.25 0.25 1</diffuse>
         </material>
       </visual>
 
-      <sensor name="gpu_lidar" type="gpu_lidar">
+      <sensor name="lidar" type="gpu_lidar">
         <pose>0 0 0 0 0 0</pose>
         <always_on>true</always_on>
         <visualize>true</visualize>
-        <update_rate>20</update_rate>
+        <update_rate>7</update_rate>
         <topic>scan</topic>
         <gz_frame_id>base_scan</gz_frame_id>
         <lidar>
           <scan>
             <horizontal>
-              <samples>320</samples>
+              <samples>428</samples>
               <resolution>1</resolution>
-              <min_angle>-2.79253</min_angle>
-              <max_angle>2.79253</max_angle>
+              <min_angle>-3.141593</min_angle>
+              <max_angle>3.141593</max_angle>
             </horizontal>
           </scan>
           <range>
-            <min>0.36</min>
-            <max>3.5</max>
-            <resolution>0.02</resolution>
+            <min>0.12</min>
+            <max>8.0</max>
+            <resolution>0.01</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.015</stddev>
+          </noise>
         </lidar>
       </sensor>
     </link>
@@ -691,65 +149,73 @@
       <child>base_scan</child>
     </joint>
 
-    <!-- ==================== ZED2i STEREO CAMERA ==================== -->
-    <!-- ZED2i specs: baseline 0.12m, HFOV 110deg, 175g, IMU BMI088 -->
-    <!-- Topics match real ZED SDK naming for sim-to-real compatibility -->
+    <!-- ==================== ZED 2i ==================== -->
+    <!-- One rgbd_camera, not the stereo pair this model used to carry.
+         Two 1280x720 cameras at 15 Hz put the simulation at 8 % of real time
+         and gave RTAB-Map a stereo pair to match by hand; the depth image
+         Gazebo renders is the same measurement the ZED SDK computes on the
+         real camera's GPU, at a fraction of the cost. 672 x 376 is the ZED's
+         own VGA mode, so the resolution is a setting the hardware also has.
 
+         gz_frame_id is the OPTICAL frame, which is right for the image, the
+         depth image and camera_info - the three topics that get bridged. It is
+         wrong for the fourth, /zed2i/points, because gz-sensors emits its
+         cloud in the sensor's body axes with x forward, and one gz_frame_id
+         has to serve all four. So the cloud is not bridged at all: the point
+         cloud ROS sees is reprojected from the depth image through
+         camera_info, which lands it in the optical frame by construction and
+         is the same projection the ZED SDK performs on real hardware. -->
     <link name="zed2i_camera_link">
-      <pose>0.55 0 0.50 0 0 0</pose>
+      <pose>0.68 0 0.300 0 0 0</pose>
 
       <inertial>
         <mass>0.175</mass>
         <inertia>
-          <ixx>0.0004</ixx>
-          <iyy>0.0001</iyy>
-          <izz>0.0004</izz>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyz>0</iyz>
+          <ixx>0.0005</ixx><iyy>0.0001</iyy><izz>0.0005</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
         </inertia>
       </inertial>
 
       <collision name="zed2i_collision">
-        <geometry>
-          <box>
-            <size>0.033 0.175 0.030</size>
-          </box>
-        </geometry>
+        <pose>0.004 0 0 0 0 0</pose>
+        <geometry><box><size>0.043 0.175 0.030</size></box></geometry>
       </collision>
 
       <visual name="zed2i_visual">
         <geometry>
-          <mesh>
-            <uri>meshes/sensors/zed2i.stl</uri>
-            <scale>0.001 0.001 0.001</scale>
-          </mesh>
+          <mesh><uri>meshes/sensors/zed2i.stl</uri><scale>1 1 1</scale></mesh>
         </geometry>
         <material>
-          <ambient>0.25 0.25 0.25 1</ambient>
+          <ambient>0.12 0.12 0.12 1</ambient>
           <diffuse>0.25 0.25 0.25 1</diffuse>
         </material>
       </visual>
 
-      <!-- ZED2i Left Camera (baseline/2 = +0.06m from center) -->
-      <sensor name="zed2i_left_camera" type="camera">
-        <pose>0.005 0.06 0 0 0 0</pose>
+      <!-- Left imager, half the 0.12 m baseline off centre. -->
+      <sensor name="zed2i_left" type="rgbd_camera">
+        <pose>0 0.06 0 0 0 0</pose>
         <always_on>true</always_on>
         <update_rate>15</update_rate>
         <visualize>false</visualize>
-        <topic>zed/zed_node/left/image_rect_color</topic>
+        <topic>zed2i</topic>
         <gz_frame_id>zed2i_left_camera_optical_frame</gz_frame_id>
-        <camera name="zed2i_left">
+        <camera>
           <horizontal_fov>1.919862</horizontal_fov>
           <image>
-            <width>1280</width>
-            <height>720</height>
+            <width>672</width>
+            <height>376</height>
             <format>R8G8B8</format>
           </image>
           <clip>
-            <near>0.1</near>
+            <near>0.3</near>
             <far>20.0</far>
           </clip>
+          <depth_camera>
+            <clip>
+              <near>0.3</near>
+              <far>20.0</far>
+            </clip>
+          </depth_camera>
           <noise>
             <type>gaussian</type>
             <mean>0.0</mean>
@@ -758,38 +224,14 @@
         </camera>
       </sensor>
 
-      <!-- ZED2i Right Camera (baseline/2 = -0.06m from center) -->
-      <sensor name="zed2i_right_camera" type="camera">
-        <pose>0.005 -0.06 0 0 0 0</pose>
-        <always_on>true</always_on>
-        <update_rate>15</update_rate>
-        <visualize>false</visualize>
-        <topic>zed/zed_node/right/image_rect_color</topic>
-        <gz_frame_id>zed2i_right_camera_optical_frame</gz_frame_id>
-        <camera name="zed2i_right">
-          <horizontal_fov>1.919862</horizontal_fov>
-          <image>
-            <width>1280</width>
-            <height>720</height>
-            <format>R8G8B8</format>
-          </image>
-          <clip>
-            <near>0.1</near>
-            <far>20.0</far>
-          </clip>
-          <noise>
-            <type>gaussian</type>
-            <mean>0.0</mean>
-            <stddev>0.005</stddev>
-          </noise>
-        </camera>
-      </sensor>
-
-      <!-- ZED2i IMU (BMI088) -->
+      <!-- ZED 2i IMU: a Bosch BMI088, 400 Hz. It is the only inertial sensor
+           on this robot, so it is the only thing that can tell the estimator
+           the difference between driving forward and driving uphill. -->
       <sensor name="zed2i_imu" type="imu">
+        <pose>-0.002 0 0 0 0 0</pose>
         <always_on>true</always_on>
         <update_rate>400</update_rate>
-        <topic>zed/zed_node/imu/data_raw</topic>
+        <topic>zed2i/imu</topic>
         <gz_frame_id>zed2i_imu_link</gz_frame_id>
         <imu>
           <angular_velocity>
@@ -811,34 +253,425 @@
       <child>zed2i_camera_link</child>
     </joint>
 
-    <!-- ZED2i Optical Frames (camera convention: Z forward, X right, Y down) -->
-    <link name="zed2i_left_camera_optical_frame">
-      <pose>0.555 0.06 0.50 -1.5708 0 -1.5708</pose>
+    <!-- ==================== FRONT LEFT MODULE ==================== -->
+    <link name="front_left_steering_link">
+      <pose>0.478 0.275 0.125 0 0 0</pose>
+      <inertial>
+        <mass>6.0</mass>
+        <pose>0 0 0.10 0 0 0</pose>
+        <inertia>
+          <ixx>0.0362</ixx><iyy>0.0250</iyy><izz>0.0212</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="front_left_steering_collision">
+        <pose>0 0 0.10 0 0 0</pose>
+        <geometry><box><size>0.10 0.18 0.20</size></box></geometry>
+      </collision>
+      <visual name="front_left_steering_visual">
+        <pose>0 0 0.227 0 3.14159 3.14159</pose>
+        <geometry>
+          <mesh><uri>meshes/suspension/suspension.dae</uri><scale>1 1 1</scale></mesh>
+        </geometry>
+        <material>
+          <ambient>0.22 0.22 0.24 1</ambient>
+          <diffuse>0.45 0.45 0.48 1</diffuse>
+        </material>
+      </visual>
     </link>
-    <joint name="zed2i_left_optical_joint" type="fixed">
-      <parent>zed2i_camera_link</parent>
-      <child>zed2i_left_camera_optical_frame</child>
+
+    <joint name="front_left_steering_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>front_left_steering_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.356</lower>
+          <upper>2.356</upper>
+          <effort>100</effort>
+          <velocity>3.0</velocity>
+        </limit>
+        <dynamics>
+          <damping>5.0</damping>
+          <friction>2.0</friction>
+        </dynamics>
+      </axis>
     </joint>
 
-    <link name="zed2i_right_camera_optical_frame">
-      <pose>0.555 -0.06 0.50 -1.5708 0 -1.5708</pose>
+    <link name="front_left_wheel_link">
+      <pose>0.528 0.275 0.125 0 0 0</pose>
+      <inertial>
+        <mass>6.0</mass>
+        <inertia>
+          <ixx>0.0434</ixx><iyy>0.0469</iyy><izz>0.0434</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="front_left_wheel_collision">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.125</radius><length>0.2</length></cylinder></geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <slip1>0.0</slip1>
+              <slip2>0.0</slip2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <kp>1000000.0</kp>
+              <kd>100.0</kd>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+      <visual name="front_left_wheel_visual">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry>
+          <mesh><uri>meshes/wheels/wheel.dae</uri><scale>1 1 1</scale></mesh>
+        </geometry>
+        <material>
+          <ambient>0.04 0.04 0.04 1</ambient>
+          <diffuse>0.08 0.08 0.08 1</diffuse>
+        </material>
+      </visual>
     </link>
-    <joint name="zed2i_right_optical_joint" type="fixed">
-      <parent>zed2i_camera_link</parent>
-      <child>zed2i_right_camera_optical_frame</child>
+
+    <joint name="front_left_wheel_joint" type="revolute">
+      <parent>front_left_steering_link</parent>
+      <child>front_left_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+          <effort>200.0</effort>
+          <velocity>60</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.01</damping>
+          <friction>0.01</friction>
+        </dynamics>
+      </axis>
+    </joint>
+    <!-- ==================== FRONT RIGHT MODULE ==================== -->
+    <link name="front_right_steering_link">
+      <pose>0.478 -0.275 0.125 0 0 0</pose>
+      <inertial>
+        <mass>6.0</mass>
+        <pose>0 0 0.10 0 0 0</pose>
+        <inertia>
+          <ixx>0.0362</ixx><iyy>0.0250</iyy><izz>0.0212</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="front_right_steering_collision">
+        <pose>0 0 0.10 0 0 0</pose>
+        <geometry><box><size>0.10 0.18 0.20</size></box></geometry>
+      </collision>
+      <visual name="front_right_steering_visual">
+        <pose>0 0 0.227 0 3.14159 -3.14159</pose>
+        <geometry>
+          <mesh><uri>meshes/suspension/suspension.dae</uri><scale>1 1 1</scale></mesh>
+        </geometry>
+        <material>
+          <ambient>0.22 0.22 0.24 1</ambient>
+          <diffuse>0.45 0.45 0.48 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="front_right_steering_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>front_right_steering_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.356</lower>
+          <upper>2.356</upper>
+          <effort>100</effort>
+          <velocity>3.0</velocity>
+        </limit>
+        <dynamics>
+          <damping>5.0</damping>
+          <friction>2.0</friction>
+        </dynamics>
+      </axis>
     </joint>
 
-    <link name="zed2i_imu_link">
-      <pose>0.55 0 0.50 0 0 0</pose>
+    <link name="front_right_wheel_link">
+      <pose>0.528 -0.275 0.125 0 0 0</pose>
+      <inertial>
+        <mass>6.0</mass>
+        <inertia>
+          <ixx>0.0434</ixx><iyy>0.0469</iyy><izz>0.0434</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="front_right_wheel_collision">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.125</radius><length>0.2</length></cylinder></geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <slip1>0.0</slip1>
+              <slip2>0.0</slip2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <kp>1000000.0</kp>
+              <kd>100.0</kd>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+      <visual name="front_right_wheel_visual">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry>
+          <mesh><uri>meshes/wheels/wheel.dae</uri><scale>1 1 1</scale></mesh>
+        </geometry>
+        <material>
+          <ambient>0.04 0.04 0.04 1</ambient>
+          <diffuse>0.08 0.08 0.08 1</diffuse>
+        </material>
+      </visual>
     </link>
-    <joint name="zed2i_imu_joint" type="fixed">
-      <parent>zed2i_camera_link</parent>
-      <child>zed2i_imu_link</child>
+
+    <joint name="front_right_wheel_joint" type="revolute">
+      <parent>front_right_steering_link</parent>
+      <child>front_right_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+          <effort>200.0</effort>
+          <velocity>60</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.01</damping>
+          <friction>0.01</friction>
+        </dynamics>
+      </axis>
+    </joint>
+    <!-- ==================== REAR LEFT MODULE ==================== -->
+    <link name="rear_left_steering_link">
+      <pose>-0.58 0.275 0.125 0 0 0</pose>
+      <inertial>
+        <mass>6.0</mass>
+        <pose>0 0 0.10 0 0 0</pose>
+        <inertia>
+          <ixx>0.0362</ixx><iyy>0.0250</iyy><izz>0.0212</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="rear_left_steering_collision">
+        <pose>0 0 0.10 0 0 0</pose>
+        <geometry><box><size>0.10 0.18 0.20</size></box></geometry>
+      </collision>
+      <visual name="rear_left_steering_visual">
+        <pose>0 0 0.227 0 3.14159 0.0</pose>
+        <geometry>
+          <mesh><uri>meshes/suspension/suspension.dae</uri><scale>1 1 1</scale></mesh>
+        </geometry>
+        <material>
+          <ambient>0.22 0.22 0.24 1</ambient>
+          <diffuse>0.45 0.45 0.48 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rear_left_steering_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rear_left_steering_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.356</lower>
+          <upper>2.356</upper>
+          <effort>100</effort>
+          <velocity>3.0</velocity>
+        </limit>
+        <dynamics>
+          <damping>5.0</damping>
+          <friction>2.0</friction>
+        </dynamics>
+      </axis>
     </joint>
 
-    <!-- ==================== GZ SIM PLUGINS ==================== -->
+    <link name="rear_left_wheel_link">
+      <pose>-0.630 0.275 0.125 0 0 0</pose>
+      <inertial>
+        <mass>6.0</mass>
+        <inertia>
+          <ixx>0.0434</ixx><iyy>0.0469</iyy><izz>0.0434</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="rear_left_wheel_collision">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.125</radius><length>0.2</length></cylinder></geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <slip1>0.0</slip1>
+              <slip2>0.0</slip2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <kp>1000000.0</kp>
+              <kd>100.0</kd>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+      <visual name="rear_left_wheel_visual">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry>
+          <mesh><uri>meshes/wheels/wheel.dae</uri><scale>1 1 1</scale></mesh>
+        </geometry>
+        <material>
+          <ambient>0.04 0.04 0.04 1</ambient>
+          <diffuse>0.08 0.08 0.08 1</diffuse>
+        </material>
+      </visual>
+    </link>
 
-    <!-- Joint State Publisher (publishes all joint states) -->
+    <joint name="rear_left_wheel_joint" type="revolute">
+      <parent>rear_left_steering_link</parent>
+      <child>rear_left_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+          <effort>200.0</effort>
+          <velocity>60</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.01</damping>
+          <friction>0.01</friction>
+        </dynamics>
+      </axis>
+    </joint>
+    <!-- ==================== REAR RIGHT MODULE ==================== -->
+    <link name="rear_right_steering_link">
+      <pose>-0.58 -0.275 0.125 0 0 0</pose>
+      <inertial>
+        <mass>6.0</mass>
+        <pose>0 0 0.10 0 0 0</pose>
+        <inertia>
+          <ixx>0.0362</ixx><iyy>0.0250</iyy><izz>0.0212</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="rear_right_steering_collision">
+        <pose>0 0 0.10 0 0 0</pose>
+        <geometry><box><size>0.10 0.18 0.20</size></box></geometry>
+      </collision>
+      <visual name="rear_right_steering_visual">
+        <pose>0 0 0.227 0 3.14159 0.0</pose>
+        <geometry>
+          <mesh><uri>meshes/suspension/suspension.dae</uri><scale>1 1 1</scale></mesh>
+        </geometry>
+        <material>
+          <ambient>0.22 0.22 0.24 1</ambient>
+          <diffuse>0.45 0.45 0.48 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rear_right_steering_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>rear_right_steering_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-2.356</lower>
+          <upper>2.356</upper>
+          <effort>100</effort>
+          <velocity>3.0</velocity>
+        </limit>
+        <dynamics>
+          <damping>5.0</damping>
+          <friction>2.0</friction>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <link name="rear_right_wheel_link">
+      <pose>-0.630 -0.275 0.125 0 0 0</pose>
+      <inertial>
+        <mass>6.0</mass>
+        <inertia>
+          <ixx>0.0434</ixx><iyy>0.0469</iyy><izz>0.0434</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="rear_right_wheel_collision">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.125</radius><length>0.2</length></cylinder></geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+              <slip1>0.0</slip1>
+              <slip2>0.0</slip2>
+            </ode>
+          </friction>
+          <contact>
+            <ode>
+              <kp>1000000.0</kp>
+              <kd>100.0</kd>
+              <min_depth>0.001</min_depth>
+            </ode>
+          </contact>
+        </surface>
+      </collision>
+      <visual name="rear_right_wheel_visual">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry>
+          <mesh><uri>meshes/wheels/wheel.dae</uri><scale>1 1 1</scale></mesh>
+        </geometry>
+        <material>
+          <ambient>0.04 0.04 0.04 1</ambient>
+          <diffuse>0.08 0.08 0.08 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="rear_right_wheel_joint" type="revolute">
+      <parent>rear_right_steering_link</parent>
+      <child>rear_right_wheel_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-1e16</lower>
+          <upper>1e16</upper>
+          <effort>200.0</effort>
+          <velocity>60</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.01</damping>
+          <friction>0.01</friction>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <!-- ==================== PLUGINS ==================== -->
+
     <plugin filename="ignition-gazebo-joint-state-publisher-system"
             name="ignition::gazebo::systems::JointStatePublisher">
       <topic>joint_states</topic>
@@ -852,65 +685,97 @@
       <joint_name>rear_right_wheel_joint</joint_name>
     </plugin>
 
-    <!-- Steering Joint Position Controllers (position control for servo-like behavior) -->
+    <!-- Steering: position control, because these are servos on the real
+         robot and a servo takes an angle. Wheels: velocity control.
+
+         The gains are measured, not guessed. A steered tyre carrying 240 N
+         generates a self-aligning torque of roughly 12 Nm as it scrubs, and a
+         proportional loop can only oppose a constant torque by sitting at a
+         constant error: at p_gain 200 that error was 2.5 degrees, drifting
+         outward the whole time the robot drove, with an integral term capped
+         at 10 Nm - just under what was needed - so it never nulled out. The
+         robot toed out as it went and wandered up to 0.5 m off a 4 m straight
+         line.
+
+         Measured while driving straight for 10 s, mean steady-state error and
+         its spread across the four joints:
+
+             p=200  i=5   d=30  i_max=10    2.5 deg, sd 0.4
+             p=200  i=50  d=30  i_max=100   1.6 deg, sd 0.4
+             p=600  i=60  d=60  i_max=200   0.5 deg, sd 0.1
+             p=1200 i=100 d=100 i_max=400   0.2 deg, sd 0.1   <- these
+
+         The last one steps 90 degrees in 0.48 s and settles inside 1 degree at
+         0.65 s with 0.3 % overshoot. The rise time is set by the joint's own
+         3 rad/s velocity limit rather than by the gains, which is the right
+         thing to be limited by. -->
+
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>front_left_steering_joint</joint_name>
       <topic>model/tadeocar/joint/front_left_steering_joint/cmd_pos</topic>
-      <p_gain>200.0</p_gain>
-      <i_gain>5.0</i_gain>
-      <d_gain>30.0</d_gain>
+      <p_gain>1200</p_gain>
+      <i_gain>100</i_gain>
+      <d_gain>100</d_gain>
+      <i_max>400</i_max>
+      <i_min>-400</i_min>
+      <cmd_max>100.0</cmd_max>
+      <cmd_min>-100.0</cmd_min>
     </plugin>
-
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>front_right_steering_joint</joint_name>
       <topic>model/tadeocar/joint/front_right_steering_joint/cmd_pos</topic>
-      <p_gain>200.0</p_gain>
-      <i_gain>5.0</i_gain>
-      <d_gain>30.0</d_gain>
+      <p_gain>1200</p_gain>
+      <i_gain>100</i_gain>
+      <d_gain>100</d_gain>
+      <i_max>400</i_max>
+      <i_min>-400</i_min>
+      <cmd_max>100.0</cmd_max>
+      <cmd_min>-100.0</cmd_min>
     </plugin>
-
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>rear_left_steering_joint</joint_name>
       <topic>model/tadeocar/joint/rear_left_steering_joint/cmd_pos</topic>
-      <p_gain>200.0</p_gain>
-      <i_gain>5.0</i_gain>
-      <d_gain>30.0</d_gain>
+      <p_gain>1200</p_gain>
+      <i_gain>100</i_gain>
+      <d_gain>100</d_gain>
+      <i_max>400</i_max>
+      <i_min>-400</i_min>
+      <cmd_max>100.0</cmd_max>
+      <cmd_min>-100.0</cmd_min>
     </plugin>
-
     <plugin filename="ignition-gazebo-joint-position-controller-system"
             name="ignition::gazebo::systems::JointPositionController">
       <joint_name>rear_right_steering_joint</joint_name>
       <topic>model/tadeocar/joint/rear_right_steering_joint/cmd_pos</topic>
-      <p_gain>200.0</p_gain>
-      <i_gain>5.0</i_gain>
-      <d_gain>30.0</d_gain>
+      <p_gain>1200</p_gain>
+      <i_gain>100</i_gain>
+      <d_gain>100</d_gain>
+      <i_max>400</i_max>
+      <i_min>-400</i_min>
+      <cmd_max>100.0</cmd_max>
+      <cmd_min>-100.0</cmd_min>
     </plugin>
-
-    <!-- Wheel Joint Velocity Controllers (velocity control for drive wheels) -->
     <plugin filename="ignition-gazebo-joint-controller-system"
             name="ignition::gazebo::systems::JointController">
       <joint_name>front_left_wheel_joint</joint_name>
       <topic>model/tadeocar/joint/front_left_wheel_joint/cmd_vel</topic>
       <use_velocity_commands>true</use_velocity_commands>
     </plugin>
-
     <plugin filename="ignition-gazebo-joint-controller-system"
             name="ignition::gazebo::systems::JointController">
       <joint_name>front_right_wheel_joint</joint_name>
       <topic>model/tadeocar/joint/front_right_wheel_joint/cmd_vel</topic>
       <use_velocity_commands>true</use_velocity_commands>
     </plugin>
-
     <plugin filename="ignition-gazebo-joint-controller-system"
             name="ignition::gazebo::systems::JointController">
       <joint_name>rear_left_wheel_joint</joint_name>
       <topic>model/tadeocar/joint/rear_left_wheel_joint/cmd_vel</topic>
       <use_velocity_commands>true</use_velocity_commands>
     </plugin>
-
     <plugin filename="ignition-gazebo-joint-controller-system"
             name="ignition::gazebo::systems::JointController">
       <joint_name>rear_right_wheel_joint</joint_name>
@@ -918,12 +783,19 @@
       <use_velocity_commands>true</use_velocity_commands>
     </plugin>
 
-    <!-- Odometry Publisher (publishes /odom from model pose) -->
+    <!-- Ground truth, and named so nobody mistakes it for odometry.
+         OdometryPublisher derives its output from the model's world pose, not
+         from the wheels, so it is perfect by construction and cannot be an
+         input to anything that claims to estimate the robot's pose. It exists
+         to score the wheel odometry and the EKF against, and
+         tadeocar_control/wheel_odometry_node.py publishes the /odom that the
+         rest of the stack actually consumes. -->
     <plugin filename="ignition-gazebo-odometry-publisher-system"
             name="ignition::gazebo::systems::OdometryPublisher">
       <odom_frame>odom</odom_frame>
-      <robot_base_frame>base_link</robot_base_frame>
-      <odom_topic>odom</odom_topic>
+      <robot_base_frame>base_footprint</robot_base_frame>
+      <odom_topic>odom_truth</odom_topic>
+      <odom_publish_frequency>50</odom_publish_frequency>
       <dimensions>3</dimensions>
     </plugin>
 

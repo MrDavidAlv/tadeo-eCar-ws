@@ -28,6 +28,10 @@ data_files += get_data_files_recursive(
     'models', os.path.join('share', package_name, 'models'))
 data_files += get_data_files_recursive(
     'worlds', os.path.join('share', package_name, 'worlds'))
+# The generators ship with the worlds they produce: a world edited by hand and
+# a generator left behind is how the map and the world drift apart again.
+data_files.append(
+    (os.path.join('share', package_name, 'scripts'), glob('scripts/*.py')))
 
 setup(
     name=package_name,
@@ -36,8 +40,8 @@ setup(
     data_files=data_files,
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='axioma',
-    maintainer_email='davidalvarez33@gmail.com',
+    maintainer='MrDavidAlv',
+    maintainer_email='davidalvarezzzzzzzz@gmail.com',
     description='TadeoeCar Gz Sim simulation, bridge and spawn for ROS2 Humble',
     license='Apache-2.0',
     extras_require={

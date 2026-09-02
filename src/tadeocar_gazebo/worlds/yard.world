@@ -1,0 +1,2008 @@
+<sdf version='1.9'>
+  <world name='default'>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+    <!-- IMU. The Sensors system above already covers the LiDAR and the camera,
+         but an <sensor type="imu"> publishes nothing at all unless this system
+         is loaded in the world: the topic simply never appears and Gazebo logs
+         no warning about it. The ZED 2i's IMU is what makes the robot's roll
+         and pitch observable instead of assumed, so without this line the EKF
+         in tadeocar_perception silently has one input fewer. -->
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+
+    <gravity>0 0 -9.8</gravity>
+    <physics name='default_physics' type='ode'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+
+    <scene>
+      <ambient>0.5 0.5 0.5 1</ambient>
+      <background>0.55 0.68 0.85 1</background>
+      <shadows>true</shadows>
+    </scene>
+
+    <light type='directional' name='sun'>
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 12 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.4 0.3 -0.9</direction>
+    </light>
+
+    <model name='ground_plane'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><plane><normal>0 0 1</normal><size>200 200</size></plane></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.9</mu>
+                <mu2>0.9</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><plane><normal>0 0 1</normal><size>200 200</size></plane></geometry>
+          <material>
+            <ambient>0.120 0.120 0.130 1</ambient>
+            <diffuse>0.240 0.240 0.260 1</diffuse>
+            <specular>0.05 0.05 0.05 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/asphalt.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.9</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name='wall_west_0'>
+      <static>true</static>
+      <pose>-15.10000 -8.83750 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_west_1'>
+      <static>true</static>
+      <pose>-15.10000 -6.31250 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_west_2'>
+      <static>true</static>
+      <pose>-15.10000 -3.78750 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_west_3'>
+      <static>true</static>
+      <pose>-15.10000 -1.26250 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_west_4'>
+      <static>true</static>
+      <pose>-15.10000 1.26250 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_west_5'>
+      <static>true</static>
+      <pose>-15.10000 3.78750 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_west_6'>
+      <static>true</static>
+      <pose>-15.10000 6.31250 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_west_7'>
+      <static>true</static>
+      <pose>-15.10000 8.83750 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_east_0'>
+      <static>true</static>
+      <pose>15.10000 -8.83750 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_east_1'>
+      <static>true</static>
+      <pose>15.10000 -6.31250 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_east_2'>
+      <static>true</static>
+      <pose>15.10000 -3.78750 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_east_3'>
+      <static>true</static>
+      <pose>15.10000 -1.26250 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_east_4'>
+      <static>true</static>
+      <pose>15.10000 1.26250 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_east_5'>
+      <static>true</static>
+      <pose>15.10000 3.78750 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_east_6'>
+      <static>true</static>
+      <pose>15.10000 6.31250 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_east_7'>
+      <static>true</static>
+      <pose>15.10000 8.83750 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.20000 2.52500 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_0'>
+      <static>true</static>
+      <pose>-13.84167 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_1'>
+      <static>true</static>
+      <pose>-11.32500 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_2'>
+      <static>true</static>
+      <pose>-8.80833 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_3'>
+      <static>true</static>
+      <pose>-6.29167 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_4'>
+      <static>true</static>
+      <pose>-3.77500 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_5'>
+      <static>true</static>
+      <pose>-1.25833 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_6'>
+      <static>true</static>
+      <pose>1.25833 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_7'>
+      <static>true</static>
+      <pose>3.77500 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_8'>
+      <static>true</static>
+      <pose>6.29167 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_9'>
+      <static>true</static>
+      <pose>8.80833 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_10'>
+      <static>true</static>
+      <pose>11.32500 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_north_11'>
+      <static>true</static>
+      <pose>13.84167 10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_0'>
+      <static>true</static>
+      <pose>-13.84167 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_1'>
+      <static>true</static>
+      <pose>-11.32500 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_2'>
+      <static>true</static>
+      <pose>-8.80833 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_3'>
+      <static>true</static>
+      <pose>-6.29167 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_4'>
+      <static>true</static>
+      <pose>-3.77500 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_5'>
+      <static>true</static>
+      <pose>-1.25833 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_6'>
+      <static>true</static>
+      <pose>1.25833 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_7'>
+      <static>true</static>
+      <pose>3.77500 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_8'>
+      <static>true</static>
+      <pose>6.29167 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_9'>
+      <static>true</static>
+      <pose>8.80833 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_10'>
+      <static>true</static>
+      <pose>11.32500 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='wall_south_11'>
+      <static>true</static>
+      <pose>13.84167 -10.10000 0.90000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.51667 0.20000 1.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='ramp_north'>
+      <static>true</static>
+      <pose>1.60117 4.50000 0.17514 0 -0.117267 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.81936 2.50000 0.02000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.81936 2.50000 0.02000</size></box></geometry>
+          <material>
+            <ambient>0.310 0.310 0.300 1</ambient>
+            <diffuse>0.620 0.620 0.600 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/concrete.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='ramp_south'>
+      <static>true</static>
+      <pose>1.60117 -4.50000 0.17514 0 -0.117267 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.81936 2.50000 0.02000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.81936 2.50000 0.02000</size></box></geometry>
+          <material>
+            <ambient>0.310 0.310 0.300 1</ambient>
+            <diffuse>0.620 0.620 0.600 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/concrete.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='platform'>
+      <static>true</static>
+      <pose>8.25000 0.00000 0.17500 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>10.50000 20.00000 0.35000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>10.50000 20.00000 0.35000</size></box></geometry>
+          <material>
+            <ambient>0.310 0.310 0.300 1</ambient>
+            <diffuse>0.620 0.620 0.600 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/concrete.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='barrier_0'>
+      <static>true</static>
+      <pose>3.12500 -7.87500 0.70000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.25000 4.25000 0.70000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.25000 4.25000 0.70000</size></box></geometry>
+          <material>
+            <ambient>0.450 0.375 0.075 1</ambient>
+            <diffuse>0.900 0.750 0.150 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='barrier_1'>
+      <static>true</static>
+      <pose>3.12500 0.00000 0.70000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.25000 6.50000 0.70000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.25000 6.50000 0.70000</size></box></geometry>
+          <material>
+            <ambient>0.450 0.375 0.075 1</ambient>
+            <diffuse>0.900 0.750 0.150 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='barrier_2'>
+      <static>true</static>
+      <pose>3.12500 7.87500 0.70000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>0.25000 4.25000 0.70000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>0.25000 4.25000 0.70000</size></box></geometry>
+          <material>
+            <ambient>0.450 0.375 0.075 1</ambient>
+            <diffuse>0.900 0.750 0.150 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='patch_gravel'>
+      <static>true</static>
+      <pose>-8.00000 0.00000 0.00000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>10.00000 3.20000 0.02000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.55</mu>
+                <mu2>0.55</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>10.00000 3.20000 0.02000</size></box></geometry>
+          <material>
+            <ambient>0.225 0.210 0.190 1</ambient>
+            <diffuse>0.450 0.420 0.380 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/gravel.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='patch_sand'>
+      <static>true</static>
+      <pose>-8.00000 -6.00000 0.00000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>10.00000 3.20000 0.02000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.3</mu>
+                <mu2>0.3</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>10.00000 3.20000 0.02000</size></box></geometry>
+          <material>
+            <ambient>0.390 0.340 0.225 1</ambient>
+            <diffuse>0.780 0.680 0.450 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/sand.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='lane_paint_north'>
+      <static>true</static>
+      <pose>-6.00000 4.50000 0.00200 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>14.00000 0.12000 0.02000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.9</mu>
+                <mu2>0.9</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>14.00000 0.12000 0.02000</size></box></geometry>
+          <material>
+            <ambient>0.450 0.375 0.075 1</ambient>
+            <diffuse>0.900 0.750 0.150 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='lane_paint_south'>
+      <static>true</static>
+      <pose>-6.00000 -4.50000 0.00200 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>14.00000 0.12000 0.02000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.9</mu>
+                <mu2>0.9</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>14.00000 0.12000 0.02000</size></box></geometry>
+          <material>
+            <ambient>0.450 0.375 0.075 1</ambient>
+            <diffuse>0.900 0.750 0.150 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='container_0'>
+      <static>true</static>
+      <pose>9.50000 7.00000 1.64500 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>6.06000 2.44000 2.59000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>6.06000 2.44000 2.59000</size></box></geometry>
+          <material>
+            <ambient>0.275 0.125 0.100 1</ambient>
+            <diffuse>0.550 0.250 0.200 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='container_1'>
+      <static>true</static>
+      <pose>9.50000 -7.50000 1.64500 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>6.06000 2.44000 2.59000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>6.06000 2.44000 2.59000</size></box></geometry>
+          <material>
+            <ambient>0.100 0.200 0.275 1</ambient>
+            <diffuse>0.200 0.400 0.550 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='dock_office'>
+      <static>true</static>
+      <pose>12.00000 0.00000 1.75000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>2.60000 4.00000 2.80000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>2.60000 4.00000 2.80000</size></box></geometry>
+          <material>
+            <ambient>0.425 0.425 0.410 1</ambient>
+            <diffuse>0.850 0.850 0.820 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/painted_wall.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='pallet_stack_0'>
+      <static>true</static>
+      <pose>-12.00000 8.00000 0.55000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>1.20000 1.00000 1.10000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>1.20000 1.00000 1.10000</size></box></geometry>
+          <material>
+            <ambient>0.275 0.200 0.120 1</ambient>
+            <diffuse>0.550 0.400 0.240 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/crate.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='pallet_stack_1'>
+      <static>true</static>
+      <pose>-9.00000 8.00000 0.55000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>1.20000 1.00000 1.10000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>1.20000 1.00000 1.10000</size></box></geometry>
+          <material>
+            <ambient>0.275 0.200 0.120 1</ambient>
+            <diffuse>0.550 0.400 0.240 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/crate.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='pallet_stack_2'>
+      <static>true</static>
+      <pose>-6.00000 8.00000 0.55000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>1.20000 1.00000 1.10000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>1.20000 1.00000 1.10000</size></box></geometry>
+          <material>
+            <ambient>0.275 0.200 0.120 1</ambient>
+            <diffuse>0.550 0.400 0.240 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/crate.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='trailer'>
+      <static>true</static>
+      <pose>-3.00000 -8.20000 1.25000 0 0.000000 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><box><size>8.00000 2.50000 2.50000</size></box></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><box><size>8.00000 2.50000 2.50000</size></box></geometry>
+          <material>
+            <ambient>0.375 0.375 0.390 1</ambient>
+            <diffuse>0.750 0.750 0.780 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='light_pole_nw'>
+      <static>true</static>
+      <pose>-13.00000 8.50000 2.50000 0 0 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><cylinder><radius>0.12</radius><length>5.0</length></cylinder></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><cylinder><radius>0.12</radius><length>5.0</length></cylinder></geometry>
+          <material>
+            <ambient>0.175 0.225 0.275 1</ambient>
+            <diffuse>0.350 0.450 0.550 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/steel.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='light_pole_sw'>
+      <static>true</static>
+      <pose>-13.00000 -8.50000 2.50000 0 0 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><cylinder><radius>0.12</radius><length>5.0</length></cylinder></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><cylinder><radius>0.12</radius><length>5.0</length></cylinder></geometry>
+          <material>
+            <ambient>0.175 0.225 0.275 1</ambient>
+            <diffuse>0.350 0.450 0.550 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/steel.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='drum_a'>
+      <static>true</static>
+      <pose>-5.00000 1.60000 0.45000 0 0 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><cylinder><radius>0.28</radius><length>0.9</length></cylinder></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><cylinder><radius>0.28</radius><length>0.9</length></cylinder></geometry>
+          <material>
+            <ambient>0.350 0.225 0.075 1</ambient>
+            <diffuse>0.700 0.450 0.150 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/steel.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='drum_b'>
+      <static>true</static>
+      <pose>-5.60000 1.60000 0.45000 0 0 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><cylinder><radius>0.28</radius><length>0.9</length></cylinder></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><cylinder><radius>0.28</radius><length>0.9</length></cylinder></geometry>
+          <material>
+            <ambient>0.350 0.225 0.075 1</ambient>
+            <diffuse>0.700 0.450 0.150 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/steel.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name='drum_c'>
+      <static>true</static>
+      <pose>-5.30000 2.30000 0.45000 0 0 0</pose>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry><cylinder><radius>0.28</radius><length>0.9</length></cylinder></geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry><cylinder><radius>0.28</radius><length>0.9</length></cylinder></geometry>
+          <material>
+            <ambient>0.350 0.225 0.075 1</ambient>
+            <diffuse>0.700 0.450 0.150 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <pbr>
+              <metal>
+                <albedo_map>materials/textures/steel.png</albedo_map>
+                <metalness>0.0</metalness>
+                <roughness>0.85</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

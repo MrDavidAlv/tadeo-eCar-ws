@@ -1,0 +1,136 @@
+# EKF for the simulated TadeoeCar: wheel odometry + the ZED 2i IMU.
+#
+# ---------------------------------------------------------------------------
+# Why this filter exists
+# ---------------------------------------------------------------------------
+# tadeocar_control's wheel odometry solves a planar problem. It takes four
+# wheel speeds and four steering angles and returns vx, vy and vyaw in the
+# ground plane, because that is all those sensors can support: an encoder
+# measures rotation, and rotation says how far the tyre rolled, not which way
+# "along the ground" was pointing at the time.
+#
+# Drive the yard world's 6.72 degree ramp and the consequence is exact rather
+# than approximate. Over the 2.82 m of ramp surface the wheels report 2.82 m of
+# x and 0 m of z. The truth is 2.80 m of x and 0.35 m of z. The 0.35 m is not
+# error to be tuned away, it is a question the wheels were never able to
+# answer.
+#
+# An IMU can answer it. Gravity is an absolute reference, so an accelerometer
+# at rest knows which way is down, and roll and pitch follow from it without
+# integrating anything. This filter takes attitude from the ZED 2i's BMI088 and
+# integrates the wheels' speed through that attitude instead of through an
+# assumed-flat world, and x, y and z come out consistent with the slope the
+# robot is actually on.
+#
+# ---------------------------------------------------------------------------
+# Who supplies what, and why nothing is supplied twice
+# ---------------------------------------------------------------------------
+#     roll, pitch        <- IMU, absolute, observed from gravity
+#     roll rate, pitch rate, yaw rate  <- IMU gyro
+#     vx, vy             <- wheel odometry
+#     x, y, z, yaw       <- nobody. They are dead reckoned by the filter.
+#
+# Two sources for one quantity is the usual way to make one of these filters
+# oscillate, so every "true" below appears exactly once across all sensors.
+#
+# The yaw rate comes from the gyro rather than from the wheels on purpose: a
+# 400 Hz MEMS gyro is a far better short-term rate sensor than four wheels
+# whose disagreement is the only evidence of rotation. Absolute yaw is fused
+# from nothing at all - this robot has no magnetometer, and the simulated IMU's
+# orientation is ground truth in disguise, so fusing it would make the
+# simulation look better than the hardware can ever be. Heading therefore
+# drifts, exactly as it will on the real robot, and correcting it is the job of
+# SLAM Toolbox or AMCL one level up.
+#
+# ---------------------------------------------------------------------------
+# Reading the *_config vectors
+# ---------------------------------------------------------------------------
+# Fifteen booleans, in five rows of three:
+#
+#     x      y      z
+#     roll   pitch  yaw
+#     vx     vy     vz
+#     vroll  vpitch vyaw
+#     ax     ay     az
+ekf_filter_node:
+  ros__parameters:
+
+    # Matches the rate wheel_odometry publishes at, which is the rate Gazebo
+    # publishes joint states at. Faster only re-predicts between measurements.
+    frequency: 50.0
+
+    # 0.1 s is five missed odometry messages before the filter decides the
+    # sensor is gone and coasts on prediction alone.
+    sensor_timeout: 0.1
+
+    # The whole point of this file. With two_d_mode true, robot_localization
+    # forces z, roll and pitch to zero, and this would be an expensive way to
+    # reproduce exactly the flat-world assumption it exists to remove.
+    two_d_mode: false
+
+    transform_time_offset: 0.0
+    transform_timeout: 0.0
+    print_diagnostics: true
+    debug: false
+
+    # This filter owns odom -> base_footprint whenever it runs.
+    # tadeocar_control's wheel_odometry_node publishes the same transform from
+    # raw dead reckoning, so simulation.launch.py switches that off through its
+    # publish_tf parameter when odom_source is ekf. Two publishers of one
+    # transform is a broken TF tree, not a merged one.
+    publish_tf: true
+    publish_acceleration: false
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: odom
+
+    # base_footprint rather than base_link, because that is the frame the whole
+    # stack reports poses in and the frame the wheel odometry integrates.
+    # base_link is one wheel radius above it.
+
+    # ----------------------------------------------------------- odometry --
+    odom0: /odom
+    # vx and vy only. The pose in that message is dead reckoning, so fusing it
+    # would be the filter listening to its own output with extra steps, and the
+    # yaw rate belongs to the gyro.
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size: 10
+    odom0_nodelay: true
+    odom0_differential: false
+    odom0_relative: false
+
+    # ---------------------------------------------------------------- IMU --
+    imu0: /zed/zed_node/imu/data
+    # Roll and pitch absolute, all three angular rates. Yaw absolute is false
+    # and must stay false: see the note above about the magnetometer this robot
+    # does not have.
+    imu0_config: [false, false, false,
+                  true,  true,  false,
+                  false, false, false,
+                  true,  true,  true,
+                  false, false, false]
+    imu0_queue_size: 20
+    imu0_nodelay: true
+    imu0_differential: false
+    imu0_relative: false
+    # Linear acceleration is not fused at all. Integrating accelerometer output
+    # twice to get position is a well-known way to produce a number that grows
+    # without bound; the wheels already supply velocity directly.
+    imu0_remove_gravitational_acceleration: true
+
+    # ---------------------------------------------------- noise and limits --
+    # process_noise_covariance and initial_estimate_covariance are left at
+    # robot_localization's defaults, and that is a decision rather than an
+    # oversight. The values that belong here depend on how much the tyres slip,
+    # which depends on the surface: the yard world's asphalt, gravel and sand
+    # patches carry mu of 0.9, 0.55 and 0.3 precisely so that this can be
+    # measured rather than guessed. Writing a hand-tuned 15x15 matrix before
+    # that measurement exists would look authoritative and be backed by
+    # nothing. docs/mathematical-model/parameters.md says the same in longer
+    # form and records what the measurement would involve.

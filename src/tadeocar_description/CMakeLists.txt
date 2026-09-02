@@ -10,7 +10,9 @@ find_package(ament_cmake REQUIRED)
 install(DIRECTORY
   launch
   urdf
-  models
+  meshes
+  rviz
+  test
   DESTINATION share/${PROJECT_NAME}/
 )
 

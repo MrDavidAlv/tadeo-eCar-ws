@@ -1,0 +1,66 @@
+# Physical parameters of the robot, in one place.
+#
+# Both nodes that need geometry read this file: fourws_kinematics turns a body
+# twist into wheel commands with it, and wheel_odometry turns wheel states back
+# into a body twist. They MUST agree - a controller and an odometer that
+# disagree about the wheel radius produce a robot that drives one distance and
+# reports another - and the only way to guarantee that is for both to load the
+# same file.
+#
+# The values also appear in tadeocar_description/urdf/tadeocar.urdf.xacro and
+# in tadeocar_gazebo/models/tadeocar_v1/model.sdf, which are checked against
+# each other by tadeocar_description/test/test_urdf_sdf_match.py.
+
+/**:
+  ros__parameters:
+    # Measured off meshes/wheels/wheel.dae: a 0.250 m diameter tyre.
+    # Every file in this workspace used to say 0.1 m, which scaled every
+    # commanded speed and every reported distance by 25 %.
+    wheel_radius: 0.125
+
+    # Steering axis positions along x. The robot is not symmetric about
+    # base_link: the wheelbase is 1.058 m but its midpoint is 51 mm behind the
+    # origin, so these are two separate numbers and not +/- half a wheelbase.
+    front_axle_x: 0.478
+    rear_axle_x: -0.580
+
+    # Half the track, 0.55 m between the left and right steering axes.
+    half_track: 0.275
+
+    # Industrial servos with 270 degrees of travel, centred on straight ahead.
+    max_steering_angle: 2.356
+
+    # Body limits. 1.0 m/s rather than the 2.0 the controller used to allow:
+    # the LiDAR turns at 7 Hz, so at 2 m/s the robot moves 0.29 m between
+    # scans and scan matching has to bridge that gap on odometry alone.
+    max_linear_speed: 1.0
+    max_angular_speed: 1.0
+
+    # Wheel commands are gated until the steering has arrived. A wheel driven
+    # at full speed while its servo is still slewing scrubs sideways across the
+    # ground, which is exactly the "wheels twist when it moves off" symptom
+    # this robot had. 0.20 rad is 11.5 degrees.
+    steering_tolerance: 0.20
+
+    # Command rate for both nodes.
+    control_rate: 50.0
+
+    # Crab heading hold. Four parallel wheels leave the robot neutrally stable
+    # in yaw, so an open-loop crab wanders off its heading by anywhere between
+    # 4 and 14 degrees over 1.7 m. The correction is counter-phase steering
+    # driven by the EKF's fused heading - the wheels cannot see this error at
+    # all, because during a crab they all turn at the same rate whatever the
+    # body does.
+    #
+    # Measured over three runs each, driving 1.7 m sideways at 0.4 m/s:
+    #   open loop      -4.5, -14.5, +8.9 deg
+    #   gain 0.6       -3.5,  -8.4, -4.5 deg
+    #   gain 2.0       -2.8,  -5.0, -3.0 deg   <- these values
+    #   gain 4.0       -2.3,  -8.1 deg, and less repeatable
+    # The residual is the transient: the yaw builds up while the four servos
+    # are still swinging to 90 degrees and the hold is correcting an error that
+    # has already happened. Removing it entirely means gating the manoeuvre on
+    # the steering being in place, which is a slower crab, not a straighter one.
+    crab_heading_hold: true
+    crab_heading_gain: 2.0
+    crab_heading_max: 0.35

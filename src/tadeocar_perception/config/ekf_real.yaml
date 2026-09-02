@@ -1,0 +1,125 @@
+# EKF for the PHYSICAL TadeoeCar: ZED 2i tracking + IMU + wheel odometry.
+#
+# This file and ekf_sim.yaml differ in exactly one respect, and it is worth
+# stating plainly because everything else about them has to stay in step.
+#
+# In simulation nothing observes position absolutely, so the wheels dead reckon
+# it and the filter's x and y drift. On the real robot the ZED 2i does observe
+# it: the SDK runs positional tracking on the camera's own GPU and publishes a
+# pose that is visually anchored to the scene rather than integrated from
+# wheels. There is no Gazebo equivalent of that - simulating it would mean
+# running visual odometry over rendered images, which is what
+# tadeocar_vslam does as a separate demo - so simulation cannot use it and
+# hardware should not go without it.
+#
+#     x, y, z, yaw       <- ZED 2i positional tracking
+#     roll, pitch        <- IMU, absolute, observed from gravity
+#     roll/pitch/yaw rate <- IMU gyro
+#     vx, vy             <- wheel odometry
+#
+# The wheels keep their job here. On the tarmac this robot is meant to work on
+# they are a good short-term velocity source, and they carry the filter through
+# the moments the camera cannot: a blank wall, a sudden light change, the
+# fraction of a second after the tracker relocalises.
+#
+# Everything below that is not one of those four lines is identical to
+# ekf_sim.yaml, deliberately. Keep the two in step.
+ekf_filter_node:
+  ros__parameters:
+
+    # Matches the rate wheel_odometry publishes at, which is the rate Gazebo
+    # publishes joint states at. Faster only re-predicts between measurements.
+    frequency: 50.0
+
+    # 0.1 s is five missed odometry messages before the filter decides the
+    # sensor is gone and coasts on prediction alone.
+    sensor_timeout: 0.1
+
+    # The whole point of this file. With two_d_mode true, robot_localization
+    # forces z, roll and pitch to zero, and this would be an expensive way to
+    # reproduce exactly the flat-world assumption it exists to remove.
+    two_d_mode: false
+
+    transform_time_offset: 0.0
+    transform_timeout: 0.0
+    print_diagnostics: true
+    debug: false
+
+    # This filter owns odom -> base_footprint whenever it runs.
+    # tadeocar_control's wheel_odometry_node publishes the same transform from
+    # raw dead reckoning, so simulation.launch.py switches that off through its
+    # publish_tf parameter when odom_source is ekf. Two publishers of one
+    # transform is a broken TF tree, not a merged one.
+    publish_tf: true
+    publish_acceleration: false
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_footprint
+    world_frame: odom
+
+    # base_footprint rather than base_link, because that is the frame the whole
+    # stack reports poses in and the frame the wheel odometry integrates.
+    # base_link is one wheel radius above it.
+
+    # ------------------------------------------------- wheel odometry (vel) --
+    odom0: /odom
+    # vx and vy only, same as in simulation: the pose in this message is dead
+    # reckoning, and position here comes from the camera instead.
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, false,
+                   false, false, false]
+    odom0_queue_size: 10
+    odom0_nodelay: true
+    odom0_differential: false
+    odom0_relative: false
+
+    # ------------------------------------------- ZED 2i positional tracking --
+    # Published by zed_wrapper as nav_msgs/Odometry. Position and heading, not
+    # velocity: the SDK's twist is differentiated pose, and the wheels measure
+    # velocity directly.
+    odom1: /zed/zed_node/odom
+    odom1_config: [true,  true,  true,
+                   false, false, true,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom1_queue_size: 10
+    odom1_nodelay: true
+    # differential:false because the tracker's pose is already continuous and
+    # anchored; differencing it would throw away the anchoring and leave the
+    # filter integrating a noisier version of the same thing.
+    odom1_differential: false
+    odom1_relative: false
+
+    # ---------------------------------------------------------------- IMU --
+    imu0: /zed/zed_node/imu/data
+    # Roll and pitch absolute, all three angular rates. Yaw absolute is false
+    # and must stay false: see the note above about the magnetometer this robot
+    # does not have.
+    imu0_config: [false, false, false,
+                  true,  true,  false,
+                  false, false, false,
+                  true,  true,  true,
+                  false, false, false]
+    imu0_queue_size: 20
+    imu0_nodelay: true
+    imu0_differential: false
+    imu0_relative: false
+    # Linear acceleration is not fused at all. Integrating accelerometer output
+    # twice to get position is a well-known way to produce a number that grows
+    # without bound; the wheels already supply velocity directly.
+    imu0_remove_gravitational_acceleration: true
+
+    # ---------------------------------------------------- noise and limits --
+    # process_noise_covariance and initial_estimate_covariance are left at
+    # robot_localization's defaults, and that is a decision rather than an
+    # oversight. The values that belong here depend on how much the tyres slip,
+    # which depends on the surface: the yard world's asphalt, gravel and sand
+    # patches carry mu of 0.9, 0.55 and 0.3 precisely so that this can be
+    # measured rather than guessed. Writing a hand-tuned 15x15 matrix before
+    # that measurement exists would look authoritative and be backed by
+    # nothing. docs/mathematical-model/parameters.md says the same in longer
+    # form and records what the measurement would involve.

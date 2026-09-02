@@ -1,0 +1,278 @@
+<?xml version="1.0"?>
+<!--
+  TadeoeCar 4WD4WS - kinematic description.
+
+  This file is the single source of truth for the robot's geometry. The Gazebo
+  model in tadeocar_gazebo/models/tadeocar_v1/model.sdf carries the same
+  numbers because it has to carry mass and friction as well, and the two are
+  checked against each other by tadeocar_description/test/test_urdf_sdf_match.py.
+
+  Physics lives in the SDF, not here: this description has visual and collision
+  geometry so RViz, the Nav2 footprint and the real-robot bringup all agree on
+  the robot's shape, and no inertial tags, because nothing simulates it.
+
+  It is xacro rather than plain URDF because the wheel radius appears in eight
+  places and got the wrong value in all of them. See wheel_radius below.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tadeocar">
+
+  <!-- ==================== PARAMETERS ==================== -->
+
+  <!-- Measured off models/tadeocar_v1/meshes/wheels/wheel.dae, which is
+       0.250 x 0.250 x 0.200 m: a 0.125 m radius tyre, 0.2 m wide.
+
+       Every file in this workspace used to say 0.1 m. That is not a rounding
+       difference, it is a 25 % scale error on the only number that converts
+       wheel rotation into distance: a commanded 1.0 m/s came out as 1.25 m/s
+       and the odometry reported the 1.0 m/s it had asked for. It also put
+       base_footprint 25 mm underground, so the tyres spawned intersecting the
+       floor and the solver pushed the robot up to resolve it. -->
+  <xacro:property name="wheel_radius" value="0.125"/>
+  <xacro:property name="wheel_width" value="0.200"/>
+
+  <!-- Steering axis positions, from the SDF joint origins. The robot is NOT
+       symmetric about base_link: the front axis is 0.478 m ahead of it and the
+       rear axis 0.580 m behind, so the wheelbase is 1.058 m but its midpoint
+       sits 51 mm behind base_link. The kinematics has to use these two numbers
+       rather than half a wheelbase - see docs/mathematical-model/kinematics.md. -->
+  <xacro:property name="front_x" value="0.478"/>
+  <xacro:property name="rear_x" value="-0.580"/>
+  <xacro:property name="half_track" value="0.275"/>
+
+  <!-- Mechanical trail: the wheel centre sits 50 mm outboard of the steering
+       axis, ahead of it at the front and behind it at the rear. It is a real
+       feature of the strut and it is why the steering PID needs the gains it
+       has, but it is deliberately NOT part of the kinematic model: a steered
+       wheel's kinematics is written about its steering axis, and trail is a
+       self-aligning moment, not a change of where the wheel is. -->
+  <xacro:property name="steer_trail" value="0.05"/>
+
+  <!-- Deck: chasis_base.dae measured 1.418 x 0.815 x 0.246 m, spanning
+       x [-0.757, 0.661] and y [+/-0.4075] about the visual origin below. It is
+       wider than the track, so the deck and not the wheels is what sets the
+       Nav2 footprint. -->
+  <xacro:property name="deck_z" value="0.155"/>
+  <xacro:property name="deck_len" value="1.418"/>
+  <xacro:property name="deck_width" value="0.815"/>
+  <xacro:property name="deck_height" value="0.246"/>
+  <xacro:property name="deck_x" value="-0.048"/>   <!-- centre of [-0.757, 0.661] -->
+
+  <!-- Sensors. Both mounts are fixed by one constraint each and neither is
+       free to move without re-deriving the other:
+
+       The LiDAR clears the deck. The deck's top face is 0.389 m above the
+       ground, so a scan plane at 0.450 m has 61 mm of clearance and sweeps a
+       full 360 degrees. Lower and the deck's own rim occludes it; the model
+       used to hide this by mounting the sensor at 0.43 m INSIDE a 1.27 m tall
+       chassis frame and then clipping the scan to 320 degrees and 0.36 m
+       minimum range to keep the self-hits out of the data.
+
+       The camera stays below the LiDAR plane so it never occludes it, and
+       ahead of the front tyre's sweep, which reaches x = 0.653 m. -->
+  <xacro:property name="lidar_x" value="0.60"/>
+  <xacro:property name="lidar_z" value="0.325"/>   <!-- 0.450 m above ground -->
+  <xacro:property name="zed_x" value="0.68"/>
+  <xacro:property name="zed_z" value="0.175"/>     <!-- 0.300 m above ground -->
+  <xacro:property name="zed_baseline" value="0.12"/>
+
+  <material name="deck_black"><color rgba="0.15 0.15 0.17 1.0"/></material>
+  <material name="wheel_black"><color rgba="0.08 0.08 0.08 1.0"/></material>
+  <material name="strut_grey"><color rgba="0.45 0.45 0.48 1.0"/></material>
+  <material name="sensor_grey"><color rgba="0.25 0.25 0.25 1.0"/></material>
+
+  <!-- ==================== BASE ==================== -->
+
+  <!-- base_footprint is the ground contact plane directly under base_link, so
+       the offset is exactly the wheel radius. Everything that reports a pose -
+       odometry, the EKF, SLAM, Nav2 - uses base_footprint, so this number is
+       what makes "the robot is at z = 0" true. -->
+  <link name="base_footprint"/>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_link">
+    <visual name="deck_visual">
+      <origin xyz="0 0 ${deck_z}" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://tadeocar_description/meshes/chassis/chasis_base.dae"
+              scale="1 1 1"/>
+      </geometry>
+      <material name="deck_black"/>
+    </visual>
+    <collision name="deck_collision">
+      <origin xyz="${deck_x} 0 ${deck_z - 0.014}" rpy="0 0 0"/>
+      <geometry>
+        <box size="${deck_len} ${deck_width} ${deck_height}"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- ==================== SENSOR MAST ==================== -->
+
+  <link name="sensor_mast_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.07 0.07 0.09"/></geometry>
+      <material name="strut_grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.07 0.07 0.09"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="sensor_mast_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="sensor_mast_link"/>
+    <origin xyz="${lidar_x} 0 ${lidar_z - 0.06}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== LiDAR (YDLIDAR X2) ==================== -->
+
+  <link name="base_scan">
+    <visual>
+      <geometry><cylinder radius="0.0375" length="0.030"/></geometry>
+      <material name="sensor_grey"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.0375" length="0.030"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_scan"/>
+    <origin xyz="${lidar_x} 0 ${lidar_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== ZED 2i ==================== -->
+  <!-- Frame names follow zed-ros2-wrapper so the same TF tree serves the
+       simulated camera and the real one. camera_link is the mounting point;
+       left_camera_frame is the left imager in body axes (x forward); the
+       optical frame is the same point in the camera convention (z forward,
+       x right, y down), which is what camera_info and every RGB-D consumer
+       assume. -->
+  <link name="zed2i_camera_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://tadeocar_description/meshes/sensors/zed2i.stl"
+              scale="1 1 1"/>
+      </geometry>
+      <material name="sensor_grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0.004 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.043 0.175 0.030"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="zed2i_camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="zed2i_camera_link"/>
+    <origin xyz="${zed_x} 0 ${zed_z}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="zed2i_left_camera_frame"/>
+  <joint name="zed2i_left_camera_joint" type="fixed">
+    <parent link="zed2i_camera_link"/>
+    <child link="zed2i_left_camera_frame"/>
+    <origin xyz="0 ${zed_baseline / 2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="zed2i_left_camera_optical_frame"/>
+  <joint name="zed2i_left_camera_optical_joint" type="fixed">
+    <parent link="zed2i_left_camera_frame"/>
+    <child link="zed2i_left_camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+  </joint>
+
+  <link name="zed2i_right_camera_frame"/>
+  <joint name="zed2i_right_camera_joint" type="fixed">
+    <parent link="zed2i_camera_link"/>
+    <child link="zed2i_right_camera_frame"/>
+    <origin xyz="0 ${-zed_baseline / 2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="zed2i_right_camera_optical_frame"/>
+  <joint name="zed2i_right_camera_optical_joint" type="fixed">
+    <parent link="zed2i_right_camera_frame"/>
+    <child link="zed2i_right_camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+  </joint>
+
+  <!-- The ZED 2i's IMU sits between the two imagers, 0.002 m behind the lens
+       plane per the Stereolabs datasheet. It is the only inertial sensor on
+       the robot, so it is what makes roll and pitch observable. -->
+  <link name="zed2i_imu_link"/>
+  <joint name="zed2i_imu_joint" type="fixed">
+    <parent link="zed2i_camera_link"/>
+    <child link="zed2i_imu_link"/>
+    <origin xyz="-0.002 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== WHEEL MODULES ==================== -->
+  <!-- One macro, four calls. Writing these out by hand is how the model ended
+       up with three different steering-link orientations for four wheels that
+       are mechanically identical. -->
+  <xacro:macro name="wheel_module" params="prefix x y trail_sign yaw_flip">
+    <link name="${prefix}_steering_link">
+      <visual>
+        <origin xyz="0 0 0.227" rpy="0 ${pi} ${yaw_flip}"/>
+        <geometry>
+          <mesh filename="package://tadeocar_description/meshes/suspension/suspension.dae"
+                scale="1 1 1"/>
+        </geometry>
+        <material name="strut_grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.10" rpy="0 0 0"/>
+        <geometry><box size="0.10 0.18 0.20"/></geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}_steering_joint" type="revolute">
+      <parent link="base_link"/>
+      <child link="${prefix}_steering_link"/>
+      <origin xyz="${x} ${y} 0" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <!-- 270 degree industrial servos: +/-135 deg about straight ahead.
+           Continuous joints here were a lie the SDF did not tell - it has
+           always had these limits, and a description that disagrees is how a
+           planner ends up assuming a range the hardware cannot reach. -->
+      <limit lower="${-2.356}" upper="${2.356}" effort="100.0" velocity="1.0"/>
+    </joint>
+
+    <link name="${prefix}_wheel_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry>
+          <mesh filename="package://tadeocar_description/meshes/wheels/wheel.dae"
+                scale="1 1 1"/>
+        </geometry>
+        <material name="wheel_black"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+        <geometry><cylinder radius="${wheel_radius}" length="${wheel_width}"/></geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}_wheel_joint" type="continuous">
+      <parent link="${prefix}_steering_link"/>
+      <child link="${prefix}_wheel_link"/>
+      <origin xyz="${trail_sign * steer_trail} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:wheel_module prefix="front_left"  x="${front_x}" y="${half_track}"  trail_sign="1"  yaw_flip="${pi}"/>
+  <xacro:wheel_module prefix="front_right" x="${front_x}" y="${-half_track}" trail_sign="1"  yaw_flip="${-pi}"/>
+  <xacro:wheel_module prefix="rear_left"   x="${rear_x}"  y="${half_track}"  trail_sign="-1" yaw_flip="0"/>
+  <xacro:wheel_module prefix="rear_right"  x="${rear_x}"  y="${-half_track}" trail_sign="-1" yaw_flip="0"/>
+
+</robot>

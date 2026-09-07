@@ -339,6 +339,140 @@ class Layout:
       </link>
     </model>"""
 
+    def _gui(self):
+        """The GUI block, with the opening camera framed on this world.
+
+        Without a <gui> element Gazebo falls back to its own default: a camera
+        a few metres from the origin looking at the floor, and the entity tree
+        and component inspector docked over half the width. Every launch then
+        opens on a close-up of the ground, which is the one thing in the scene
+        carrying no information.
+
+        The pose is computed from the layout's own extents rather than typed
+        in, so a world that grows keeps a camera that frames it. Note the sign
+        of the pitch: in Gazebo a POSITIVE pitch rotates the camera's forward
+        axis DOWN, so looking down at the scene from above needs +pitch.
+        """
+        xs, ys = [], []
+        for (_n, cx, cy, _cz, sx, sy, _sz, _m, _mu, _p, _k) in self.boxes:
+            xs += [cx - sx / 2, cx + sx / 2]
+            ys += [cy - sy / 2, cy + sy / 2]
+        for (_n, cx, cy, _bz, r, _h, _m, _mu, _k) in self.cylinders:
+            xs += [cx - r, cx + r]
+            ys += [cy - r, cy + r]
+        if not xs:                       # the empty world has no geometry
+            xs, ys = [-5.0, 5.0], [-5.0, 5.0]
+
+        mid_x = (min(xs) + max(xs)) / 2
+        mid_y = (min(ys) + max(ys)) / 2
+        span = max(max(xs) - min(xs), max(ys) - min(ys))
+
+        # A roofed world has to be viewed from inside it. Looking down on the
+        # factory from outside frames the top of the roof, which is one flat
+        # slab and the only part of the scene with nothing in it.
+        roof = [cz - sz / 2 for (_n, _cx, _cy, cz, _sx, _sy, sz, _m, _mu, _p, k)
+                in self.boxes if k == 'ceiling']
+
+        if roof:
+            eye_z = max(1.5, min(roof) - 0.6)
+            # Stand just inside the near corner, looking across the floor.
+            eye_x = min(xs) + (max(xs) - min(xs)) * 0.06
+            eye_y = min(ys) + (max(ys) - min(ys)) * 0.06
+        else:
+            dist = span * 0.75
+            eye_x = mid_x - dist * 0.78
+            eye_y = mid_y - dist * 0.62
+            eye_z = max(6.0, span * 0.45)
+
+        yaw = math.atan2(mid_y - eye_y, mid_x - eye_x)
+        ground = math.hypot(mid_x - eye_x, mid_y - eye_y)
+        # A POSITIVE pitch rotates the camera's forward axis DOWN in Gazebo.
+        pitch = math.atan2(eye_z - 1.0, ground)
+
+        return f"""    <gui fullscreen='0'>
+      <plugin filename='MinimalScene' name='3D View'>
+        <ignition-gui>
+          <title>3D View</title>
+          <property type='bool' key='showTitleBar'>false</property>
+          <property type='string' key='state'>docked</property>
+        </ignition-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>{eye_x:.2f} {eye_y:.2f} {eye_z:.2f} 0 {pitch:.3f} {yaw:.3f}</camera_pose>
+      </plugin>
+
+      <plugin filename='GzSceneManager' name='Scene Manager'>
+        <ignition-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='state' type='string'>floating</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+        </ignition-gui>
+      </plugin>
+
+      <plugin filename='InteractiveViewControl' name='Interactive view control'>
+        <ignition-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='state' type='string'>floating</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+        </ignition-gui>
+      </plugin>
+
+      <plugin filename='CameraTracking' name='Camera Tracking'>
+        <ignition-gui>
+          <property key='resizable' type='bool'>false</property>
+          <property key='showTitleBar' type='bool'>false</property>
+          <property key='state' type='string'>floating</property>
+          <property key='width' type='double'>5</property>
+          <property key='height' type='double'>5</property>
+        </ignition-gui>
+      </plugin>
+
+      <plugin filename='WorldControl' name='World control'>
+        <ignition-gui>
+          <title>World control</title>
+          <property type='bool' key='showTitleBar'>false</property>
+          <property type='bool' key='resizable'>false</property>
+          <property type='double' key='height'>72</property>
+          <property type='double' key='z'>1</property>
+          <property type='string' key='state'>floating</property>
+          <anchors target='3D View'>
+            <line own='left' target='left'/>
+            <line own='bottom' target='bottom'/>
+          </anchors>
+        </ignition-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>false</start_paused>
+      </plugin>
+
+      <plugin filename='WorldStats' name='World stats'>
+        <ignition-gui>
+          <title>World stats</title>
+          <property type='bool' key='showTitleBar'>false</property>
+          <property type='bool' key='resizable'>false</property>
+          <property type='double' key='height'>110</property>
+          <property type='double' key='width'>290</property>
+          <property type='double' key='z'>1</property>
+          <property type='string' key='state'>floating</property>
+          <anchors target='3D View'>
+            <line own='right' target='right'/>
+            <line own='bottom' target='bottom'/>
+          </anchors>
+        </ignition-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+      </plugin>
+    </gui>
+"""
+
     def sdf(self, ground_mu=MU_CEMENT, ground_mat=CEMENT, ambient=0.55,
             background=(0.75, 0.80, 0.85), lights=()):
         """``lights`` are (x, y, z) point lights, for a world with a roof.
@@ -355,6 +489,7 @@ class Layout:
         return f"""<sdf version='1.9'>
   <world name='default'>
 
+{self._gui()}
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
     <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
     <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>

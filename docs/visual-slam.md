@@ -118,6 +118,46 @@ performs on real hardware.
 
 ---
 
+## The yard is a different problem, and camera odometry does not cope
+
+Every number above was measured in the factory. Repeating the measurement in
+the yard gives a different answer, and it is worth stating plainly rather than
+letting the factory figures stand for both worlds.
+
+Driven in a straight line over 9.4 m of flat asphalt, with no ramp and no
+stall, against generated ground truth:
+
+| Estimator | Position error | Heading error |
+|---|---|---|
+| Wheel odometry | 0.019 m | 0.16 deg |
+| EKF | 0.012 m | 0.01 deg |
+| **Visual odometry** | **2.24 m** | 2.94 deg |
+
+That is **23.8 % of the distance travelled**, against roughly 1 % in the
+factory. The inlier count says why: median 55 while driving, against a median
+of 211 indoors, and a minimum of **zero** - frames where registration finds
+nothing at all.
+
+The cause is the scene, not the algorithm, which is the same lesson the
+factory taught in reverse. The camera sits 0.30 m off the ground with a 110
+degree field of view. Indoors it looks at a textured ceiling on trusses, racks
+a couple of metres away and walls panelled every 2.5 m: geometry at a known
+distance across the whole frame. On the apron the upper half of the image is
+open sky, which has no depth and no features, the lower half is uniform
+asphalt, and the walls are twenty metres off. The usable part of the image is a
+thin band, and a thin band does not constrain six degrees of freedom.
+
+**So in the yard, map on the fused pose:**
+
+```bash
+ros2 launch tadeocar_bringup vslam_bringup.launch.py world:=yard odom_source:=ekf
+```
+
+The default stays `visual`, because camera-only odometry is what the demo is
+for and it does work in the world it was tuned in. Nothing about this is a
+regression: it is the honest range of an RGB-D estimator outdoors, and the
+number is here so nobody has to rediscover it.
+
 ## Watching it work
 
 ```bash

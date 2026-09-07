@@ -73,6 +73,17 @@ class WheelOdometryNode(Node):
         # broken TF tree, not a merged one.
         self.declare_parameter('publish_tf', True)
 
+        # Gazebo emits /joint_states at the physics rate, near 1 kHz, and this
+        # node integrated and published on every one of them. Integration has
+        # to happen at that rate - dropping samples loses motion - but nothing
+        # downstream wants a kilohertz of odometry: the EKF runs at 50 Hz and
+        # the scan matcher at 7. The rest was ~950 messages a second of
+        # allocation, serialisation and TF traffic that no subscriber used, and
+        # it inflated the filter's input queue for no gain.
+        #
+        # 0 restores the old behaviour of publishing every sample.
+        self.declare_parameter('publish_rate', 50.0)
+
         # Standard deviations of this message's twist, in m/s and rad/s. The
         # defaults are the real-robot assumption: roughly 5 % slip on a driven
         # wheel, with lateral velocity trusted half as much because it is the
@@ -96,6 +107,10 @@ class WheelOdometryNode(Node):
         self.declare_parameter('sigma_vx', 0.05)
         self.declare_parameter('sigma_vy', 0.10)
         self.declare_parameter('sigma_wz', 0.05)
+
+        rate = self.get_parameter('publish_rate').value
+        self.publish_period = (1.0 / rate) if rate and rate > 0.0 else 0.0
+        self.last_publish = None
 
         self.var_vx = self.get_parameter('sigma_vx').value ** 2
         self.var_vy = self.get_parameter('sigma_vy').value ** 2
@@ -176,6 +191,12 @@ class WheelOdometryNode(Node):
         self.theta = math.atan2(math.sin(self.theta + wz * dt),
                                 math.cos(self.theta + wz * dt))
 
+        # Throttle the output, never the integration above.
+        if self.publish_period > 0.0:
+            if self.last_publish is not None and \
+                    now - self.last_publish < self.publish_period:
+                return
+            self.last_publish = now
         self.publish(stamp, vx, vy, wz)
 
     def publish(self, stamp, vx, vy, wz):

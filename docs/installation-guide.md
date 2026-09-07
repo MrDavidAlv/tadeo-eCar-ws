@@ -32,6 +32,8 @@ sudo apt install -y \
   ros-humble-xacro ros-humble-robot-state-publisher \
   ros-humble-rviz2
 
+# numpy and websockets are declared in the manifests, so rosdep below installs
+# them. This line only matters if you skip rosdep.
 pip3 install numpy websockets
 ```
 

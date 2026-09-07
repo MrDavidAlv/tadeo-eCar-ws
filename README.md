@@ -25,18 +25,16 @@
 ## Quick start
 
 ```bash
-# 1. Dependencies (Ubuntu 22.04 with ROS 2 Humble already installed)
-sudo apt install -y ros-humble-ros-gz ros-humble-navigation2 \
-  ros-humble-nav2-bringup ros-humble-slam-toolbox ros-humble-rtabmap-ros \
-  ros-humble-robot-localization ros-humble-twist-mux ros-humble-joy \
-  ros-humble-teleop-twist-joy ros-humble-xacro ros-humble-rviz2
-pip3 install numpy websockets
+# 1. Dependencies. Read from the packages' own manifests, so this list cannot
+#    drift out of step with what the code actually imports.
+source /opt/ros/humble/setup.bash
+rosdep update                                  # first time only
+rosdep install --from-paths src --ignore-src -y
 
 # 2. Build
-source /opt/ros/humble/setup.bash
 colcon build --symlink-install && source install/setup.bash
 
-# 3. Drive it
+# 3. Drive it: Gazebo, RViz and a browser interface on http://localhost:8080
 ros2 launch tadeocar_bringup demo.launch.py
 
 # Or map with the LiDAR
@@ -48,6 +46,12 @@ ros2 launch tadeocar_bringup navigation_bringup.launch.py
 # Or build a 3D map with the camera
 ros2 launch tadeocar_bringup vslam_bringup.launch.py
 ```
+
+Every launch above takes `world:=factory|yard|empty`, `headless:=true` to run
+without the Gazebo window, and `rviz:=false` to run without RViz.
+
+Ubuntu 22.04 with ROS 2 Humble is assumed. If `rosdep` is not set up yet,
+`sudo rosdep init` once, then `rosdep update`.
 
 Full instructions: [docs/installation-guide.md](docs/installation-guide.md) ·
 [docs/usage-guide.md](docs/usage-guide.md)

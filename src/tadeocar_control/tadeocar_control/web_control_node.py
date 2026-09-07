@@ -134,8 +134,15 @@ class TadeoCarWebControl(Node):
 
 def main(args=None):
     if websockets is None:
-        print('ERROR: websockets package not installed. Run: pip3 install websockets')
-        return
+        # Exiting zero here is what made this hard to notice: launch reports
+        # "process has finished cleanly", the static file server keeps serving
+        # the page, and the interface comes up with a joystick that moves
+        # nothing. A node that cannot do its job has not finished cleanly.
+        raise SystemExit(
+            'web_control: the websockets package is not installed, so the '
+            'browser interface would load and control nothing. Install it with '
+            'rosdep install --from-paths src --ignore-src -y, or directly with '
+            'pip3 install websockets.')
 
     rclpy.init(args=args)
     node = TadeoCarWebControl()

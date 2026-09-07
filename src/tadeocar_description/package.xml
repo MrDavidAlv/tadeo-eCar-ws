@@ -10,6 +10,9 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <!-- The description is a xacro, and the URDF/SDF consistency test expands
+       it by running the xacro executable. -->
+  <exec_depend>xacro</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
 

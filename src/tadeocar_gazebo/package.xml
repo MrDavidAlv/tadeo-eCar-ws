@@ -7,9 +7,10 @@
   <maintainer email="davidalvarezzzzzzzz@gmail.com">MrDavidAlv</maintainer>
   <license>Apache-2.0</license>
 
-  <buildtool_depend>ament_python</buildtool_depend>
 
   <depend>ros_gz_sim</depend>
+  <!-- simulation.launch.py imports xacro to expand the description at launch. -->
+  <depend>xacro</depend>
   <depend>ros_gz_bridge</depend>
   <depend>robot_state_publisher</depend>
   <depend>tadeocar_description</depend>

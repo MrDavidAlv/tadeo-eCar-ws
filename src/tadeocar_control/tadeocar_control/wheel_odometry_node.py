@@ -73,6 +73,34 @@ class WheelOdometryNode(Node):
         # broken TF tree, not a merged one.
         self.declare_parameter('publish_tf', True)
 
+        # Standard deviations of this message's twist, in m/s and rad/s. The
+        # defaults are the real-robot assumption: roughly 5 % slip on a driven
+        # wheel, with lateral velocity trusted half as much because it is the
+        # component a steered wheel scrubs away first.
+        #
+        # Simulation is a different sensor and overrides them from
+        # simulation.launch.py. Measured on the yard's three friction patches,
+        # 7000 samples each, by driving a straight leg for the linear terms and
+        # turning in place for yaw so every sample stayed over the same
+        # surface (docs/mathematical-model/parameters.md 9.1):
+        #
+        #     surface   mu     sigma_vx  sigma_vy  sigma_wz
+        #     asphalt   0.90   0.0009    0.0009    0.0449
+        #     gravel    0.55   0.0009    0.0021    0.0712
+        #     sand      0.30   0.0015    0.0053    0.0155
+        #
+        # Lateral error rises monotonically as grip falls, 0.9 to 5.3 mm/s from
+        # asphalt to sand, which is the scrub the assumption above was reaching
+        # for. Gazebo's wheel contact is far more ideal than rubber on gravel,
+        # so these belong to the simulation and not to the robot.
+        self.declare_parameter('sigma_vx', 0.05)
+        self.declare_parameter('sigma_vy', 0.10)
+        self.declare_parameter('sigma_wz', 0.05)
+
+        self.var_vx = self.get_parameter('sigma_vx').value ** 2
+        self.var_vy = self.get_parameter('sigma_vy').value ** 2
+        self.var_wz = self.get_parameter('sigma_wz').value ** 2
+
         self.wheel_radius = self.get_parameter('wheel_radius').value
         front_x = self.get_parameter('front_axle_x').value
         rear_x = self.get_parameter('rear_axle_x').value
@@ -170,25 +198,22 @@ class WheelOdometryNode(Node):
         # so the large pose numbers below are what makes that ordering true
         # rather than a matter of configuration alone.
         #
-        # The twist figures assume roughly 5 % slip on a driven wheel, with
-        # lateral velocity trusted half as much because it is the component
-        # a steered wheel scrubs away first. Measuring them properly means
-        # driving known distances on each of the yard world's three friction
-        # patches and comparing against /odom_truth. Until that is done these
-        # are round numbers with a rationale, and they are documented as such
-        # in docs/mathematical-model/parameters.md.
+        # The twist figures come from the sigma_vx/vy/wz parameters, whose
+        # defaults are the real-robot assumption and whose simulation values
+        # were measured on the yard's friction patches. See the note by their
+        # declaration, and docs/mathematical-model/parameters.md 9.1.
         odom.pose.covariance[0] = 1e3
         odom.pose.covariance[7] = 1e3
         odom.pose.covariance[14] = 1e3
         odom.pose.covariance[21] = 1e3
         odom.pose.covariance[28] = 1e3
         odom.pose.covariance[35] = 1e3
-        odom.twist.covariance[0] = 0.05 ** 2
-        odom.twist.covariance[7] = 0.10 ** 2
+        odom.twist.covariance[0] = self.var_vx
+        odom.twist.covariance[7] = self.var_vy
         odom.twist.covariance[14] = 1e3
         odom.twist.covariance[21] = 1e3
         odom.twist.covariance[28] = 1e3
-        odom.twist.covariance[35] = 0.05 ** 2
+        odom.twist.covariance[35] = self.var_wz
         self.odom_pub.publish(odom)
 
         if self.tf_broadcaster is not None:

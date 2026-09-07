@@ -203,6 +203,16 @@ def resolve(context, *args, **kwargs):
         parameters=[robot_params, {
             'use_sim_time': use_sim_time,
             'publish_tf': odom_source == 'wheel',
+            # Measured, not assumed: driven on the yard's asphalt, gravel and
+            # sand patches, straight for the linear terms and turning in place
+            # for yaw so every sample stayed over one surface. These are the
+            # worst case of the three, which is gravel except in vy and vx
+            # where sand is worse. The node's own defaults are the real-robot
+            # assumption and stay there, because Gazebo's wheel contact is a
+            # different sensor from rubber on gravel.
+            'sigma_vx': 0.0015,
+            'sigma_vy': 0.0053,
+            'sigma_wz': 0.0712,
         }])
 
     # The EKF runs whenever it is not the wheels' turn to dead reckon on their

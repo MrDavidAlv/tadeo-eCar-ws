@@ -118,45 +118,52 @@ performs on real hardware.
 
 ---
 
-## The yard is a different problem, and camera odometry does not cope
+## The yard, and what actually breaks camera odometry there
 
-Every number above was measured in the factory. Repeating the measurement in
-the yard gives a different answer, and it is worth stating plainly rather than
-letting the factory figures stand for both worlds.
+Every other number here was measured in the factory. The yard is a different
+scene - open sky above, uniform asphalt below, walls twenty metres off - and it
+was worth measuring rather than assuming either way.
 
-Driven in a straight line over 9.4 m of flat asphalt, with no ramp and no
-stall, against generated ground truth:
+Driving straight, it is fine. Over 5.9 m of flat apron against generated ground
+truth, camera-only odometry is out by 0.11 m, which is about 2 % of the
+distance and in the same range as indoors.
 
-| Estimator | Position error | Heading error |
+**One in-place turn is what breaks it.** Same run, immediately after a 180
+degree rotation on the spot:
+
+| | Straight, 5.9 m | After one 180 deg turn |
 |---|---|---|
-| Wheel odometry | 0.019 m | 0.16 deg |
-| EKF | 0.012 m | 0.01 deg |
-| **Visual odometry** | **2.24 m** | 2.94 deg |
+| Wheel odometry | 0.01 m / 0.3 deg | 0.29 m / **14.7 deg** |
+| Visual odometry | 0.11 m / 1.6 deg | 0.67 m / **48.6 deg** |
+| EKF | 0.01 m / 0.0 deg | 0.10 m / 0.0 deg |
 
-That is **23.8 % of the distance travelled**, against roughly 1 % in the
-factory. The inlier count says why: median 55 while driving, against a median
-of 211 indoors, and a minimum of **zero** - frames where registration finds
-nothing at all.
+The heading error is the damage. It does not recover, and on the leg back it
+turns into position: 7.3 m out by the end of a 16.4 m round trip, against
+0.12 m for the EKF over the same path.
 
-The cause is the scene, not the algorithm, which is the same lesson the
-factory taught in reverse. The camera sits 0.30 m off the ground with a 110
-degree field of view. Indoors it looks at a textured ceiling on trusses, racks
-a couple of metres away and walls panelled every 2.5 m: geometry at a known
-distance across the whole frame. On the apron the upper half of the image is
-open sky, which has no depth and no features, the lower half is uniform
-asphalt, and the walls are twenty metres off. The usable part of the image is a
-thin band, and a thin band does not constrain six degrees of freedom.
+Two things go wrong at once and they compound. A 4WS platform turning in place
+has all four tyres scrubbing, which is the worst case for wheel odometry and
+shows up as the 14.7 degrees above. And the camera sweeps through views that
+are mostly sky and bare asphalt, so registration has little to hold: inliers
+run to a median of 74 in the yard against 211 in the factory, with 7 frames out
+of 300 finding nothing at all. Indoors there is margin for a hard manoeuvre;
+outdoors there is not.
 
-**So in the yard, map on the fused pose:**
+So the yard is not a place where camera odometry fails. It is a place where it
+has no margin, and an in-place turn spends what margin there is. Map on the
+fused pose if the route has pivots in it:
 
 ```bash
 ros2 launch tadeocar_bringup vslam_bringup.launch.py world:=yard odom_source:=ekf
 ```
 
-The default stays `visual`, because camera-only odometry is what the demo is
-for and it does work in the world it was tuned in. Nothing about this is a
-regression: it is the honest range of an RGB-D estimator outdoors, and the
-number is here so nobody has to rediscover it.
+**A correction, since an earlier version of this section said otherwise.** The
+first measurement put camera odometry at 23.8 % of path in the yard and called
+it unusable. That run was spawned at (-13.0, -8.0), which is 0.5 m from the
+centre of `light_pole_sw`: the robot started inside a five metre steel pole and
+was shoved out of it by physics before the run began. Nothing reported that,
+which is why `simulation.launch.py` now refuses a spawn point that is not clear
+in the world's own occupancy grid.
 
 ## Watching it work
 

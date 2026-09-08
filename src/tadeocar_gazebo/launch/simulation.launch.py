@@ -40,6 +40,53 @@ SPAWN = {
 }
 
 
+def spawn_is_clear(world_name, x, y, radius=0.85):
+    """Warn if the robot would be spawned inside something.
+
+    The world generator checks its own layout, and the per-world defaults in
+    SPAWN are clear, but spawn_x and spawn_y arrive from the command line and
+    nothing looked at them. Dropping the robot on top of a light pole is
+    silent: physics shoves it clear over a few frames, the run continues, and
+    the only trace is an opening pose that never matches the one requested.
+
+    The generated occupancy grid is the authority here, because it comes from
+    the same geometry list as the world and so cannot disagree with it. If it
+    is not installed the check is skipped rather than guessed at.
+
+    ``radius`` is the robot's half-diagonal, 0.82 m for a 1.418 x 0.815 m deck,
+    rounded up.
+    """
+    try:
+        import numpy as np
+        import yaml
+        from PIL import Image
+        from ament_index_python.packages import get_package_share_directory
+        maps = os.path.join(get_package_share_directory('tadeocar_navigation'),
+                            'maps')
+        meta_path = os.path.join(maps, f'{world_name}_ground_truth.yaml')
+        if not os.path.exists(meta_path):
+            return None, 'no ground truth map for this world'
+        with open(meta_path) as f:
+            meta = yaml.safe_load(f)
+        img = np.asarray(Image.open(os.path.join(maps, meta['image'])).convert('L'))
+    except Exception as exc:                      # optional check, never fatal
+        return None, f'check unavailable ({exc})'
+
+    res = meta['resolution']
+    ox, oy = meta['origin'][0], meta['origin'][1]
+    h, w = img.shape
+    col = int((x - ox) / res)
+    row = h - 1 - int((y - oy) / res)
+    n = int(radius / res)
+    if not (0 <= col < w and 0 <= row < h):
+        return False, 'outside the mapped area'
+    patch = img[max(0, row - n):row + n + 1, max(0, col - n):col + n + 1]
+    if patch.size == 0:
+        return None, 'no cells to check'
+    # Free space is white in these grids; anything darker is occupied.
+    return bool(patch.min() > 250), f'darkest cell {int(patch.min())} of 255'
+
+
 def resolve(context, *args, **kwargs):
     """Resolve the world and the spawn pose in the PARENT launch context.
 
@@ -86,6 +133,15 @@ def resolve(context, *args, **kwargs):
     spawn_y = spawn_value('spawn_y', default_y)
     spawn_z = spawn_value('spawn_z', default_z)
     spawn_yaw = spawn_value('spawn_yaw', default_yaw)
+
+    clear, detail = spawn_is_clear(world_name, float(spawn_x), float(spawn_y))
+    if clear is False:
+        raise RuntimeError(
+            f'spawn ({spawn_x}, {spawn_y}) is not clear in world "{world_name}": '
+            f'{detail}. The robot would start inside geometry, physics would '
+            f'shove it out over the first few frames, and every measurement '
+            f'taken from that pose would start somewhere other than where it '
+            f'was asked to.')
 
     headless = LaunchConfiguration('headless').perform(context)
     gz_args = ['-r ', '-s ' if headless.lower() in ('true', '1') else '', world_path]
@@ -203,6 +259,16 @@ def resolve(context, *args, **kwargs):
         parameters=[robot_params, {
             'use_sim_time': use_sim_time,
             'publish_tf': odom_source == 'wheel',
+            # Measured, not assumed: driven on the yard's asphalt, gravel and
+            # sand patches, straight for the linear terms and turning in place
+            # for yaw so every sample stayed over one surface. These are the
+            # worst case of the three, which is gravel except in vy and vx
+            # where sand is worse. The node's own defaults are the real-robot
+            # assumption and stay there, because Gazebo's wheel contact is a
+            # different sensor from rubber on gravel.
+            'sigma_vx': 0.0015,
+            'sigma_vy': 0.0053,
+            'sigma_wz': 0.0712,
         }])
 
     # The EKF runs whenever it is not the wheels' turn to dead reckon on their

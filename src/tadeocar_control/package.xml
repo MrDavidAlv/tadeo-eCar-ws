@@ -13,6 +13,15 @@
   <depend>geometry_msgs</depend>
 
   <exec_depend>twist_mux</exec_depend>
+  <!-- xbox_control.launch.py starts joy_node. Undeclared, rosdep install left
+       it out and the launch failed on a machine that had never installed it
+       for something else. -->
+  <exec_depend>joy</exec_depend>
+  <!-- web_control_node serves the browser interface over a websocket. Without
+       this the node prints one line and exits with status zero, the HTTP
+       server keeps serving the page, and the joystick on it moves nothing. -->
+  <exec_depend>python3-websockets</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

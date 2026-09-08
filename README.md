@@ -25,18 +25,16 @@
 ## Quick start
 
 ```bash
-# 1. Dependencies (Ubuntu 22.04 with ROS 2 Humble already installed)
-sudo apt install -y ros-humble-ros-gz ros-humble-navigation2 \
-  ros-humble-nav2-bringup ros-humble-slam-toolbox ros-humble-rtabmap-ros \
-  ros-humble-robot-localization ros-humble-twist-mux ros-humble-joy \
-  ros-humble-teleop-twist-joy ros-humble-xacro ros-humble-rviz2
-pip3 install numpy websockets
+# 1. Dependencies. Read from the packages' own manifests, so this list cannot
+#    drift out of step with what the code actually imports.
+source /opt/ros/humble/setup.bash
+rosdep update                                  # first time only
+rosdep install --from-paths src --ignore-src -y
 
 # 2. Build
-source /opt/ros/humble/setup.bash
 colcon build --symlink-install && source install/setup.bash
 
-# 3. Drive it
+# 3. Drive it: Gazebo, RViz and a browser interface on http://localhost:8080
 ros2 launch tadeocar_bringup demo.launch.py
 
 # Or map with the LiDAR
@@ -48,6 +46,12 @@ ros2 launch tadeocar_bringup navigation_bringup.launch.py
 # Or build a 3D map with the camera
 ros2 launch tadeocar_bringup vslam_bringup.launch.py
 ```
+
+Every launch above takes `world:=factory|yard|empty`, `headless:=true` to run
+without the Gazebo window, and `rviz:=false` to run without RViz.
+
+Ubuntu 22.04 with ROS 2 Humble is assumed. If `rosdep` is not set up yet,
+`sudo rosdep init` once, then `rosdep update`.
 
 Full instructions: [docs/installation-guide.md](docs/installation-guide.md) ·
 [docs/usage-guide.md](docs/usage-guide.md)
@@ -288,6 +292,11 @@ ros2 launch tadeocar_bringup demo.launch.py use_ekf:=false # dead reckoning
 ros2 launch tadeocar_bringup slam_bringup.launch.py
 ```
 
+<img src="images/rviz-gazebo-slam.png" width="740"/>
+
+*Gazebo and RViz, one command. The map on the right is being built from the
+scene on the left.*
+
 ![SLAM versus ground truth](images/slam-vs-truth.png)
 
 Because the world is generated, the occupancy grid it emits is not an
@@ -325,6 +334,29 @@ the factory, scored against ground truth on arrival:
 
 **5 of 5 reached.** Localisation error while driving: 26.5 cm mean, 50 cm worst.
 
+The yard is the harder of the two, because reaching the dock means climbing a
+ramp the planner never sees as one: the generator emits ramps and platform as
+traversable floor, not as obstacles.
+
+```bash
+ros2 launch tadeocar_bringup navigation_bringup.launch.py world:=yard
+```
+
+<img src="images/rviz-gazebo-navigation.png" width="740"/>
+
+*The yard, with the costmaps Nav2 is planning on. The map follows the world
+unless `map` names one explicitly, and which one was picked is logged at
+startup.*
+
+| Goal | Time | Position error | Heading error |
+|---|---|---|---|
+| (−4.0, 4.5) | 8.4 s | 20.0 cm | 1.6° |
+| (6.0, 4.5) | 14.3 s | 18.7 cm | 2.7° |
+| (6.0, −3.0) | 14.8 s | 34.0 cm | 7.6° |
+
+**3 of 3 reached.** The last two stand on the dock platform, where ground truth
+reports z = 0.350 m, so the route went up the ramp.
+
 DWB was tried first and does not suit this platform: it settled into commanding
 ±0.09 rad/s on alternate cycles with the wheels parked at −60°, and the robot
 vibrated in place until the progress checker aborted the goal. The reasoning is
@@ -337,6 +369,10 @@ in [docs/mathematical-model/control.md](docs/mathematical-model/control.md) §4.
 ```bash
 ros2 launch tadeocar_bringup vslam_bringup.launch.py
 ```
+
+<img src="images/rviz-gazebo-vslam.png" width="740"/>
+
+*The accumulated RTAB-Map cloud on the right is built from the camera alone.*
 
 ![ZED 2i colour and depth](images/zed-view.png)
 

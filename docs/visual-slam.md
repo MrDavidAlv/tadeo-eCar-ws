@@ -118,6 +118,53 @@ performs on real hardware.
 
 ---
 
+## The yard, and what actually breaks camera odometry there
+
+Every other number here was measured in the factory. The yard is a different
+scene - open sky above, uniform asphalt below, walls twenty metres off - and it
+was worth measuring rather than assuming either way.
+
+Driving straight, it is fine. Over 5.9 m of flat apron against generated ground
+truth, camera-only odometry is out by 0.11 m, which is about 2 % of the
+distance and in the same range as indoors.
+
+**One in-place turn is what breaks it.** Same run, immediately after a 180
+degree rotation on the spot:
+
+| | Straight, 5.9 m | After one 180 deg turn |
+|---|---|---|
+| Wheel odometry | 0.01 m / 0.3 deg | 0.29 m / **14.7 deg** |
+| Visual odometry | 0.11 m / 1.6 deg | 0.67 m / **48.6 deg** |
+| EKF | 0.01 m / 0.0 deg | 0.10 m / 0.0 deg |
+
+The heading error is the damage. It does not recover, and on the leg back it
+turns into position: 7.3 m out by the end of a 16.4 m round trip, against
+0.12 m for the EKF over the same path.
+
+Two things go wrong at once and they compound. A 4WS platform turning in place
+has all four tyres scrubbing, which is the worst case for wheel odometry and
+shows up as the 14.7 degrees above. And the camera sweeps through views that
+are mostly sky and bare asphalt, so registration has little to hold: inliers
+run to a median of 74 in the yard against 211 in the factory, with 7 frames out
+of 300 finding nothing at all. Indoors there is margin for a hard manoeuvre;
+outdoors there is not.
+
+So the yard is not a place where camera odometry fails. It is a place where it
+has no margin, and an in-place turn spends what margin there is. Map on the
+fused pose if the route has pivots in it:
+
+```bash
+ros2 launch tadeocar_bringup vslam_bringup.launch.py world:=yard odom_source:=ekf
+```
+
+**A correction, since an earlier version of this section said otherwise.** The
+first measurement put camera odometry at 23.8 % of path in the yard and called
+it unusable. That run was spawned at (-13.0, -8.0), which is 0.5 m from the
+centre of `light_pole_sw`: the robot started inside a five metre steel pole and
+was shoved out of it by physics before the run began. Nothing reported that,
+which is why `simulation.launch.py` now refuses a spawn point that is not clear
+in the world's own occupancy grid.
+
 ## Watching it work
 
 ```bash

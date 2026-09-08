@@ -233,23 +233,70 @@ absolute source for $x$, $y$, $z$ and yaw. There is no Gazebo equivalent of it.
 
 ### 9.1 Covariances
 
-`process_noise_covariance` and `initial_estimate_covariance` are left at
-`robot_localization`'s defaults, and that is a decision rather than an
-oversight. The values that belong there depend on how much the tyres slip,
-which depends on the surface — and the yard world's asphalt, gravel and sand
-patches exist precisely so that this can be measured rather than guessed.
+The twist covariances the wheel odometry publishes are **measured**, on the
+yard world's three friction patches, which is what those patches are for.
 
-The measurement would be: drive a known distance on each patch, compare the
-integrated wheel odometry against `/odom_truth`, and derive the velocity
-variance per surface from the residual. Until that is done, writing a
-hand-tuned 15 × 15 matrix would look authoritative and be backed by nothing.
+The measurement drives each patch twice: a straight leg at 0.6 m/s for the
+linear terms, and a rotation in place at 0.4 rad/s for yaw. Both legs discard
+their first two seconds, because a robot starting from rest spins its wheels up
+before the body follows and the odometry over-reports while it does. Rotating
+in place rather than turning while driving is not a detail: the lanes are 3.2 m
+wide, and a turn at 0.6 m/s and 0.3 rad/s has a 2 m radius, which takes the
+robot off the patch and labels the apron's numbers as the patch's. Roughly 7000
+samples per leg.
 
-The odometry message's own twist covariances are set — $\sigma_{v_x} = 0.05$,
-$\sigma_{v_y} = 0.10$, $\sigma_{\omega_z} = 0.05$ — on the assumption of
-roughly 5 % slip on a driven wheel, with lateral velocity trusted half as much
-because it is the component a steered wheel scrubs away first. Pose covariances
-are set to $10^3$, which is what makes "fuse the twist, ignore the dead-reckoned
-pose" true in the numbers and not only in the configuration.
+| Surface | $\mu$ | $\sigma_{v_x}$ | $\sigma_{v_y}$ | $\sigma_{\omega_z}$ |
+|---|---|---|---|---|
+| asphalt | 0.90 | 0.0009 | 0.0009 | 0.0449 |
+| gravel | 0.55 | 0.0009 | 0.0021 | 0.0712 |
+| sand | 0.30 | 0.0015 | 0.0053 | 0.0155 |
+
+All in m/s and rad/s. **Lateral error rises monotonically as grip falls** —
+0.9, 2.1, 5.3 mm/s from asphalt to sand, a factor of six — which is the scrub
+the old assumption was reaching for when it trusted $v_y$ half as much as
+$v_x$. The direction was right and the magnitude was not.
+
+The simulation uses the worst case of the three, $\sigma_{v_x} = 0.0015$,
+$\sigma_{v_y} = 0.0053$, $\sigma_{\omega_z} = 0.0712$, set in
+`simulation.launch.py`.
+
+**These belong to the simulation, not to the robot.** Gazebo's wheel contact is
+a far more ideal sensor than rubber on gravel, and writing these into the node
+itself would leave the real robot trusting its wheels roughly thirty times more
+than it should. `wheel_odometry_node`'s own defaults stay at the original
+assumption — $\sigma_{v_x} = 0.05$, $\sigma_{v_y} = 0.10$,
+$\sigma_{\omega_z} = 0.05$, roughly 5 % slip on a driven wheel — and the
+simulation overrides them through parameters.
+
+Two things the measurement changed about the picture. The linear terms were
+over-estimated by a factor of 30 to 100. The yaw term was **under**-estimated:
+0.05 assumed against 0.045 to 0.071 measured, so the one component the
+configuration was most confident about is the one the wheels are worst at. That
+is the expected shape for this platform, where yaw comes out of a least-squares
+fit over four steering angles rather than being sensed directly.
+
+What it did not change is the end-to-end result. Over the same yard route, run
+three times each:
+
+| Covariances | Position error | Heading error |
+|---|---|---|
+| assumed | 0.170 m mean (0.143 to 0.185) | 0.45 deg |
+| measured | 0.167 m mean (0.156 to 0.173) | 0.35 deg |
+
+The position difference is far smaller than the spread between runs, and the
+heading ranges overlap. **The measured values are not more accurate, they are
+better founded**, and they no longer misstate which axis the wheels are worst
+on. Claiming an improvement from these numbers would be reading noise.
+
+`process_noise_covariance` and `initial_estimate_covariance` are still at
+`robot_localization`'s defaults. They describe how badly the constant-velocity
+model fits the platform, not how noisy a sensor is, so the experiment above
+says nothing about them; measuring those means a different run and is not done.
+
+The pose covariances stay at $10^3$. That is what makes "fuse the twist, ignore
+the dead-reckoned pose" true in the numbers and not only in the configuration.
+
+The measurement lives in `slip_variance.py` in the test harness.
 
 ---
 

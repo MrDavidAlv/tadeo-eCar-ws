@@ -386,6 +386,12 @@ but the images decides where the robot is.
 | Feature inliers | median 211, peak 683 |
 | Accumulated 3D cloud | 116 865 points |
 
+Those figures are for a lap that turned while driving. Turning **on the spot**
+is what breaks camera-only odometry, indoors and out: over a 67 m lap with
+fifteen pivots it ended 10.3 m out, most of it from a single 180 degree turn,
+while the EKF ended 0.07 m out. Details in
+[docs/visual-slam.md](docs/visual-slam.md).
+
 The first version of this tracked nothing — 13 % of frames failed registration
 and the estimate ended 18 m out — and no amount of RTAB-Map tuning moved it.
 The cause was that the worlds were rendering **flat-shaded**: Gazebo resolves a

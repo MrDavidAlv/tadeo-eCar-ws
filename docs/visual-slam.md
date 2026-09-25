@@ -18,6 +18,16 @@ robot is:
 | Feature inliers | median 211, peak 683 |
 | Accumulated 3D cloud | 116 865 points |
 
+**These figures depend on the route, and the route was not recorded.** The 45 m
+lap turned while driving, never on the spot. Repeated on 2026-09-25 over a
+67 m lap of the same building with fifteen in-place pivots, camera-only
+odometry ended 10.3 m out, with inliers at a median of 145 and 3.8 % of frames
+finding none; the EKF ended 0.07 m out over the same drive. The error is not
+spread along the lap: it arrives in the pivots, and the single 180 degree turn
+at the end of the central aisle cost the heading about 65 degrees on its own.
+In a straight line the estimate holds. Pivots are what break it, indoors as
+well as out - see the yard section below.
+
 For comparison, on the same lap the EKF — wheels fused with the IMU — ends
 0.06 m out. Mapping on the fused pose is available and more accurate, but it
 demonstrates less, because the camera is no longer the thing being tested:
@@ -146,8 +156,11 @@ has all four tyres scrubbing, which is the worst case for wheel odometry and
 shows up as the 14.7 degrees above. And the camera sweeps through views that
 are mostly sky and bare asphalt, so registration has little to hold: inliers
 run to a median of 74 in the yard against 211 in the factory, with 7 frames out
-of 300 finding nothing at all. Indoors there is margin for a hard manoeuvre;
-outdoors there is not.
+of 300 finding nothing at all. An earlier version of this page said that
+indoors there is margin for a hard manoeuvre and outdoors there is not. The
+factory disproves it: a 180 degree pivot there costs about 65 degrees of
+heading too. The yard has less to hold on to while driving straight; the pivot
+is what breaks it in both.
 
 So the yard is not a place where camera odometry fails. It is a place where it
 has no margin, and an in-place turn spends what margin there is. Map on the

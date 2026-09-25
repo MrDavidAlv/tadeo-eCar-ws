@@ -76,13 +76,21 @@ class WheelOdometryNode(Node):
         # Gazebo emits /joint_states at the physics rate, near 1 kHz, and this
         # node integrated and published on every one of them. Integration has
         # to happen at that rate - dropping samples loses motion - but nothing
-        # downstream wants a kilohertz of odometry: the EKF runs at 50 Hz and
-        # the scan matcher at 7. The rest was ~950 messages a second of
-        # allocation, serialisation and TF traffic that no subscriber used, and
-        # it inflated the filter's input queue for no gain.
+        # downstream wants a kilohertz of odometry.
+        #
+        # It must still run well above the EKF's 50 Hz. This was first set to
+        # 50, on the reasoning that the filter runs at 50: with the two rates
+        # equal and their phases drifting, the filter sometimes waits most of a
+        # cycle for its input, its odom -> base_footprint transform falls
+        # behind, and Nav2's controller asks for a pose the tree does not have
+        # yet ("extrapolation into the future"). On flat ground it went
+        # unnoticed; on the yard ramp, under more load, the controller's
+        # patience ran out and navigation fell from 3 of 3 goals to 1 of 3.
+        # At 200 Hz the fault is gone in both worlds and traffic is still a
+        # fifth of what it was.
         #
         # 0 restores the old behaviour of publishing every sample.
-        self.declare_parameter('publish_rate', 50.0)
+        self.declare_parameter('publish_rate', 200.0)
 
         # Standard deviations of this message's twist, in m/s and rad/s. The
         # defaults are the real-robot assumption: roughly 5 % slip on a driven

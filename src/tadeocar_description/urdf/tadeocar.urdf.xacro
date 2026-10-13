@@ -74,13 +74,17 @@
        on top of the arc they would see a clean 360 degrees at 1.69 m, which
        is above every pallet, box and pair of legs the robot has to avoid.
 
-       The camera stays below the LiDAR plane so it never occludes it, and
-       ahead of the front tyre's sweep, which reaches x = 0.653 m. -->
+       The camera is bolted on top of the arc's lower front cross tube, on a
+       10 mm wedge that pitches it 10 degrees down. That puts it 0.907 m above
+       the ground, far above the LiDAR planes it can no longer occlude, and
+       outside both front posts, which it sees at 91 degrees off axis with a
+       55 degree half field of view. -->
   <xacro:property name="lidar_x" value="0.60"/>
   <xacro:property name="lidar_z" value="0.325"/>   <!-- 0.450 m above ground -->
   <xacro:property name="rear_lidar_x" value="-0.675"/>
-  <xacro:property name="zed_x" value="0.68"/>
-  <xacro:property name="zed_z" value="0.175"/>     <!-- 0.300 m above ground -->
+  <xacro:property name="zed_x" value="0.479"/>     <!-- over the lower front cross tube -->
+  <xacro:property name="zed_z" value="0.782"/>     <!-- 0.907 m above ground -->
+  <xacro:property name="zed_pitch" value="0.17453"/>  <!-- 10 degrees down -->
   <xacro:property name="zed_baseline" value="0.12"/>
 
   <material name="deck_black"><color rgba="0.03 0.03 0.035 1.0"/></material>
@@ -325,7 +329,7 @@
   <joint name="zed2i_camera_joint" type="fixed">
     <parent link="base_link"/>
     <child link="zed2i_camera_link"/>
-    <origin xyz="${zed_x} 0 ${zed_z}" rpy="0 0 0"/>
+    <origin xyz="${zed_x} 0 ${zed_z}" rpy="0 ${zed_pitch} 0"/>
   </joint>
 
   <link name="zed2i_left_camera_frame"/>

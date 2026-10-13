@@ -389,7 +389,7 @@
          camera_info, which lands it in the optical frame by construction and
          is the same projection the ZED SDK performs on real hardware. -->
     <link name="zed2i_camera_link">
-      <pose>0.68 0 0.300 0 0 0</pose>
+      <pose>0.479 0 0.907 0 0.17453 0</pose>
 
       <inertial>
         <mass>0.175</mass>

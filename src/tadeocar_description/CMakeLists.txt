@@ -7,11 +7,13 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 
+# Only directories git actually tracks. rviz used to be listed here; it never
+# held a tracked file, so it existed only as an empty directory on the machine
+# that wrote this, and a fresh clone failed at install.
 install(DIRECTORY
   launch
   urdf
   meshes
-  rviz
   test
   DESTINATION share/${PROJECT_NAME}/
 )

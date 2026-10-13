@@ -220,6 +220,130 @@
     <origin xyz="${deck_x} 0 ${deck_top + plate_t}" rpy="0 0 0"/>
   </joint>
 
+  <!-- ==================== LAMPS ====================
+       Below the deck's lips, as chosen: two low-beam headlamps and two direction
+       indicators at the front; a combination lamp at each rear corner carrying
+       reversing (white, inboard), stop and position (red) and direction
+       (amber, outboard). Sealed LED units of the size bolted to trailers, each
+       a black housing and a separate lens so every function can be lit on its
+       own. Meshes and lens textures from scripts/generate_lamps.py.
+
+       Every lamp was checked against the deck outline, the other lamps, the
+       deck underside its bracket bolts to (0.206 m above base_link), and
+       everything that turns with a wheel: the strut assembly and the tyre,
+       from their meshes, swept a full 360 degrees about the steering axis,
+       which is more than the +/-135 degree servos can reach. The closest is
+       the rear combination lamp, 75 mm from the rear tyre and 78 mm from its
+       strut; the front indicator is 84 mm from its strut. A wheel would have
+       to rise 126 mm into its strut before it reached a lamp.
+
+       Regulatory note, kept on purpose: stop lamps and direction indicators
+       are normally required at least 0.35 m above the ground (UNECE R48), and
+       hung under the lips their lower edge is at 0.283 to 0.291 m. Mounted on
+       the rim face instead they would clear it, at the cost of standing 25 mm
+       proud of the deck outline. -->
+  <link name="lamps_link">
+    <visual name="headlamp_left_housing">
+      <origin xyz="0.655 0.07 0.178" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/headlamp_housing.dae"/></geometry>
+    </visual>
+    <visual name="headlamp_left_headlamp_lens">
+      <origin xyz="0.655 0.07 0.178" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/headlamp_lens.dae"/></geometry>
+    </visual>
+    <visual name="headlamp_left_bracket">
+      <origin xyz="0.6325 0.07 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.054 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="turn_front_left_housing">
+      <origin xyz="0.655 0.15 0.182" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/turn_housing.dae"/></geometry>
+    </visual>
+    <visual name="turn_front_left_turn_lens">
+      <origin xyz="0.655 0.15 0.182" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/turn_lens.dae"/></geometry>
+    </visual>
+    <visual name="turn_front_left_bracket">
+      <origin xyz="0.64 0.15 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.033 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="tail_left_housing">
+      <origin xyz="-0.752 0.103 0.178" rpy="3.1415927 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_combo_housing.dae"/></geometry>
+    </visual>
+    <visual name="tail_left_reverse_lens">
+      <origin xyz="-0.752 0.103 0.178" rpy="3.1415927 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_reverse_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_left_stop_lens">
+      <origin xyz="-0.752 0.103 0.178" rpy="3.1415927 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_stop_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_left_turn_lens">
+      <origin xyz="-0.752 0.103 0.178" rpy="3.1415927 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_turn_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_left_bracket">
+      <origin xyz="-0.736 0.103 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.09 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="headlamp_right_housing">
+      <origin xyz="0.655 -0.07 0.178" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/headlamp_housing.dae"/></geometry>
+    </visual>
+    <visual name="headlamp_right_headlamp_lens">
+      <origin xyz="0.655 -0.07 0.178" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/headlamp_lens.dae"/></geometry>
+    </visual>
+    <visual name="headlamp_right_bracket">
+      <origin xyz="0.6325 -0.07 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.054 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="turn_front_right_housing">
+      <origin xyz="0.655 -0.15 0.182" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/turn_housing.dae"/></geometry>
+    </visual>
+    <visual name="turn_front_right_turn_lens">
+      <origin xyz="0.655 -0.15 0.182" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/turn_lens.dae"/></geometry>
+    </visual>
+    <visual name="turn_front_right_bracket">
+      <origin xyz="0.64 -0.15 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.033 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="tail_right_housing">
+      <origin xyz="-0.752 -0.103 0.178" rpy="0 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_combo_housing.dae"/></geometry>
+    </visual>
+    <visual name="tail_right_reverse_lens">
+      <origin xyz="-0.752 -0.103 0.178" rpy="0 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_reverse_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_right_stop_lens">
+      <origin xyz="-0.752 -0.103 0.178" rpy="0 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_stop_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_right_turn_lens">
+      <origin xyz="-0.752 -0.103 0.178" rpy="0 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_turn_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_right_bracket">
+      <origin xyz="-0.736 -0.103 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.09 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+  </link>
+  <joint name="lamps_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lamps_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
   <!-- ==================== SENSOR MAST ==================== -->
 
   <link name="sensor_mast_link">

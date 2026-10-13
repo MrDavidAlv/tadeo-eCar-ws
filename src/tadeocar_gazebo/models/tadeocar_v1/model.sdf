@@ -193,6 +193,234 @@
       <child>upper_chassis_link</child>
     </joint>
 
+    <!-- ==================== LAMPS ==================== -->
+    <!-- Mirrored from tadeocar.urdf.xacro, which carries the reasoning. Poses
+         are in base_link, which is this link's own frame. Lenses are lit. -->
+    <link name="lamps_link">
+      <pose>0 0 0.125 0 0 0</pose>
+      <inertial><mass>1.2</mass><inertia><ixx>0.003</ixx><iyy>0.003</iyy><izz>0.003</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
+      <visual name="headlamp_left_housing">
+        <pose>0.655 0.07 0.178 0 0 0</pose>
+        <geometry><mesh><uri>meshes/lamps/headlamp_housing.dae</uri></mesh></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="headlamp_left_headlamp_lens">
+        <pose>0.655 0.07 0.178 0 0 0</pose>
+        <geometry><mesh><uri>meshes/lamps/headlamp_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/headlamp_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/headlamp_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="headlamp_left_bracket">
+        <pose>0.6325 0.07 0.202 0 0 0</pose>
+        <geometry><box><size>0.020 0.054 0.008</size></box></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="turn_front_left_housing">
+        <pose>0.655 0.15 0.182 0 0 0</pose>
+        <geometry><mesh><uri>meshes/lamps/turn_housing.dae</uri></mesh></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="turn_front_left_turn_lens">
+        <pose>0.655 0.15 0.182 0 0 0</pose>
+        <geometry><mesh><uri>meshes/lamps/turn_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/turn_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/turn_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="turn_front_left_bracket">
+        <pose>0.64 0.15 0.202 0 0 0</pose>
+        <geometry><box><size>0.020 0.033 0.008</size></box></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_left_housing">
+        <pose>-0.752 0.103 0.178 3.1415927 0 3.1415927</pose>
+        <geometry><mesh><uri>meshes/lamps/tail_combo_housing.dae</uri></mesh></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_left_reverse_lens">
+        <pose>-0.752 0.103 0.178 3.1415927 0 3.1415927</pose>
+        <geometry><mesh><uri>meshes/lamps/tail_reverse_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/tail_reverse_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/tail_reverse_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_left_stop_lens">
+        <pose>-0.752 0.103 0.178 3.1415927 0 3.1415927</pose>
+        <geometry><mesh><uri>meshes/lamps/tail_stop_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/tail_stop_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/tail_stop_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_left_turn_lens">
+        <pose>-0.752 0.103 0.178 3.1415927 0 3.1415927</pose>
+        <geometry><mesh><uri>meshes/lamps/tail_turn_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/tail_turn_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/tail_turn_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_left_bracket">
+        <pose>-0.736 0.103 0.202 0 0 0</pose>
+        <geometry><box><size>0.020 0.09 0.008</size></box></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="headlamp_right_housing">
+        <pose>0.655 -0.07 0.178 0 0 0</pose>
+        <geometry><mesh><uri>meshes/lamps/headlamp_housing.dae</uri></mesh></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="headlamp_right_headlamp_lens">
+        <pose>0.655 -0.07 0.178 0 0 0</pose>
+        <geometry><mesh><uri>meshes/lamps/headlamp_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/headlamp_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/headlamp_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="headlamp_right_bracket">
+        <pose>0.6325 -0.07 0.202 0 0 0</pose>
+        <geometry><box><size>0.020 0.054 0.008</size></box></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="turn_front_right_housing">
+        <pose>0.655 -0.15 0.182 0 0 0</pose>
+        <geometry><mesh><uri>meshes/lamps/turn_housing.dae</uri></mesh></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="turn_front_right_turn_lens">
+        <pose>0.655 -0.15 0.182 0 0 0</pose>
+        <geometry><mesh><uri>meshes/lamps/turn_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/turn_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/turn_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="turn_front_right_bracket">
+        <pose>0.64 -0.15 0.202 0 0 0</pose>
+        <geometry><box><size>0.020 0.033 0.008</size></box></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_right_housing">
+        <pose>-0.752 -0.103 0.178 0 0 3.1415927</pose>
+        <geometry><mesh><uri>meshes/lamps/tail_combo_housing.dae</uri></mesh></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_right_reverse_lens">
+        <pose>-0.752 -0.103 0.178 0 0 3.1415927</pose>
+        <geometry><mesh><uri>meshes/lamps/tail_reverse_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/tail_reverse_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/tail_reverse_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_right_stop_lens">
+        <pose>-0.752 -0.103 0.178 0 0 3.1415927</pose>
+        <geometry><mesh><uri>meshes/lamps/tail_stop_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/tail_stop_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/tail_stop_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_right_turn_lens">
+        <pose>-0.752 -0.103 0.178 0 0 3.1415927</pose>
+        <geometry><mesh><uri>meshes/lamps/tail_turn_lens.dae</uri></mesh></geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse><emissive>1 1 1 1</emissive>
+          <pbr><metal>
+            <albedo_map>meshes/lamps/tail_turn_lens_lit.png</albedo_map>
+            <emissive_map>meshes/lamps/tail_turn_lens_lit.png</emissive_map>
+            <metalness>0.0</metalness><roughness>0.15</roughness>
+          </metal></pbr>
+        </material>
+      </visual>
+      <visual name="tail_right_bracket">
+        <pose>-0.736 -0.103 0.202 0 0 0</pose>
+        <geometry><box><size>0.020 0.09 0.008</size></box></geometry>
+        <material>
+          <ambient>0.02 0.02 0.022 1</ambient><diffuse>0.02 0.02 0.022 1</diffuse><specular>0.6 0.6 0.6 1</specular>
+          <pbr><metal><metalness>0.0</metalness><roughness>0.3</roughness></metal></pbr>
+        </material>
+      </visual>
+    </link>
+    <joint name="lamps_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>lamps_link</child>
+    </joint>
+
     <!-- ==================== SENSOR MAST ==================== -->
     <link name="sensor_mast_link">
       <pose>0.60 0 0.390 0 0 0</pose>

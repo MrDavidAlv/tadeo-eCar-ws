@@ -689,6 +689,16 @@
         <topic>zed2i/imu</topic>
         <gz_frame_id>zed2i_imu_link</gz_frame_id>
         <imu>
+          <!-- Attitude against the world, the way gravity gives it to the
+               real sensor. Without this Gazebo reports orientation relative
+               to the sensor's own pose at spawn, which is only right while
+               the sensor sits level. On its 10 degree wedge it read zero
+               pitch while pitched, and the EKF, rotating that through the
+               mount, tilted the whole robot 10 degrees nose up on flat
+               ground. -->
+          <orientation_reference_frame>
+            <localization>ENU</localization>
+          </orientation_reference_frame>
           <angular_velocity>
             <x><noise type="gaussian"><mean>0.0</mean><stddev>0.0002</stddev></noise></x>
             <y><noise type="gaussian"><mean>0.0</mean><stddev>0.0002</stddev></noise></y>

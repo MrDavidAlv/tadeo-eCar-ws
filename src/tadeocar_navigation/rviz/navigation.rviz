@@ -81,11 +81,59 @@ Visualization Manager:
     Axis: Z
     Channel Name: intensity
     Class: rviz_default_plugins/LaserScan
-    Color: 255; 60; 60
+    Color: 80; 220; 100
     Color Transformer: FlatColor
     Decay Time: 0
     Enabled: true
-    Name: LiDAR scan
+    Name: Front LiDAR (/scan_front)
+    Position Transformer: XYZ
+    Selectable: true
+    Size (Pixels): 4
+    Size (m): 0.03
+    Style: Points
+    Topic:
+      Depth: 5
+      Durability: Volatile
+      History: Keep Last
+      Reliability: Best Effort
+      Value: /scan_front
+    Use Fixed Frame: true
+    Use rainbow: true
+    Value: true
+  - Alpha: 1
+    Autocompute Intensity Bounds: true
+    Axis: Z
+    Channel Name: intensity
+    Class: rviz_default_plugins/LaserScan
+    Color: 255; 160; 40
+    Color Transformer: FlatColor
+    Decay Time: 0
+    Enabled: true
+    Name: Rear LiDAR (/scan_rear)
+    Position Transformer: XYZ
+    Selectable: true
+    Size (Pixels): 4
+    Size (m): 0.03
+    Style: Points
+    Topic:
+      Depth: 5
+      Durability: Volatile
+      History: Keep Last
+      Reliability: Best Effort
+      Value: /scan_rear
+    Use Fixed Frame: true
+    Use rainbow: true
+    Value: true
+  - Alpha: 1
+    Autocompute Intensity Bounds: true
+    Axis: Z
+    Channel Name: intensity
+    Class: rviz_default_plugins/LaserScan
+    Color: 255; 60; 60
+    Color Transformer: FlatColor
+    Decay Time: 0
+    Enabled: false
+    Name: Merged scan (/scan)
     Position Transformer: XYZ
     Selectable: true
     Size (Pixels): 4
@@ -99,7 +147,7 @@ Visualization Manager:
       Value: /scan
     Use Fixed Frame: true
     Use rainbow: true
-    Value: true
+    Value: false
   - Alpha: 0.7
     Class: rviz_default_plugins/Map
     Color Scheme: map

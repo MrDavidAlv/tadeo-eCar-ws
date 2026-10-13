@@ -70,7 +70,9 @@ class ScanMerger(Node):
         # and the noise of a return off its own edge.
         self.declare_parameter('self_box', [-0.79, 0.69, -0.44, 0.44])
 
-        g = lambda n: self.get_parameter(n).value
+        def g(name):
+            return self.get_parameter(name).value
+
         self.out_frame = g('output_frame')
         self.odom_frame = g('odom_frame')
         self.base_frame = g('base_frame')
@@ -106,18 +108,29 @@ class ScanMerger(Node):
         """Scan endpoints expressed in the output frame at stamp_out."""
         r = np.asarray(scan.ranges, dtype=float)
         a = scan.angle_min + np.arange(len(r)) * scan.angle_increment
-        ok = np.isfinite(r) & (r >= max(scan.range_min, self.rmin)) & (r <= min(scan.range_max, self.rmax))
+        lo, hi = max(scan.range_min, self.rmin), min(scan.range_max, self.rmax)
+        ok = np.isfinite(r) & (r >= lo) & (r <= hi)
         if not ok.any():
             return np.zeros((0, 3))
         p = np.c_[r[ok] * np.cos(a[ok]), r[ok] * np.sin(a[ok]), np.zeros(ok.sum())]
         # Through odom: the sensor at its own time, the output frame at the
         # front scan's. For the front scan the two times are the same and the
         # chain reduces to the static mount.
+        #
+        # Neither time may be later than the newest odometry. A scan is
+        # stamped when it was taken and odom -> base_footprint arrives at
+        # 50 Hz, so the front scan is usually a few milliseconds ahead of the
+        # newest transform. Waiting for the next one held this callback up to
+        # its timeout, and on a simulation running slower than real time the
+        # timeout won every time: the rear scan was dropped from every merged
+        # scan. Using the newest transform instead costs at most one
+        # odometry period of motion, 2 cm at 1 m/s.
         if moving:
+            newest = Time.from_msg(self.tf.lookup_transform(
+                self.odom_frame, self.base_frame, Time()).header.stamp)
             t = self.tf.lookup_transform_full(
-                self.out_frame, stamp_out, scan.header.frame_id,
-                Time.from_msg(scan.header.stamp), self.odom_frame,
-                timeout=Duration(seconds=0.1))
+                self.out_frame, min(stamp_out, newest), scan.header.frame_id,
+                min(Time.from_msg(scan.header.stamp), newest), self.odom_frame)
         else:
             t = self.tf.lookup_transform(self.out_frame, scan.header.frame_id, Time())
         R = _rotation(t.transform.rotation)
@@ -170,7 +183,8 @@ class ScanMerger(Node):
         ranges = np.full(self.bins, np.inf)
         if len(pts):
             r = np.hypot(pts[:, 0], pts[:, 1])
-            idx = ((np.arctan2(pts[:, 1], pts[:, 0]) + math.pi) / out.angle_increment).astype(int) % self.bins
+            bearing = np.arctan2(pts[:, 1], pts[:, 0]) + math.pi
+            idx = (bearing / out.angle_increment).astype(int) % self.bins
             keep = (r >= self.rmin) & (r <= self.rmax)
             np.minimum.at(ranges, idx[keep], r[keep])
         out.ranges = ranges.astype(np.float32).tolist()

@@ -456,8 +456,11 @@
          axis of the building.
 
          The scan plane is 0.450 m above the ground: 58 mm over the tread
-         plate. The upper chassis's posts take about 10 % of the sweep; the rear
-         sensor sees what they hide. -->
+         plate. Only the 180 degrees ahead are used, the 215 points of that
+         half revolution; the rear sensor, the same unit turned round, uses the
+         180 behind. The other half of either sweep looks across the deck, at
+         the upper chassis's posts, the other sensor and any load, and would
+         see nothing but the robot. -->
     <link name="base_scan">
       <pose>0.60 0 0.450 0 0 0</pose>
 
@@ -491,10 +494,10 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>428</samples>
+              <samples>215</samples>
               <resolution>1</resolution>
-              <min_angle>-3.141593</min_angle>
-              <max_angle>3.141593</max_angle>
+              <min_angle>-1.570796</min_angle>
+              <max_angle>1.570796</max_angle>
             </horizontal>
           </scan>
           <range>
@@ -517,7 +520,8 @@
     </joint>
 
     <!-- ==================== REAR LiDAR: YDLIDAR X2 ==================== -->
-    <!-- The front sensor again, facing back. See the front one for the specification. -->
+    <!-- The front sensor again, facing back. See the front one for the specification
+         and for why each uses only the half it faces. -->
     <link name="sensor_mast_rear_link">
       <pose>-0.675 0 0.390 0 0 0</pose>
       <inertial>
@@ -576,10 +580,10 @@
         <lidar>
           <scan>
             <horizontal>
-              <samples>428</samples>
+              <samples>215</samples>
               <resolution>1</resolution>
-              <min_angle>-3.141593</min_angle>
-              <max_angle>3.141593</max_angle>
+              <min_angle>-1.570796</min_angle>
+              <max_angle>1.570796</max_angle>
             </horizontal>
           </scan>
           <range>

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Two 2D LiDARs -> one 360 degree scan, with the robot itself taken out.
+"""Two half-scans -> one 360 degree scan, with the robot itself taken out.
 
 The TadeoeCar carries the same YDLIDAR X2 at each end of the deck, both 58 mm
-above the tread plate. Each one loses about a tenth of its sweep to the posts
-of the upper chassis, and with a load on the deck each loses the half that
-looks across it. Neither is enough on its own; together they see everything
-around the robot when it is empty, and everything but two short strips beside
-the load when it is loaded.
+above the tread plate, and each uses only the 180 degrees it faces: the other
+half of either sweep looks across the deck, at the upper chassis's posts, the
+other sensor and any load. Together they see everything ahead of the front
+sensor and behind the rear one; the strip beside the robot between them is
+seen by neither, and its bins here stay at infinity, which every consumer
+reads as no return.
 
 Everything downstream - SLAM Toolbox, AMCL, both Nav2 costmaps - takes one
 LaserScan on /scan. This node builds that scan from /scan_front and
@@ -20,9 +21,11 @@ LaserScan on /scan. This node builds that scan from /scan_front and
     merged with, which at 1 m/s is 14 cm of drive. Its points are transformed
     through odom at their own timestamp, not at the front scan's.
 
-  * Anything inside the robot's own outline is discarded: the arc's posts,
-    each sensor seeing the other, and whatever is loaded on the deck. All of
-    those move with the robot, and scan matching treats a return that moves
+  * Anything inside the robot's own outline is discarded. With each sensor
+    held to its own half nothing of the robot should reach this point, so
+    this is the guard for a driver configured with the full sweep: the arc's
+    posts, each sensor seeing the other and whatever is loaded on the deck
+    all move with the robot, and scan matching treats a return that moves
     with the robot as the world moving the other way.
 
   * Where both sensors see the same direction the nearer return wins, which

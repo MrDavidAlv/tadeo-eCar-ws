@@ -64,15 +64,20 @@
 
        The LiDARs clear the deck. Its top face is 0.389 m above the ground and
        the tread plate on it adds 3 mm, so a scan plane at 0.450 m has 58 mm of
-       clearance. Lower and the deck's own rim occludes it. There are two, the
-       same YDLIDAR X2 front and rear: the upper chassis's posts cross every
-       plane between the deck and its roof, so each sensor loses about 10 % of
-       its sweep to them, and a load on the deck takes away the other half.
-       Measured by ray-cast against the arc mesh: 326 and 328 degrees of
-       clear view with the deck empty, 214 each with a 1.0 x 0.7 x 0.4 m load,
-       and together 100 % and 82 % of the ground half a metre out. Mounted
-       on top of the arc they would see a clean 360 degrees at 1.69 m, which
-       is above every pallet, box and pair of legs the robot has to avoid.
+       clearance. Lower and the deck's own rim occludes it.
+
+       There are two, the same YDLIDAR X2 front and rear, and each uses only
+       the 180 degrees it faces: the front one ahead, the rear one behind. The
+       other half of either sweep looks across the deck, where the upper
+       chassis's posts, the other sensor and any load are; at the scan height
+       the nearest post is 99.6 degrees off the front sensor's axis and 95.7
+       off the rear one's, so neither half-scan ever sees the robot, loaded or
+       not. Together they see everything ahead of the front sensor and behind
+       the rear one. What neither sees is the strip beside the robot between
+       them, 1.275 m long: from the middle of the robot that is a gap either
+       side of 79 degrees at 1 m, 37 at 2 m and 9 at 8 m. Mounted on top of
+       the arc they would see a clean 360 degrees at 1.69 m, which is above
+       every pallet, box and pair of legs the robot has to avoid.
 
        The camera is bolted on top of the arc's lower front cross tube, on a
        10 mm wedge that pitches it 10 degrees down. That puts it 0.907 m above

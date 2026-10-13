@@ -56,29 +56,47 @@
   <xacro:property name="deck_width" value="0.815"/>
   <xacro:property name="deck_height" value="0.246"/>
   <xacro:property name="deck_x" value="-0.048"/>   <!-- centre of [-0.757, 0.661] -->
+  <!-- Top face of the deck rim, and the tread plate that sits on it. -->
+  <xacro:property name="deck_top" value="0.264"/>   <!-- 0.389 m above ground -->
+  <xacro:property name="plate_t" value="0.003"/>   <!-- tread plate -->
 
-  <!-- Sensors. Both mounts are fixed by one constraint each and neither is
-       free to move without re-deriving the other:
+  <!-- Sensors.
 
-       The LiDAR clears the deck. The deck's top face is 0.389 m above the
-       ground, so a scan plane at 0.450 m has 61 mm of clearance and sweeps a
-       full 360 degrees. Lower and the deck's own rim occludes it; the model
-       used to hide this by mounting the sensor at 0.43 m INSIDE a 1.27 m tall
-       chassis frame and then clipping the scan to 320 degrees and 0.36 m
-       minimum range to keep the self-hits out of the data.
+       The LiDARs clear the deck. Its top face is 0.389 m above the ground and
+       the tread plate on it adds 3 mm, so a scan plane at 0.450 m has 58 mm of
+       clearance. Lower and the deck's own rim occludes it.
 
-       The camera stays below the LiDAR plane so it never occludes it, and
-       ahead of the front tyre's sweep, which reaches x = 0.653 m. -->
+       There are two, the same YDLIDAR X2 front and rear, and each uses only
+       the 180 degrees it faces: the front one ahead, the rear one behind. The
+       other half of either sweep looks across the deck, where the upper
+       chassis's posts, the other sensor and any load are; at the scan height
+       the nearest post is 99.6 degrees off the front sensor's axis and 95.7
+       off the rear one's, so neither half-scan ever sees the robot, loaded or
+       not. Together they see everything ahead of the front sensor and behind
+       the rear one. What neither sees is the strip beside the robot between
+       them, 1.275 m long: from the middle of the robot that is a gap either
+       side of 79 degrees at 1 m, 37 at 2 m and 9 at 8 m. Mounted on top of
+       the arc they would see a clean 360 degrees at 1.69 m, which is above
+       every pallet, box and pair of legs the robot has to avoid.
+
+       The camera is bolted on top of the arc's lower front cross tube, on a
+       10 mm wedge that pitches it 10 degrees down. That puts it 0.907 m above
+       the ground, far above the LiDAR planes it can no longer occlude, and
+       outside both front posts, which it sees at 91 degrees off axis with a
+       55 degree half field of view. -->
   <xacro:property name="lidar_x" value="0.60"/>
   <xacro:property name="lidar_z" value="0.325"/>   <!-- 0.450 m above ground -->
-  <xacro:property name="zed_x" value="0.68"/>
-  <xacro:property name="zed_z" value="0.175"/>     <!-- 0.300 m above ground -->
+  <xacro:property name="rear_lidar_x" value="-0.675"/>
+  <xacro:property name="zed_x" value="0.479"/>     <!-- over the lower front cross tube -->
+  <xacro:property name="zed_z" value="0.782"/>     <!-- 0.907 m above ground -->
+  <xacro:property name="zed_pitch" value="0.17453"/>  <!-- 10 degrees down -->
   <xacro:property name="zed_baseline" value="0.12"/>
 
-  <material name="deck_black"><color rgba="0.15 0.15 0.17 1.0"/></material>
+  <material name="deck_black"><color rgba="0.03 0.03 0.035 1.0"/></material>
   <material name="wheel_black"><color rgba="0.08 0.08 0.08 1.0"/></material>
   <material name="strut_grey"><color rgba="0.45 0.45 0.48 1.0"/></material>
   <material name="sensor_grey"><color rgba="0.25 0.25 0.25 1.0"/></material>
+  <material name="frame_steel"><color rgba="0.05 0.05 0.055 1.0"/></material>
 
   <!-- ==================== BASE ==================== -->
 
@@ -110,6 +128,226 @@
       </geometry>
     </collision>
   </link>
+
+  <!-- ==================== DECK PLATE ==================== -->
+  <!-- 3 mm five-bar aluminium tread plate over the whole deck, so a load has a
+       flat, non-slip floor instead of the rim and the open centre bay. Mesh,
+       outline and texture come from scripts/generate_deck_plate.py, which
+       reads the outline off the deck mesh itself. Two 40 x 20 mm ribs under
+       it span the centre bay: a bare 3 mm plate would sag over a centimetre
+       there under 100 kg. -->
+  <link name="deck_plate_link">
+    <visual name="deck_plate_visual">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://tadeocar_description/meshes/chassis/deck_plate.dae"/>
+      </geometry>
+    </visual>
+    <collision name="deck_plate_collision">
+      <origin xyz="-0.05 0 ${deck_top + plate_t / 2}" rpy="0 0 0"/>
+      <geometry><box size="1.34 0.76 ${plate_t}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.048 0 0.262" rpy="0 0 0"/>
+      <mass value="9.7"/>
+      <inertia ixx="0.5174" ixy="0" ixz="0" iyy="1.5844" iyz="0" izz="2.1016"/>
+    </inertial>
+  </link>
+
+  <joint name="deck_plate_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="deck_plate_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== UPPER CHASSIS ==================== -->
+  <!-- The tubular arc over the deck: two portal frames joined by roof rails,
+       in 50 x 25 mm rectangular tube. The front frame leans back 6.7 degrees
+       and carries two cross tubes, at 0.465 and 1.023 m above the deck.
+
+       chasis.dae declares <unit meter="1"/> and Z_UP, and neither is true: its
+       vertices are millimetres with Y up, as in the chasis.stl it came from.
+       Hence the 0.001 scale and the quarter turn about x. Read at face value
+       it is a frame a kilometre and a half long lying on its side, and the
+       earlier mount compensated for that by hand and still left the arc
+       floating 60 mm above the deck.
+
+       Measured from the mesh: 1.353 x 0.775 m at the base and 1.265 m tall,
+       inside the deck's 1.418 x 0.815 m with 33 mm to spare at each end and
+       20 mm at each side. It stands on four corner foot plates bolted through
+       the tread plate into the deck's rim.
+
+       Mass is not the mesh's: the mesh is solid, so its 12 071 cm3 is read as
+       9.66 m of tube and weighed as 50 x 25 x 1.5 mm steel, 16.4 kg. The
+       inertia is the mesh's own, scaled to that mass. -->
+
+  <link name="upper_chassis_link">
+    <visual name="upper_chassis_visual">
+      <origin xyz="-0.4354 0.3925 0" rpy="${pi/2} 0 ${pi}"/>
+      <geometry>
+        <mesh filename="package://tadeocar_description/meshes/chassis/chasis.dae"
+              scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="frame_steel"/>
+    </visual>
+    <!-- One box per tube, not the mesh. -->
+    <xacro:macro name="arc_box" params="name x y z sx sy sz pitch:=0">
+      <collision name="${name}">
+        <origin xyz="${x} ${y} ${z}" rpy="0 ${pitch} 0"/>
+        <geometry><box size="${sx} ${sy} ${sz}"/></geometry>
+      </collision>
+    </xacro:macro>
+    <xacro:arc_box name="arc_post_rear_left"   x="-0.570" y="0.325"  z="0.6325" sx="0.025" sy="0.050" sz="1.265"/>
+    <xacro:arc_box name="arc_post_rear_right"  x="-0.570" y="-0.325" z="0.6325" sx="0.025" sy="0.050" sz="1.265"/>
+    <xacro:arc_box name="arc_post_front_left"  x="0.506"  y="0.325"  z="0.6325" sx="0.025" sy="0.050" sz="1.274" pitch="-0.117"/>
+    <xacro:arc_box name="arc_post_front_right" x="0.506"  y="-0.325" z="0.6325" sx="0.025" sy="0.050" sz="1.274" pitch="-0.117"/>
+    <xacro:arc_box name="arc_roof_left"        x="-0.0695" y="0.3275"  z="1.2525" sx="0.983" sy="0.050" sz="0.025"/>
+    <xacro:arc_box name="arc_roof_right"       x="-0.0695" y="-0.3275" z="1.2525" sx="0.983" sy="0.050" sz="0.025"/>
+    <xacro:arc_box name="arc_roof_cross"       x="0.026"  y="0" z="1.2525" sx="0.050" sy="0.705" sz="0.025"/>
+    <xacro:arc_box name="arc_front_cross_low"  x="0.527"  y="0" z="0.465"  sx="0.031" sy="0.650" sz="0.050"/>
+    <xacro:arc_box name="arc_front_cross_high" x="0.459"  y="0" z="1.023"  sx="0.031" sy="0.650" sz="0.050"/>
+    <!-- The base is four corner foot plates, not a ring: nothing crosses the
+         ends, which is what leaves the LiDAR masts room at x = 0. -->
+    <xacro:arc_box name="arc_foot_front_left"  x="0.558"  y="0.310"  z="0.015" sx="0.236" sy="0.156" sz="0.030"/>
+    <xacro:arc_box name="arc_foot_front_right" x="0.558"  y="-0.310" z="0.015" sx="0.236" sy="0.156" sz="0.030"/>
+    <xacro:arc_box name="arc_foot_rear_left"   x="-0.558" y="0.310"  z="0.015" sx="0.236" sy="0.156" sz="0.030"/>
+    <xacro:arc_box name="arc_foot_rear_right"  x="-0.558" y="-0.310" z="0.015" sx="0.236" sy="0.156" sz="0.030"/>
+    <inertial>
+      <origin xyz="0.033 0 0.735" rpy="0 0 0"/>
+      <mass value="16.37"/>
+      <inertia ixx="4.784" ixy="0" ixz="0.1157" iyy="6.894" iyz="0" izz="5.132"/>
+    </inertial>
+  </link>
+
+  <joint name="upper_chassis_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="upper_chassis_link"/>
+    <origin xyz="${deck_x} 0 ${deck_top + plate_t}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== LAMPS ====================
+       Below the deck's lips, as chosen: two low-beam headlamps and two direction
+       indicators at the front; a combination lamp at each rear corner carrying
+       reversing (white, inboard), stop and position (red) and direction
+       (amber, outboard). Sealed LED units of the size bolted to trailers, each
+       a black housing and a separate lens so every function can be lit on its
+       own. Meshes and lens textures from scripts/generate_lamps.py.
+
+       Every lamp was checked against the deck outline, the other lamps, the
+       deck underside its bracket bolts to (0.206 m above base_link), and
+       everything that turns with a wheel: the strut assembly and the tyre,
+       from their meshes, swept a full 360 degrees about the steering axis,
+       which is more than the +/-135 degree servos can reach. The closest is
+       the rear combination lamp, 75 mm from the rear tyre and 78 mm from its
+       strut; the front indicator is 84 mm from its strut. A wheel would have
+       to rise 126 mm into its strut before it reached a lamp.
+
+       Regulatory note, kept on purpose: stop lamps and direction indicators
+       are normally required at least 0.35 m above the ground (UNECE R48), and
+       hung under the lips their lower edge is at 0.283 to 0.291 m. Mounted on
+       the rim face instead they would clear it, at the cost of standing 25 mm
+       proud of the deck outline. -->
+  <link name="lamps_link">
+    <visual name="headlamp_left_housing">
+      <origin xyz="0.655 0.07 0.178" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/headlamp_housing.dae"/></geometry>
+    </visual>
+    <visual name="headlamp_left_headlamp_lens">
+      <origin xyz="0.655 0.07 0.178" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/headlamp_lens.dae"/></geometry>
+    </visual>
+    <visual name="headlamp_left_bracket">
+      <origin xyz="0.6325 0.07 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.054 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="turn_front_left_housing">
+      <origin xyz="0.655 0.15 0.182" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/turn_housing.dae"/></geometry>
+    </visual>
+    <visual name="turn_front_left_turn_lens">
+      <origin xyz="0.655 0.15 0.182" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/turn_lens.dae"/></geometry>
+    </visual>
+    <visual name="turn_front_left_bracket">
+      <origin xyz="0.64 0.15 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.033 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="tail_left_housing">
+      <origin xyz="-0.752 0.103 0.178" rpy="3.1415927 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_combo_housing.dae"/></geometry>
+    </visual>
+    <visual name="tail_left_reverse_lens">
+      <origin xyz="-0.752 0.103 0.178" rpy="3.1415927 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_reverse_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_left_stop_lens">
+      <origin xyz="-0.752 0.103 0.178" rpy="3.1415927 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_stop_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_left_turn_lens">
+      <origin xyz="-0.752 0.103 0.178" rpy="3.1415927 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_turn_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_left_bracket">
+      <origin xyz="-0.736 0.103 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.09 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="headlamp_right_housing">
+      <origin xyz="0.655 -0.07 0.178" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/headlamp_housing.dae"/></geometry>
+    </visual>
+    <visual name="headlamp_right_headlamp_lens">
+      <origin xyz="0.655 -0.07 0.178" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/headlamp_lens.dae"/></geometry>
+    </visual>
+    <visual name="headlamp_right_bracket">
+      <origin xyz="0.6325 -0.07 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.054 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="turn_front_right_housing">
+      <origin xyz="0.655 -0.15 0.182" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/turn_housing.dae"/></geometry>
+    </visual>
+    <visual name="turn_front_right_turn_lens">
+      <origin xyz="0.655 -0.15 0.182" rpy="0 0 0"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/turn_lens.dae"/></geometry>
+    </visual>
+    <visual name="turn_front_right_bracket">
+      <origin xyz="0.64 -0.15 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.033 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+    <visual name="tail_right_housing">
+      <origin xyz="-0.752 -0.103 0.178" rpy="0 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_combo_housing.dae"/></geometry>
+    </visual>
+    <visual name="tail_right_reverse_lens">
+      <origin xyz="-0.752 -0.103 0.178" rpy="0 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_reverse_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_right_stop_lens">
+      <origin xyz="-0.752 -0.103 0.178" rpy="0 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_stop_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_right_turn_lens">
+      <origin xyz="-0.752 -0.103 0.178" rpy="0 0 3.1415927"/>
+      <geometry><mesh filename="package://tadeocar_description/meshes/lamps/tail_turn_lens.dae"/></geometry>
+    </visual>
+    <visual name="tail_right_bracket">
+      <origin xyz="-0.736 -0.103 0.202" rpy="0 0 0"/>
+      <geometry><box size="0.020 0.09 0.008"/></geometry>
+      <material name="deck_black"/>
+    </visual>
+  </link>
+  <joint name="lamps_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lamps_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
 
   <!-- ==================== SENSOR MAST ==================== -->
 
@@ -149,6 +387,52 @@
     <origin xyz="${lidar_x} 0 ${lidar_z}" rpy="0 0 0"/>
   </joint>
 
+  <!-- ==================== REAR LiDAR (YDLIDAR X2) ==================== -->
+  <!-- The same sensor as the front one, turned to face back. -->
+  <link name="sensor_mast_rear_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.07 0.07 0.09"/></geometry>
+      <material name="strut_grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.07 0.07 0.09"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="sensor_mast_rear_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="sensor_mast_rear_link"/>
+    <origin xyz="${rear_lidar_x} 0 ${lidar_z - 0.06}" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_scan_rear">
+    <visual>
+      <geometry><cylinder radius="0.0375" length="0.030"/></geometry>
+      <material name="sensor_grey"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.0375" length="0.030"/></geometry>
+    </collision>
+  </link>
+
+  <joint name="lidar_rear_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_scan_rear"/>
+    <origin xyz="${rear_lidar_x} 0 ${lidar_z}" rpy="0 0 ${pi}"/>
+  </joint>
+
+  <!-- The two scans are merged into one, as if from a sensor midway between
+       them at their height. Nothing is mounted here; it is the frame of
+       /scan, which tadeocar_perception's scan_merger publishes. -->
+  <link name="base_scan_merged"/>
+  <joint name="scan_merged_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_scan_merged"/>
+    <origin xyz="${(lidar_x + rear_lidar_x) / 2} 0 ${lidar_z}" rpy="0 0 0"/>
+  </joint>
+
   <!-- ==================== ZED 2i ==================== -->
   <!-- Frame names follow zed-ros2-wrapper so the same TF tree serves the
        simulated camera and the real one. camera_link is the mounting point;
@@ -174,7 +458,7 @@
   <joint name="zed2i_camera_joint" type="fixed">
     <parent link="base_link"/>
     <child link="zed2i_camera_link"/>
-    <origin xyz="${zed_x} 0 ${zed_z}" rpy="0 0 0"/>
+    <origin xyz="${zed_x} 0 ${zed_z}" rpy="0 ${zed_pitch} 0"/>
   </joint>
 
   <link name="zed2i_left_camera_frame"/>

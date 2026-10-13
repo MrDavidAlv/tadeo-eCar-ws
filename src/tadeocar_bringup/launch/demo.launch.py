@@ -47,7 +47,7 @@ def resolve(context, *args, **kwargs):
         launch_arguments={
             'use_sim_time': use_sim_time,
             'world': LaunchConfiguration('world'),
-            'headless': 'false',
+            'headless': LaunchConfiguration('headless'),
             'odom_source': 'ekf' if use_ekf else 'wheel',
             'publish_points': 'true',
         }.items())
@@ -55,7 +55,8 @@ def resolve(context, *args, **kwargs):
     rviz = Node(
         package='rviz2', executable='rviz2', name='rviz2', output='screen',
         arguments=['-d', os.path.join(pkg_slam, 'rviz', 'slam.rviz')],
-        parameters=[{'use_sim_time': use_sim_time}])
+        parameters=[{'use_sim_time': use_sim_time}],
+        condition=IfCondition(LaunchConfiguration('rviz')))
 
     web_control = Node(
         package='tadeocar_control', executable='web_control',
@@ -80,6 +81,13 @@ def generate_launch_description():
             'use_ekf', default_value='true', choices=['true', 'false'],
             description='Fuse the ZED 2i IMU with the wheels. False falls back '
                         'to dead reckoning, which assumes the ground is flat'),
+        # The same two switches the other bringups take. They used to be
+        # missing here, and ROS 2 accepts an undeclared argument without a
+        # word, so headless:=true on this file silently opened both windows.
+        DeclareLaunchArgument('headless', default_value='false',
+                              choices=['true', 'false']),
+        DeclareLaunchArgument('rviz', default_value='true',
+                              choices=['true', 'false']),
         DeclareLaunchArgument('web', default_value='true',
                               choices=['true', 'false'],
                               description='Serve the web control interface on '

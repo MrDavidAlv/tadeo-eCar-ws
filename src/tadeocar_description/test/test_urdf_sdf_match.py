@@ -186,17 +186,35 @@ def test_lidar_clears_the_deck(sdf):
         f'by {1000*(scan_z-deck_top):.0f} mm')
 
 
-def test_lidar_sweeps_a_full_circle(sdf):
+# --------------------------------------------------------------------------
+# Each LiDAR uses the half it faces. The other half looks across the deck and
+# would only ever see the upper chassis, the other sensor and the load.
+# --------------------------------------------------------------------------
+def _lidars(sdf):
+    out = {}
     for link in sdf.findall('link'):
         for sensor in link.findall('sensor'):
-            if sensor.get('type') != 'gpu_lidar':
-                continue
-            h = sensor.find('lidar/scan/horizontal')
-            lo = float(h.find('min_angle').text)
-            hi = float(h.find('max_angle').text)
-            assert abs((hi - lo) - 2 * math.pi) < 1e-3, 'scan is not 360 degrees'
-            rng = sensor.find('lidar/range')
-            assert abs(float(rng.find('min').text) - 0.12) < 1e-9
-            assert abs(float(rng.find('max').text) - 8.0) < 1e-9
-            return
-    raise AssertionError('SDF has no gpu_lidar')
+            if sensor.get('type') == 'gpu_lidar':
+                out[sensor.get('name')] = (link.get('name'), sensor)
+    return out
+
+
+def test_each_lidar_scans_the_half_it_faces(sdf):
+    lidars = _lidars(sdf)
+    assert set(lidars) == {'lidar', 'lidar_rear'}
+    for name, (_, sensor) in lidars.items():
+        h = sensor.find('lidar/scan/horizontal')
+        lo = float(h.find('min_angle').text)
+        hi = float(h.find('max_angle').text)
+        assert abs(lo + math.pi / 2) < 1e-3 and abs(hi - math.pi / 2) < 1e-3, (
+            f'{name} scans {math.degrees(lo):.0f} to {math.degrees(hi):.0f} '
+            'degrees, not the 180 it faces')
+        rng = sensor.find('lidar/range')
+        assert abs(float(rng.find('min').text) - 0.12) < 1e-9
+        assert abs(float(rng.find('max').text) - 8.0) < 1e-9
+
+
+def test_the_two_halves_face_opposite_ways(sdf):
+    yaw = {name: _sdf_pose(sdf, link)[5] for name, (link, _) in _lidars(sdf).items()}
+    assert abs(yaw['lidar']) < 1e-6
+    assert abs(abs(yaw['lidar_rear']) - math.pi) < 1e-6

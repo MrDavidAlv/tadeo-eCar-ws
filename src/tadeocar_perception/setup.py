@@ -23,5 +23,7 @@ setup(
     description='EKF state estimation and ZED 2i bringup for the TadeoeCar',
     license='Apache-2.0',
     extras_require={'test': ['pytest']},
-    entry_points={'console_scripts': []},
+    entry_points={'console_scripts': [
+        'scan_merger = tadeocar_perception.scan_merger_node:main',
+    ]},
 )

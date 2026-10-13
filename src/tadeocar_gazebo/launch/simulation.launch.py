@@ -183,7 +183,8 @@ def resolve(context, *args, **kwargs):
         parameters=[{'use_sim_time': use_sim_time}],
         arguments=[
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
-            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+            '/scan_front@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+            '/scan_rear@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
             '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
             '/odom_truth@nav_msgs/msg/Odometry[gz.msgs.Odometry',
             '/zed2i/imu@sensor_msgs/msg/Imu[gz.msgs.IMU',
@@ -291,8 +292,16 @@ def resolve(context, *args, **kwargs):
                     {'use_sim_time': use_sim_time}],
         remappings=[('/cmd_vel_out', '/cmd_vel')])
 
+    # Front and rear LiDARs -> one /scan, with the robot's own posts, the
+    # other sensor and any load on the deck taken out. SLAM, AMCL and the
+    # costmaps all read /scan and do not need to know there are two.
+    scan_merger = Node(
+        package='tadeocar_perception', executable='scan_merger',
+        name='scan_merger', output='screen',
+        parameters=[{'use_sim_time': use_sim_time}])
+
     actions = [gz_sim, spawn_entity, bridge, points, robot_state_publisher,
-               twist_mux, fourws_kinematics, wheel_odometry]
+               twist_mux, fourws_kinematics, wheel_odometry, scan_merger]
     if ekf is not None:
         actions.append(ekf)
     return actions

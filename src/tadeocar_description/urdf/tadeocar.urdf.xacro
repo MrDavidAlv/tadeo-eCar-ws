@@ -147,11 +147,6 @@
       <origin xyz="-0.05 0 ${deck_top + plate_t / 2}" rpy="0 0 0"/>
       <geometry><box size="1.34 0.76 ${plate_t}"/></geometry>
     </collision>
-    <inertial>
-      <origin xyz="-0.048 0 0.262" rpy="0 0 0"/>
-      <mass value="9.7"/>
-      <inertia ixx="0.5174" ixy="0" ixz="0" iyy="1.5844" iyz="0" izz="2.1016"/>
-    </inertial>
   </link>
 
   <joint name="deck_plate_joint" type="fixed">
@@ -177,9 +172,10 @@
        20 mm at each side. It stands on four corner foot plates bolted through
        the tread plate into the deck's rim.
 
-       Mass is not the mesh's: the mesh is solid, so its 12 071 cm3 is read as
-       9.66 m of tube and weighed as 50 x 25 x 1.5 mm steel, 16.4 kg. The
-       inertia is the mesh's own, scaled to that mass. -->
+       Its mass, which model.sdf carries like every other, is not the mesh's:
+       the mesh is solid, so its 12 071 cm3 is read as 9.66 m of tube and
+       weighed as 50 x 25 x 1.5 mm steel, 16.4 kg. The inertia is the mesh's
+       own, scaled to that mass. -->
 
   <link name="upper_chassis_link">
     <visual name="upper_chassis_visual">
@@ -212,11 +208,6 @@
     <xacro:arc_box name="arc_foot_front_right" x="0.558"  y="-0.310" z="0.015" sx="0.236" sy="0.156" sz="0.030"/>
     <xacro:arc_box name="arc_foot_rear_left"   x="-0.558" y="0.310"  z="0.015" sx="0.236" sy="0.156" sz="0.030"/>
     <xacro:arc_box name="arc_foot_rear_right"  x="-0.558" y="-0.310" z="0.015" sx="0.236" sy="0.156" sz="0.030"/>
-    <inertial>
-      <origin xyz="0.033 0 0.735" rpy="0 0 0"/>
-      <mass value="16.37"/>
-      <inertia ixx="4.784" ixy="0" ixz="0.1157" iyy="6.894" iyz="0" izz="5.132"/>
-    </inertial>
   </link>
 
   <joint name="upper_chassis_joint" type="fixed">

@@ -63,14 +63,18 @@
     <!-- ==================== DECK PLATE ==================== -->
     <!-- 3 mm five-bar aluminium tread plate, mirrored from tadeocar.urdf.xacro.
          Anti-slip in the physics too: a load slides on it only beyond the
-         friction a rubber-footed crate gets on tread plate. -->
+         friction a rubber-footed crate gets on tread plate.
+
+         Mass properties from the mesh: 1.098 m2 of 3 mm aluminium is 8.89 kg,
+         and the two 0.785 m ribs of 40 x 20 x 2 mm tube are 0.95 kg. The
+         raised bars of the tread pattern are not counted. -->
     <link name="deck_plate_link">
       <pose>0 0 0.125 0 0 0</pose>
       <inertial>
-        <mass>9.7</mass>
-        <pose>-0.048 0 0.262 0 0 0</pose>
+        <mass>9.84</mass>
+        <pose>-0.0483 0 0.2645 0 0 0</pose>
         <inertia>
-          <ixx>0.5174</ixx><iyy>1.5844</iyy><izz>2.1016</izz>
+          <ixx>0.5107</ixx><iyy>1.424</iyy><izz>1.9344</izz>
           <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
         </inertia>
       </inertial>
@@ -198,7 +202,17 @@
          are in base_link, which is this link's own frame. Lenses are lit. -->
     <link name="lamps_link">
       <pose>0 0 0.125 0 0 0</pose>
-      <inertial><mass>1.2</mass><inertia><ixx>0.003</ixx><iyy>0.003</iyy><izz>0.003</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
+      <!-- Estimated: 0.25 kg per headlamp, 0.08 per indicator, 0.27 per rear
+           combination lamp, brackets included. Six lumps at the two ends of
+           the deck, so nearly all of the inertia is about y and z. -->
+      <inertial>
+        <mass>1.2</mass>
+        <pose>0.0177 0 0.1785 0 0 0</pose>
+        <inertia>
+          <ixx>0.0133</ixx><iyy>0.558</iyy><izz>0.571</izz>
+          <ixy>0</ixy><ixz>-0.0004</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
       <visual name="headlamp_left_housing">
         <pose>0.655 0.07 0.178 0 0 0</pose>
         <geometry><mesh><uri>meshes/lamps/headlamp_housing.dae</uri></mesh></geometry>

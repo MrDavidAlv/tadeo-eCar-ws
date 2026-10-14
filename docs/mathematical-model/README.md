@@ -93,7 +93,8 @@ whichever pair a closed form happened to pick.
 | Front axle | | $x = +0.478$ m |
 | Rear axle | | $x = -0.580$ m |
 | Deck | | $1.418 \times 0.815 \times 0.246$ m |
-| Mass | | 98.7 kg |
+| Overall height | | 1.657 m, with the upper chassis |
+| Mass | | 126.6 kg |
 | Steering range | | $\pm 135^\circ$ |
 | Max speed | | 1.0 m/s, 1.0 rad/s |
 
@@ -112,7 +113,7 @@ change $z$:
 
 | | ground truth | wheel odometry | EKF |
 |---|---|---|---|
-| $z$ on the dock platform | 0.350 m | 0.000 m | 0.352 m |
+| $z$ on the dock platform | 0.350 m | 0.000 m | 0.351 m |
 | pitch, mid-ramp | −6.72° | 0.00° | −6.72° |
 
 Closing that gap is `tadeocar_perception`'s job, not this model's: an
@@ -129,15 +130,15 @@ and consumed by nothing in the estimation chain.
 
 | Test | Result |
 |---|---|
-| 4 m straight at 0.5 m/s | 3.98 m travelled, < 15 mm lateral, < 0.7° heading |
-| Wheel odometry over that run | within 0.3 % |
-| 90° steering step | 0.48 s to 90 %, settled at 0.65 s, 0.3 % overshoot |
-| Crab 1.8 m sideways | heading held to 0.6–3.6° (4–14° open loop) |
-| SLAM over a 100 m lap | 97 % of mapped cells within 10 cm, mean 2.1 cm |
-| EKF after that lap | 0.55 m, 0.6° |
-| Wheel odometry after that lap | 5.2 m, 21° |
-| Nav2 | 5/5 goals, 22–32 cm |
-| RGB-D SLAM over a 45 m lap | 0.26 m |
+| 4 m straight at 0.5 m/s | 4.00–4.01 m travelled, < 10 mm lateral, < 1° heading |
+| Wheel odometry over that run | within 0.7 % |
+| 90° steering step | 0.49 s to 90 %, settled at 0.69 s, no overshoot |
+| Crab, 2 m sideways commanded | 1.95 m, heading held to 2.3° |
+| SLAM over a 68 m lap with 15 pivots | 95.5 % of mapped cells within 10 cm, mean 2.2 cm |
+| EKF after that lap | 0.25–0.29 m, under 1° |
+| Wheel odometry after that lap | 2.5–3.7 m |
+| Nav2 | 5/5 goals in the factory, 12–37 cm; 3/3 in the yard, 16–37 cm |
+| Camera-only odometry over the same lap | 3.6–14.6 m |
 
 ---
 

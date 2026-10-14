@@ -109,10 +109,14 @@ counter-clockwise.
   in this stack is reported for this frame: the wheel odometry, the EKF, SLAM,
   Nav2.
 - **`base_link`** — the body frame, one wheel radius above `base_footprint`.
-- **`base_scan`** — the LiDAR, at $(0.600,\ 0,\ 0.325)$ in `base_link`, so
-  0.450 m above the ground.
-- **`zed2i_camera_link`** — the camera mount, at $(0.680,\ 0,\ 0.175)$, so
-  0.300 m above the ground.
+- **`base_scan`** and **`base_scan_rear`** — the two LiDARs, at
+  $(0.600,\ 0,\ 0.325)$ and $(-0.675,\ 0,\ 0.325)$ in `base_link`, the
+  rear one turned to face back; both 0.450 m above the ground.
+- **`base_scan_merged`** — the frame of the merged `/scan`, midway between
+  them at the same height. Nothing is mounted there.
+- **`zed2i_camera_link`** — the camera, at $(0.479,\ 0,\ 0.782)$ and
+  pitched 10° down, on the upper chassis's lower front cross tube: 0.907 m
+  above the ground.
 
 ---
 
@@ -143,19 +147,41 @@ achievable body twist, produced exactly.
 
 ### 3.2 Folding the steering angle
 
-The servos travel $\pm 135^\circ$, so an angle outside $[-\pi/2, \pi/2]$ is
-reachable the other way round: point the wheel forwards and spin it backwards.
+The servos travel $\pm 135^\circ$, and every wheel heading can be reached two
+ways: point the wheel along it, or point it the opposite way and spin it
+backwards. Of the candidates inside the servo travel, the node takes the one
+nearest the angle it last sent that wheel, $\delta_i^{-}$:
 
-$$(\delta_i, s_i) = \begin{cases}
-(\delta_i - \pi,\ -1) & \delta_i > \pi/2 \\
-(\delta_i + \pi,\ -1) & \delta_i < -\pi/2 \\
-(\delta_i,\ +1) & \text{otherwise}
-\end{cases}
-\qquad \omega_i \leftarrow s_i\, \omega_i$$
+$$(\delta_i, s_i) = \arg\min_{(\delta,\, s)} \lvert \delta - \delta_i^{-} \rvert
+\quad \text{over} \quad
+\lbrace (\delta_i, +1),\ (\delta_i - \pi, -1),\ (\delta_i + \pi, -1) \rbrace,
+\ \ \lvert \delta \rvert \le 135^\circ$$
 
-Half the servo travel, the same wheel velocity. It matters: without folding, a
-turn asking for $170^\circ$ would be clamped at the $135^\circ$ limit and the
-wheel would point somewhere the solution never intended.
+$$\omega_i \leftarrow s_i\, \omega_i$$
+
+From rest, $\delta_i^{-} = 0$, this is the plain fold into
+$[-\pi/2, \pi/2]$: never more than a quarter turn of servo travel for the same
+wheel velocity, and a turn asking for $170^\circ$ is steered to $-10^\circ$
+with the wheel spinning backwards instead of being clamped at the
+$135^\circ$ limit, pointing somewhere the solution never intended.
+
+> **Relative to the last command, not to zero.** The fold used to be the fixed
+> one, and it made a sideways command unstable. At $90^\circ$ the slightest
+> change in the command — a heading correction changing sign — flips the
+> answer between $+90^\circ$ and $-90^\circ$, and the four servos swung half a
+> turn back and forth. Measured in simulation, a 1 m sideways move with a
+> heading hold on top ended 0.16 m the wrong way and $6.6^\circ$ off its
+> heading, the wheels chattering between $\pm 80^\circ$; folded towards the
+> previous command, the same move covers 1.01 m and the heading never strays
+> more than $0.7^\circ$.
+
+A stopped wheel — a body twist that asks nothing of it — holds the angle last
+sent to it, for the same reason a servo is given a target at all. Holding the
+*measured* angle instead, as the node once did, hands the servo a target equal
+to wherever it already is, so it never has an error to push back with:
+wheels left at $90^\circ$ after a sideways move had relaxed to between
+$37^\circ$ and $61^\circ$ four seconds after the robot came to rest.
+`src/tadeocar_control/test/test_kinematics.py` pins both behaviours.
 
 ### 3.3 Ackermann mode
 
@@ -296,7 +322,7 @@ Measured on the platform at the top:
 
 | | ground truth | wheel odometry | EKF |
 |---|---|---|---|
-| $z$ | 0.350 m | 0.000 m (**−350 mm**) | 0.352 m (+2 mm) |
+| $z$ | 0.350 m | 0.000 m (**−350 mm**) | 0.351 m (+1 mm) |
 | pitch, mid-ramp | −6.72° | 0.00° | −6.72° |
 
 The 0.35 m is not error to be tuned away. It is a question these sensors were
@@ -317,9 +343,11 @@ configuration files carry the argument in full.
 | Steering rate | 3.0 rad/s | SDF joint velocity limit |
 | Wheel rate | 60 rad/s | SDF joint velocity limit |
 
-The 1.0 m/s ceiling is not the drivetrain's limit, it is the LiDAR's: the scan
-turns at 7 Hz, so at 2 m/s the robot moves 0.29 m between scans and scan
-matching has to bridge that gap on odometry alone.
+The 1.0 m/s ceiling is not the drivetrain's limit, it is the LiDARs': each
+scan turns at 7 Hz, so at 2 m/s the robot moves 0.29 m between scans and scan
+matching has to bridge that gap on odometry alone. Two sensors do not halve
+it: each covers a different half, so every direction is still refreshed seven
+times a second.
 
 ---
 

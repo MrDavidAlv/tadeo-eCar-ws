@@ -160,23 +160,44 @@ def read_sources():
         m = re.search(pattern, sdf)
         return float(m.group(1)) if m else default
 
-    lidar = {
-        'min': sdf_float(r'<range>\s*<min>([\d.]+)', 0),
-        'max': sdf_float(r'<range>\s*<min>[\d.]+\s*</min>\s*<max>([\d.]+)', 0),
-        'samples': int(sdf_float(r'<samples>(\d+)', 0)),
-        'rate': int(sdf_float(r'<update_rate>(\d+)</update_rate>\s*<topic>scan', 0)),
-    }
-    cam = {
-        'w': int(sdf_float(r'<width>(\d+)', 0)),
-        'h': int(sdf_float(r'<height>(\d+)', 0)),
-        'fov': sdf_float(r'<horizontal_fov>([\d.]+)', 0),
-    }
+    model = ET.fromstring(sdf).find('model')
+    lidars, cam = {}, None
+    for link in model.findall('link'):
+        for s_ in link.findall('sensor'):
+            if s_.get('type') == 'gpu_lidar':
+                h = s_.find('lidar/scan/horizontal')
+                lidars[s_.get('name')] = {
+                    'min': float(s_.find('lidar/range/min').text),
+                    'max': float(s_.find('lidar/range/max').text),
+                    'samples': int(h.find('samples').text),
+                    'span': float(h.find('max_angle').text) - float(h.find('min_angle').text),
+                    'rate': int(float(s_.find('update_rate').text)),
+                }
+            elif s_.get('type') == 'rgbd_camera' and cam is None:
+                c = s_.find('camera')
+                cam = {'w': int(c.find('image/width').text), 'h': int(c.find('image/height').text),
+                       'fov': float(c.find('horizontal_fov').text)}
+    lidar = lidars['lidar']
+    steer_rate = None
+    for j in model.findall('joint'):
+        if j.get('name') == 'front_left_steering_joint':
+            steer_rate = float(j.find('axis/limit/velocity').text)
+
+    # Odometry: integrated on every joint state, which Gazebo emits once per
+    # physics step, and published at the node's own rate.
+    world = open(os.path.join(SRC, 'tadeocar_gazebo/worlds/factory.world')).read()
+    step = float(re.search(r'<max_step_size>([\d.]+)', world).group(1))
+    odom_src = open(os.path.join(SRC, 'tadeocar_control/tadeocar_control/'
+                                      'wheel_odometry_node.py')).read()
+    odom_rate = float(re.search(r"declare_parameter\('publish_rate', ([\d.]+)\)",
+                                odom_src).group(1))
     pid = {k: sdf_float(rf'<{k}>([\d.]+)</{k}>', 0)
            for k in ('p_gain', 'i_gain', 'd_gain', 'i_max')}
     mass = sum(float(m) for m in re.findall(r'<mass>([\d.]+)</mass>', sdf))
 
     return dict(urdf=urdf, joints=joints, params=params, nav=nav, slam=slam,
-                lidar=lidar, cam=cam, pid=pid, mass=mass)
+                lidar=lidar, lidars=lidars, cam=cam, pid=pid, mass=mass,
+                steer_rate=steer_rate, step=step, odom_rate=odom_rate)
 
 
 # ============================================================== drawing =====
@@ -186,7 +207,11 @@ def robot_parts(joints):
     strut = load_dae(os.path.join(MESH, 'suspension/suspension.dae'))
     zed = load_stl(os.path.join(MESH, 'sensors/zed2i.stl'))
 
-    parts = [('deck', deck + np.array([0, 0, 0.155]))]
+    plate = load_dae(os.path.join(MESH, 'chassis/deck_plate.dae'))
+    arc = (load_dae(os.path.join(MESH, 'chassis/chasis.dae')) * 0.001) \
+        @ rot([math.pi / 2, 0, math.pi]).T + np.array([-0.4354, 0.3925, 0])
+    parts = [('deck', deck + np.array([0, 0, 0.155])), ('plate', plate),
+             ('arc', arc + np.array(joints['upper_chassis_joint'][0]))]
     for w in ('front_left', 'front_right', 'rear_left', 'rear_right'):
         sx, _ = joints[f'{w}_steering_joint']
         tx, _ = joints[f'{w}_wheel_joint']
@@ -195,15 +220,17 @@ def robot_parts(joints):
         flip = math.pi if w.startswith('front') else 0.0
         parts.append((f'{w}_strut',
                       strut @ rot([0, math.pi, flip]).T + np.array(sx) + np.array([0, 0, 0.227])))
-    zx, _ = joints['zed2i_camera_joint']
-    parts.append(('zed', zed + np.array(zx)))
+    zx, zr = joints['zed2i_camera_joint']
+    parts.append(('zed', zed @ rot(zr).T + np.array(zx)))
     return parts
 
 
 def draw_robot(ax, joints):
     """Orthographic top view of the real meshes, lit from above."""
     colours = {'deck': np.array([0.17, 0.19, 0.24]),
-               'zed': np.array([0.30, 0.32, 0.36])}
+               'plate': np.array([0.62, 0.64, 0.68]),
+               'arc': np.array([0.20, 0.21, 0.24]),
+               'zed': np.array([0.11, 0.31, 0.54])}
     XY, RGB, Z, A = [], [], [], []
     for name, tris in robot_parts(joints):
         if len(tris) == 0:
@@ -229,12 +256,14 @@ def draw_robot(ax, joints):
         rgb = np.clip(base[None, :] * shade[:, None] + 0.14 * (n[:, 2] ** 6)[:, None], 0, 1)
         XY.append(tris[:, :, :2])
         RGB.append(rgb)
-        # The deck sits above everything and would hide the four wheel modules
-        # the panel exists to show, so it is drawn translucent and the wheels
-        # are lifted above it.
-        A.append(np.full(len(tris), 0.55 if name == 'deck' else 1.0))
+        # The deck and its tread plate sit above everything and would hide
+        # the four wheel modules the panel exists to show, so they are drawn
+        # translucent and the wheels are lifted above them. The upper
+        # chassis goes between: over the deck, under the wheel modules.
+        flat = name in ('deck', 'plate')
+        A.append(np.full(len(tris), 0.55 if flat else 1.0))
         Z.append(tris[:, :, 2].mean(axis=1)
-                 + (0.0 if name == 'deck' else 1.0))
+                 + (0.0 if flat else 0.5 if name == 'arc' else 1.0))
     XY, RGB, Z, A = np.vstack(XY), np.vstack(RGB), np.concatenate(Z), np.concatenate(A)
     for alpha, z in ((0.55, 2), (1.0, 4)):
         sel = (A == alpha) if alpha < 1.0 else (A >= 1.0)
@@ -278,7 +307,15 @@ def render(out):
     ht = P['half_track']
     L = fx - rx
     lidar_xyz = J['lidar_joint'][0]
+    rear_xyz = J['lidar_rear_joint'][0]
     zed_xyz = J['zed2i_camera_joint'][0]
+    zed_pitch = math.degrees(J['zed2i_camera_joint'][1][1])
+    plate_top = J['upper_chassis_joint'][0][2]          # the arc stands on the plate
+    lc = S['nav']['local_costmap']['local_costmap']['ros__parameters']
+    fp = [[float(v) for v in pt.split(',')] for pt in
+          re.findall(r'\[([^\[\]]+)\]', lc['footprint'])]
+    fp_x0, fp_x1 = min(p[0] for p in fp), max(p[0] for p in fp)
+    fp_y0, fp_y1 = min(p[1] for p in fp), max(p[1] for p in fp)
     steer_lim = P['max_steering_angle']
 
     fig = plt.figure(figsize=(19.2, 11.6), dpi=110)
@@ -300,10 +337,11 @@ def render(out):
     draw_robot(g, J)
 
     # footprint
-    g.add_patch(Rectangle((-0.757, -0.4075), 1.418, 0.815, fill=False,
+    g.add_patch(Rectangle((fp_x0, fp_y0), fp_x1 - fp_x0, fp_y1 - fp_y0, fill=False,
                           linestyle=(0, (6, 4)), linewidth=1.4,
                           edgecolor=ACCENT, zorder=4))
-    g.text(0.60, 0.455, 'Nav2 footprint\n1.418 x 0.815 m', color=ACCENT,
+    g.text(0.60, 0.455, f'Nav2 footprint\n{fp_x1 - fp_x0:.3f} x {fp_y1 - fp_y0:.3f} m',
+           color=ACCENT,
            fontsize=9.2, fontweight='bold', ha='center', va='bottom')
 
     # base_link axes
@@ -342,22 +380,32 @@ def render(out):
            f'wheelbase midpoint  x = {(fx+rx)/2:+.3f} m\nNOT base_link',
            color=AMBER, fontsize=9.2, fontweight='bold', ha='center')
 
-    # sensors
+    # sensors: heights above the ground, so plus the base_footprint offset
+    up = r
     g.plot(lidar_xyz[0], lidar_xyz[1], 'o', ms=7, mfc='#f4d35e',
-           mec=INK, mew=1.2, zorder=7)
-    g.annotate(f'LiDAR   {lidar_xyz[0]:.2f} m fwd, 0.450 m up',
-               xy=(lidar_xyz[0], lidar_xyz[1]), xytext=(0.86, -0.30),
-               fontsize=8.8, color=INK, zorder=8, ha='left',
+           mec=INK, mew=1.2, zorder=9)
+    g.plot(rear_xyz[0], rear_xyz[1], 'o', ms=7, mfc='#f4d35e',
+           mec=INK, mew=1.2, zorder=9)
+    g.plot(zed_xyz[0], zed_xyz[1], 's', ms=6, mfc='#8ecae6', mec=INK,
+           mew=1.1, zorder=9)
+    span = math.degrees(S['lidar']['span'])
+    g.annotate(f'front LiDAR  x {lidar_xyz[0]:+.3f} m\n'
+               f'{lidar_xyz[2] + up:.3f} m up, {span:.0f} deg ahead',
+               xy=(lidar_xyz[0], lidar_xyz[1]), xytext=(0.86, -0.20),
+               fontsize=8.6, color=INK, zorder=8, ha='left',
                arrowprops=dict(arrowstyle='-', color=MUTED, lw=0.9))
-    g.annotate('ZED 2i   0.300 m up',
-               xy=(zed_xyz[0], zed_xyz[1]), xytext=(0.86, -0.42),
-               fontsize=8.8, color=INK, zorder=8, ha='left',
+    g.annotate(f'ZED 2i  x {zed_xyz[0]:+.3f} m\n'
+               f'{zed_xyz[2] + up:.3f} m up, {zed_pitch:.0f} deg down',
+               xy=(zed_xyz[0], zed_xyz[1]), xytext=(0.86, -0.47),
+               fontsize=8.6, color=INK, zorder=8, ha='left',
                arrowprops=dict(arrowstyle='-', color=MUTED, lw=0.9))
-    g.plot(zed_xyz[0], zed_xyz[1], 'o', ms=6, mfc='#8ecae6', mec=INK,
-           mew=1.1, zorder=7)
+    g.annotate(f'rear LiDAR  x {rear_xyz[0]:+.3f} m\n{span:.0f} deg behind',
+               xy=(rear_xyz[0], rear_xyz[1]), xytext=(-1.27, -0.80),
+               fontsize=8.6, color=INK, zorder=8, ha='left',
+               arrowprops=dict(arrowstyle='-', color=MUTED, lw=0.9))
 
     g.set_xlim(-1.28, 1.72)
-    g.set_ylim(-0.90, 0.78)
+    g.set_ylim(-0.92, 0.78)
 
     ax.text(0.045, 0.135,
             f'wheel radius   r  = {r:.3f} m        front axle   x = {fx:+.3f} m\n'
@@ -375,11 +423,12 @@ def render(out):
         ('INVERSE    eight measurements -> three unknowns', BLUE, 'bold'),
         ('  A x = b,   x = pinv(A) b        A is 8x3, constant', INK, 'normal'),
         ('  b_2i = w_i r cos(d_i)   b_2i+1 = w_i r sin(d_i)', INK, 'normal'),
-        ('ODOMETRY   midpoint integration at 50 Hz', BLUE, 'bold'),
+        (f'ODOMETRY   midpoint integration at {1 / S["step"]:.0f} Hz', BLUE, 'bold'),
         ('  th_ = th + wz dt/2', INK, 'normal'),
         ('  x+ = x + (vx cos th_ - vy sin th_) dt', INK, 'normal'),
     ], dy=0.086, size=10.4)
-    ax.text(0.045, 0.075, f'r = {r:.3f} m      dt = 0.020 s      overdetermined by 5',
+    ax.text(0.045, 0.075, f'r = {r:.3f} m   dt = {S["step"]:.3f} s   published at '
+            f'{S["odom_rate"]:.0f} Hz   overdetermined by 5',
             transform=ax.transAxes, fontsize=10.6, family=MONO,
             color=ACCENT, fontweight='bold')
 
@@ -460,7 +509,7 @@ def render(out):
         (f'  pursuit     {dwb["desired_linear_vel"]:.1f} m/s desired', INK, 'normal'),
         ('STEERING   270 deg servos', BLUE, 'bold'),
         (f'  angle    <= {math.degrees(steer_lim):.0f} deg', INK, 'normal'),
-        ('  rate     <= 3.0 rad/s', INK, 'normal'),
+        (f'  rate     <= {S["steer_rate"]:.1f} rad/s', INK, 'normal'),
         (f'  PID       p={S["pid"]["p_gain"]:.0f} i={S["pid"]["i_gain"]:.0f} '
          f'd={S["pid"]["d_gain"]:.0f}', INK, 'normal'),
         ('WHEELS', BLUE, 'bold'),
@@ -495,11 +544,15 @@ def render(out):
     ax = panel(fig, [0.668, 0.018, 0.304, 0.364], '6 · SENSING', AMBER)
     Ld, C = S['lidar'], S['cam']
     fxp = (C['w'] / 2) / math.tan(C['fov'] / 2)
+    nl = len(S['lidars'])
+    span = math.degrees(Ld['span'])
     lines(ax, 0.855, [
-        ('YDLIDAR X2', AMBER, 'bold'),
-        (f'  {Ld["min"]:.2f} - {Ld["max"]:.1f} m   360 deg   {Ld["rate"]} Hz', INK, 'normal'),
-        (f'  {Ld["samples"]} pts/rev = {360/Ld["samples"]:.2f} deg', INK, 'normal'),
-        ('ZED 2i   RGB-D', AMBER, 'bold'),
+        (f'YDLIDAR X2 x {nl}   front and rear', AMBER, 'bold'),
+        (f'  {Ld["min"]:.2f} - {Ld["max"]:.1f} m   {span:.0f} deg each   {Ld["rate"]} Hz',
+         INK, 'normal'),
+        (f'  {Ld["samples"]} pts per half = {span/(Ld["samples"]-1):.2f} deg, one /scan',
+         INK, 'normal'),
+        (f'ZED 2i   RGB-D, {zed_xyz[2] + r:.3f} m up, {zed_pitch:.0f} deg down', AMBER, 'bold'),
         (f'  {C["w"]} x {C["h"]}  {math.degrees(C["fov"]):.0f} deg  fx={fxp:.1f}', INK, 'normal'),
         ('  depth 0.3 - 20 m, IMU 400 Hz', INK, 'normal'),
         ('SLAM TOOLBOX', AMBER, 'bold'),
@@ -507,10 +560,13 @@ def render(out):
          f'{S["slam"]["minimum_travel_heading"]} rad', INK, 'normal'),
         (f'  loop search {S["slam"]["loop_search_maximum_distance"]:.0f} m', INK, 'normal'),
         ('COSTMAPS', AMBER, 'bold'),
-        ('  local 6x6 m, inflation 0.85 m', INK, 'normal'),
+        (f'  local {lc["width"]}x{lc["height"]} m, inflation '
+         f'{lc["inflation_layer"]["inflation_radius"]:.2f} m', INK, 'normal'),
     ], dy=0.067, size=9.8)
     ax.text(0.045, 0.082,
-            'the scan plane is 0.450 m up:\n61 mm over the deck, so 360 deg is clean',
+            f'both scan planes {lidar_xyz[2] + r:.3f} m up, '
+            f'{1000 * (lidar_xyz[2] - plate_top):.0f} mm over the plate;\n'
+            'each LiDAR keeps the half that faces away from the deck',
             transform=ax.transAxes, fontsize=9.4, color=MUTED, va='top')
 
     fig.savefig(out, dpi=110, facecolor='white', bbox_inches='tight')

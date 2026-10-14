@@ -62,19 +62,39 @@ error never nulled. Measured while driving straight for 10 seconds:
 | 200 | 5 | 30 | 10 | 2.5° | 0.4° |
 | 200 | 50 | 30 | 100 | 1.6° | 0.4° |
 | 600 | 60 | 60 | 200 | 0.5° | 0.1° |
-| **1200** | **100** | **100** | **400** | **0.2°** | **0.1°** |
+| 1200 | 100 | 100 | 400 | 0.2° | 0.1° |
 
 The visible consequence of the first row was that the robot toed out as it
 drove and wandered up to 0.5 m off a 4 m straight line — which looked like a
 kinematics bug and was not.
 
+That table was measured at 98.7 kg. The upper chassis and the tread plate
+take the robot to 126.6 kg, 310 N a tyre and roughly 15.5 N·m of scrub, and
+the last row stopped holding: the wheels rolled 0.4–1.0° off their command,
+toed in or out depending on where the integrator had last been left, and a
+4 m straight drifted up to 65 mm sideways. At $k_i = 100$ the integrator needs
+about 12 s to build the torque. Raising $k_i$ alone overshot a 90° step by
+16 %, because the integrator wound up while the joint slewed at its velocity
+limit; capping it at 40 N·m, well above the scrub and far below what a step
+accumulates, removed the overshoot. Swept again at 126.6 kg, a 90° step and
+10 s of straight driving per set:
+
+| $k_p$ | $k_i$ | $k_d$ | $i_\text{max}$ | mean error rolling | 90° step |
+|---|---|---|---|---|---|
+| 1200 | 100 | 100 | 400 | 0.4–1.0° | 0.49 s, no overshoot |
+| 1200 | 1000 | 100 | 400 | — | 16 % overshoot |
+| 1200 | 1000 | 100 | 40 | 0.2–0.7° | 0.49 s, no overshoot |
+| 1200 | 3000 | 100 | 40 | 0.06°, sd 0.7° | 0.49 s, no overshoot |
+| 2400 | 3000 | 300 | 40 | 0.07°, sd 0.4° | 0.54 s, no overshoot |
+| **2400** | **3000** | **200** | **40** | **0.03–0.22°, sd 0.2–0.5°** | **0.49 s, no overshoot** |
+
 ### 2.2 Step response
 
-At the chosen gains, a 90 degree step:
+At the chosen gains and 126.6 kg, a 90 degree step:
 
-- 0.48 s to 90 % of the commanded angle
-- settled inside 1 degree at 0.65 s
-- 0.3 % overshoot
+- 0.49 s to 90 % of the commanded angle
+- settled inside 1 degree at 0.69 s
+- no overshoot
 
 The rise time is set by the joint's own 3 rad/s velocity limit, not by the
 gains, which is the right thing to be limited by: making the loop stiffer would
@@ -151,7 +171,7 @@ moves. A smoothly moving commanded direction is one the servos can follow.
 | `min` / `max_lookahead_dist` | 0.7 / 2.2 m | Velocity-scaled between them |
 | `regulated_linear_scaling_min_radius` | 0.9 m | A 1.42 m robot taking a tighter turn at speed sweeps its tail wide |
 | `use_rotate_to_heading` | true | This robot can turn on the spot; a car cannot, which is why the option exists |
-| `allow_reversing` | false | Only the forward half is instrumented: the LiDAR is 360°, the camera is not |
+| `allow_reversing` | false | Only the forward half is fully instrumented: a LiDAR scans each half, the camera only the front |
 
 ---
 
@@ -199,29 +219,35 @@ estimation chain is allowed to consume.
 
 ### 7.1 Open loop
 
+Measured at 126.6 kg with the gains of §2.1, in the empty world:
+
 | Manoeuvre | Commanded | Measured | Error |
 |---|---|---|---|
-| Straight, 0.5 m/s × 8 s | 4.000 m | 3.98 m | 0.5 %, lateral drift < 15 mm, heading < 0.7° |
-| Steering step | 90° | 0.48 s to 90 %, 0.65 s to ±1° | 0.3 % overshoot |
-| Crab, 0.4 m/s × 5 s | 2.00 m sideways, 0° | 1.8 m | heading held to 0.6–3.6° |
-| Spin in place, 0.5 rad/s × π s | 90° | 70–80° | see below |
+| Straight, 0.5 m/s × 8 s | 4.000 m | 4.00–4.01 m | lateral drift < 10 mm, heading < 1° |
+| Steering step | 90° | 0.49 s to 90 %, 0.69 s to ±1° | no overshoot |
+| Crab, 0.4 m/s × 5 s | 2.00 m sideways, 0° | 1.95 m | 0.24 m of forward creep, heading −2.3° |
+| Spin in place, 0.5 rad/s × π s | 90° | 84° | see below |
 
 The spin shortfall is not a tracking error: the four servos have to swing to
 about $\pm 62^\circ$ before any rotation happens at all, and the gate holds the
 wheels while they do, so the robot spends less than the full $\pi$ seconds
 actually turning. Commanding the same rotation from wheels already in position
-reaches it.
+reaches it. The crab's forward creep has the same cause, travelled while the
+wheels swing from straight ahead to 90°.
 
 ### 7.2 Closed loop
 
+Over the 68 m factory lap with fifteen pivots on the spot, and Nav2 in both
+worlds:
+
 | | Result |
 |---|---|
-| SLAM, 100 m lap | 97 % of mapped cells within 10 cm of true geometry, mean 2.1 cm |
-| Fused pose after that lap | 0.55 m, 0.6° from ground truth |
-| Wheel odometry after the same lap | 5.2 m, 21° |
-| Nav2 | 5 of 5 goals reached, 22–32 cm from the requested pose, 7–22 s each |
-| AMCL while driving | 26.5 cm mean position error, 50 cm worst, 2.45° heading |
-| RGB-D SLAM, 45 m lap | 0.26 m from ground truth |
+| SLAM | 95.5 % of mapped cells within 10 cm of true geometry, mean 2.2 cm |
+| Fused pose (EKF) after the lap | 0.25–0.29 m, under 1° from ground truth |
+| Wheel odometry after the same lap | 2.5–3.7 m, 5–33° |
+| Camera-only odometry after the same lap | 3.6–14.6 m |
+| Nav2, factory | 5 of 5 goals reached, 12–37 cm from the requested pose, 6–22 s each |
+| Nav2, yard | 3 of 3 reached, 16–37 cm, the last two up the ramp on the dock platform |
 
 ---
 
@@ -250,8 +276,10 @@ controller that refuses to work without a filter — but it is worth knowing.
 ### 8.3 Reversing is not instrumented
 
 `allow_reversing` is false in the planner and the camera faces forward. The
-LiDAR does cover 360 degrees, so the robot is not blind behind; it simply has
-no depth or colour there, and the deck overhangs the rear axle by 0.18 m.
+rear LiDAR scans the half behind, so the robot is not blind there; it simply
+has no depth or colour, and the deck overhangs the rear axle by 0.18 m. Beside
+the robot, between the two LiDARs, nothing scans at all: an obstacle there is
+known to the costmaps only if it was seen before the robot drew alongside it.
 
 ---
 

@@ -39,16 +39,17 @@ ros2 launch tadeocar_bringup slam_bringup.launch.py
 ros2 launch tadeocar_bringup slam_bringup.launch.py world:=yard
 ```
 
-SLAM Toolbox in asynchronous mode. Drive the robot; the map builds in RViz.
-Save it when you are done:
+SLAM Toolbox in asynchronous mode, on `/scan`: the front and rear LiDARs'
+half-scans, merged into one. Drive the robot; the map builds in RViz, each
+sensor's half in its own colour. Save it when you are done:
 
 ```bash
 ros2 launch tadeocar_slam save_map.launch.py
 ```
 
-Measured over a 100 m lap of the factory, against the generated ground truth:
-97 % of mapped cells within 10 cm, mean error 2.1 cm. See
-[slam-validation.md](slam-validation.md).
+Measured over a 68 m lap of the factory with fifteen pivots on the spot,
+against the generated ground truth: 95.5 % of mapped cells within 10 cm, mean
+error 2.2 cm. See [slam-validation.md](slam-validation.md).
 
 ---
 

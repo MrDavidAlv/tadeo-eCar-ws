@@ -17,8 +17,8 @@
 > material transport. Every wheel drives and every wheel steers, so the robot
 > can follow a car-like path, spin on the spot, or crab sideways without
 > changing heading. Built on ROS 2 Humble and Ignition Gazebo Fortress, with a
-> ZED 2i stereo camera, a YDLIDAR X2, and an estimator that knows the ground is
-> not always flat.
+> ZED 2i stereo camera, a YDLIDAR X2 at each end, and an estimator that knows
+> the ground is not always flat.
 
 ---
 
@@ -61,6 +61,7 @@ Full instructions: [docs/installation-guide.md](docs/installation-guide.md) ·
 ## Contents
 
 - [The robot](#the-robot)
+- [Sensors](#sensors)
 - [What makes 4WD4WS different](#what-makes-4wd4ws-different)
 - [Simulation environments](#simulation-environments)
 - [System architecture](#system-architecture)
@@ -78,8 +79,8 @@ Full instructions: [docs/installation-guide.md](docs/installation-guide.md) ·
 ## The robot
 
 A low flatbed on four independently steered wheels with coil-over suspension,
-built by the robotics research group at Universidad de Bogotá Jorge Tadeo
-Lozano.
+under a tubular steel arc that carries the camera, built by the robotics
+research group at Universidad de Bogotá Jorge Tadeo Lozano.
 
 <div align="center">
 <table>
@@ -94,11 +95,60 @@ Lozano.
 </table>
 </div>
 
-And the same machine in simulation, with the LiDAR on its mast and the ZED 2i
-on the front bumper:
+And the same machine in simulation, as it is being fitted out: the upper
+chassis seated on a 3 mm aluminium tread plate, a LiDAR at each end of the
+deck, the ZED 2i bolted to the arc's lower front cross tube, and road lamps
+under the deck's lips. Every label points at a coordinate projected from the
+model itself:
 
 <div align="center">
-<img src="images/sim-robot.png" width="740"/>
+<img src="images/sim-robot.png" width="900"/>
+</div>
+
+Every part was checked numerically before it went into the model: the arc
+against the deck it stands on, both LiDARs' fields of view against the arc's
+posts, the camera's field of view against the frame, and each lamp against
+everything that turns with a wheel, swept a full 360 degrees about its
+steering axis. The closest any lamp comes to a tyre or a strut is 75 mm.
+
+---
+
+## Sensors
+
+<div align="center">
+<img src="images/sensor-coverage.png" width="900"/>
+</div>
+
+*Drawn from the model, not by hand: every mount, angle and range on it is read
+from `tadeocar.urdf.xacro` and `model.sdf` by
+[render_sensors.py](docs/mathematical-model/render_sensors.py).*
+
+**Two LiDARs, half a revolution each.** The same YDLIDAR X2 sits at each end
+of the deck, scanning 0.450 m above the ground, 58 mm over the tread plate.
+Each one uses only the 180 degrees it faces: the other half of its sweep looks
+across the deck, at the arc's posts, the other sensor and whatever is loaded,
+and would only ever see the robot. `scan_merger` in `tadeocar_perception`
+joins the two halves into the one 360 degree `/scan` that SLAM Toolbox, AMCL
+and both costmaps read, moving the rear half through odometry to the front
+half's timestamp so the two agree while the robot is moving. What neither
+sees is the strip beside the robot between them, 1.275 m long.
+
+<div align="center">
+<img src="images/lidar-scans.png" width="900"/>
+</div>
+
+*One frame from each half-scan, in both worlds, as the robot receives it.*
+
+**One camera, high and looking down.** The ZED 2i rides on the arc's lower
+front cross tube, 0.907 m up and pitched 10 degrees down: far above both LiDAR
+planes, so it can never occlude them, and with both front posts outside its
+110 degree field. The first floor it can see is 0.62 m beyond the deck's front
+edge; nearer than that, at bumper height, is the front LiDAR's. Its colour and depth feed
+RTAB-Map, and its IMU, the only inertial sensor on the robot, feeds the
+estimator.
+
+<div align="center">
+<img src="images/zed-view.png" width="900"/>
 </div>
 
 ---
@@ -177,7 +227,7 @@ flowchart TD
     D["tadeocar_description<br/><i>URDF, meshes, geometry test</i>"]
     G["tadeocar_gazebo<br/><i>SDF model, worlds, generators, bridge</i>"]
     C["tadeocar_control<br/><i>4WS kinematics, wheel odometry, teleop</i>"]
-    P["tadeocar_perception<br/><i>EKF, ZED 2i bringup</i>"]
+    P["tadeocar_perception<br/><i>EKF, scan merger, ZED 2i bringup</i>"]
     S["tadeocar_slam<br/><i>SLAM Toolbox</i>"]
     V["tadeocar_vslam<br/><i>RTAB-Map RGB-D</i>"]
     N["tadeocar_navigation<br/><i>Nav2, maps</i>"]
@@ -196,7 +246,7 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    GZ["Gazebo Fortress"] -- "/scan · /joint_states · /odom_truth" --> BR(("ros_gz_bridge"))
+    GZ["Gazebo Fortress"] -- "/scan_front · /scan_rear · /joint_states · /odom_truth" --> BR(("ros_gz_bridge"))
     GZ -- "RGB · depth · camera_info · IMU" --> BR
 
     BR -- "/joint_states" --> WO["wheel_odometry<br/>least squares over 4 wheels"]
@@ -205,11 +255,12 @@ flowchart LR
     EKF -- "TF odom→base_footprint" --> TF[("TF tree")]
     RSP["robot_state_publisher"] -- "TF base_footprint→sensors" --> TF
 
-    BR -- "/scan" --> SLAM["SLAM Toolbox"]
+    BR -- "/scan_front · /scan_rear" --> MRG["scan_merger<br/>two halves, one /scan"]
+    MRG -- "/scan" --> SLAM["SLAM Toolbox"]
     SLAM -- "/map · TF map→odom" --> TF
     BR -- "RGB-D" --> RTAB["RTAB-Map"]
     RTAB -- "/cloud_map · /map · TF map→odom" --> TF
-    BR -- "/scan" --> AMCL["AMCL"]
+    MRG -- "/scan" --> AMCL["AMCL"]
     AMCL -- "TF map→odom" --> TF
 
     TF --> NAV["Nav2<br/>planner · pure pursuit · BT"]
@@ -230,10 +281,13 @@ graph TD
     odom -->|"EKF, wheel odometry or visual odometry"| base_footprint
     base_footprint -->|"fixed, one wheel radius"| base_link
     base_link --> base_scan
-    base_link --> sensor_mast_link
+    base_link --> base_scan_rear
+    base_link --> base_scan_merged
+    base_link --> masts["sensor_mast_link · sensor_mast_rear_link"]
+    base_link --> body["deck_plate_link · upper_chassis_link · lamps_link"]
     base_link --> steering["4 × steering_link"]
     steering --> wheels["4 × wheel_link"]
-    base_link --> zed2i_camera_link
+    base_link -->|"pitched 10° down"| zed2i_camera_link
     zed2i_camera_link --> zed2i_left_camera_frame
     zed2i_left_camera_frame --> zed2i_left_camera_optical_frame
     zed2i_camera_link --> zed2i_imu_link
@@ -263,13 +317,22 @@ approximate.
 
 | | ground truth | wheel odometry | EKF |
 |---|---|---|---|
-| height on the dock platform | 0.350 m | **0.000 m** | 0.352 m |
+| height on the dock platform | 0.350 m | **0.000 m** | 0.351 m |
 | pitch, mid-ramp | −6.72° | 0.00° | −6.72° |
+| pitch on flat ground | 0.00° | 0.00° | 0.00° |
 
 The EKF in `tadeocar_perception` fuses the ZED 2i's IMU with the wheels'
 velocity. Attitude comes from gravity — an accelerometer at rest knows which
 way is down — so the filter integrates the wheels' speed through the attitude
 the IMU measures rather than through an assumed-flat world.
+
+The IMU sits in the camera, which is pitched 10 degrees on its wedge.
+`robot_localization` takes that mount out through TF, which only works if the
+sensor reports its attitude against the world, the way gravity gives it to
+the real BMI088; the simulated IMU is configured to (`orientation_reference_frame`
+ENU). Left at Gazebo's default it reports attitude relative to its own pose at
+spawn, and the filter, correctly removing a mount the sensor had not
+reported, tilted the robot 10 degrees nose up on flat ground.
 
 Absolute yaw is fused from nothing at all: this robot has no magnetometer, and
 the simulated IMU's orientation is ground truth in disguise, so fusing it would
@@ -303,15 +366,23 @@ Because the world is generated, the occupancy grid it emits is not an
 approximation of the building — it *is* the building, rasterised at 5 cm. That
 turns "does the map look right" into a measurement.
 
+Measured over a 68 m lap of the factory with fifteen pivots on the spot, the
+route in orange above:
+
 | Metric | Result |
 |---|---|
-| Mapped cells within 10 cm of true geometry | **97.0 %** |
-| Mean error | 2.1 cm |
+| Mapped cells within 10 cm of true geometry | **95.5 %** |
+| Mean error | 2.2 cm |
 | Median error | 0.0 cm |
-| Fused pose after a 100 m lap | 0.55 m, 0.6° |
-| Wheel odometry after the same lap | 5.2 m, 21° |
+| 95th percentile | 7.1 cm |
+| Fused pose (EKF) after the same lap | 0.29 m, 0.7° |
+| Wheel odometry after the same lap | 2.5 m, 33° |
 
-Method and caveats: [docs/slam-validation.md](docs/slam-validation.md).
+On the same lap with the single 360 degree LiDAR the model used to carry, the
+map scored 97.3 % within 10 cm and a 5.0 cm 95th percentile. Two half-scans,
+blind beside the robot, map the building within two points of what one full
+scan did. Method and caveats:
+[docs/slam-validation.md](docs/slam-validation.md).
 
 ---
 
@@ -324,15 +395,16 @@ ros2 launch tadeocar_bringup navigation_bringup.launch.py
 Nav2 with **Regulated Pure Pursuit** as the local controller. Five goals across
 the factory, scored against ground truth on arrival:
 
-| Goal | Time | Position error | Heading error |
+| Goal (x, y, heading) | Time | Position error | Heading error |
 |---|---|---|---|
-| (6.0, 0.0) | 11.0 s | 21.8 cm | 9.2° |
-| (8.5, 0.0) | 6.7 s | 24.2 cm | 7.5° |
-| (0.0, −5.0) | 21.9 s | 30.1 cm | 8.1° |
-| (−6.0, 0.0) | 11.4 s | 32.0 cm | 11.1° |
-| (0.0, 0.0) | 13.0 s | 22.4 cm | 1.3° |
+| (6.0, 0.0, 0°) | 12.2 s | 37.4 cm | 6.6° |
+| (8.5, 0.0, 0°) | 5.9 s | 11.6 cm | 11.3° |
+| (0.0, −5.0, −90°) | 22.0 s | 37.2 cm | 5.6° |
+| (−6.0, 0.0, 180°) | 16.6 s | 28.1 cm | 13.7° |
+| (0.0, 0.0, 0°) | 14.4 s | 14.6 cm | 8.7° |
 
-**5 of 5 reached.** Localisation error while driving: 26.5 cm mean, 50 cm worst.
+**5 of 5 reached**, every one inside Nav2's own tolerance by its own estimate
+and within 0.38 m of the request by ground truth.
 
 The yard is the harder of the two, because reaching the dock means climbing a
 ramp the planner never sees as one: the generator emits ramps and platform as
@@ -344,15 +416,16 @@ ros2 launch tadeocar_bringup navigation_bringup.launch.py world:=yard
 
 <img src="images/rviz-gazebo-navigation.png" width="740"/>
 
-*The yard, with the costmaps Nav2 is planning on. The map follows the world
+*The yard, seconds after a goal on the dock platform was sent: the static map,
+both costmaps, the plan and each LiDAR's half. The map follows the world
 unless `map` names one explicitly, and which one was picked is logged at
 startup.*
 
-| Goal | Time | Position error | Heading error |
+| Goal (x, y, heading) | Time | Position error | Heading error |
 |---|---|---|---|
-| (−4.0, 4.5) | 8.4 s | 20.0 cm | 1.6° |
-| (6.0, 4.5) | 14.3 s | 18.7 cm | 2.7° |
-| (6.0, −3.0) | 14.8 s | 34.0 cm | 7.6° |
+| (−4.0, 4.5, 0°) | 8.2 s | 16.3 cm | 5.5° |
+| (6.0, 4.5, 0°) | 13.8 s | 36.5 cm | 1.3° |
+| (6.0, −3.0, −90°) | 13.9 s | 20.7 cm | 12.6° |
 
 **3 of 3 reached.** The last two stand on the dock platform, where ground truth
 reports z = 0.350 m, so the route went up the ramp.
@@ -372,24 +445,25 @@ ros2 launch tadeocar_bringup vslam_bringup.launch.py
 
 <img src="images/rviz-gazebo-vslam.png" width="740"/>
 
-*The accumulated RTAB-Map cloud on the right is built from the camera alone.*
-
-![ZED 2i colour and depth](images/zed-view.png)
+*The accumulated RTAB-Map cloud on the right is built from the camera alone;
+magenta is camera-only odometry, green the EKF.*
 
 RTAB-Map on the ZED 2i's RGB-D stream, with **camera-only odometry**: nothing
-but the images decides where the robot is.
+but the images decides where the robot is. Measured over the same 68 m factory
+lap with fifteen pivots, with the camera on its new mount, 0.907 m up and
+pitched 10 degrees down, against the old one at 0.30 m:
 
-| Metric | Result over a 45 m lap |
-|---|---|
-| Final pose error | 0.37 m, 0.9° |
-| Failed registrations | 1 in 400 frames |
-| Feature inliers | median 211, peak 683 |
-| Accumulated 3D cloud | 116 865 points |
+| Metric | Camera at 0.30 m | Camera at 0.907 m, two runs |
+|---|---|---|
+| Feature inliers, median | 145 | **158–178** (peak 740) |
+| Frames with no inliers | 3.8 % | **2.3–2.9 %** |
+| Camera-only pose at the end of the lap | 10.3 m out | 3.6–14.6 m out |
+| EKF pose at the end of the same lap | 0.07 m | 0.25 m |
 
-Those figures are for a lap that turned while driving. Turning **on the spot**
-is what breaks camera-only odometry, indoors and out: over a 67 m lap with
-fifteen pivots it ended 10.3 m out, most of it from a single 180 degree turn,
-while the EKF ended 0.07 m out. Details in
+The higher camera registers better. It does not survive turning **on the
+spot** any better: the estimate is lost a pivot at a time, and where it ends
+depends on which pivots it loses, which is why two runs of the same lap end
+3.6 and 14.6 m out. In a straight line it holds. Details in
 [docs/visual-slam.md](docs/visual-slam.md).
 
 The first version of this tracked nothing — 13 % of frames failed registration
@@ -423,11 +497,13 @@ in [docs/visual-slam.md](docs/visual-slam.md).
 That sheet is generated, not drawn. Every value on it is read from
 `tadeocar.urdf.xacro`, `model.sdf`, `robot_params.yaml`, `nav2_params.yaml`
 and `slam_params.yaml` at render time, and the robot is drawn from its own
-visual meshes seen from above:
+visual meshes seen from above. The sensor coverage figure is made the same
+way:
 
 ```bash
 source /opt/ros/humble/setup.bash
 python3 docs/mathematical-model/render_diagram.py
+python3 docs/mathematical-model/render_sensors.py
 ```
 
 Change a parameter and re-run it; the figure cannot go stale.
@@ -461,14 +537,18 @@ $$\boldsymbol{\xi} = \mathbf{A}^{+}\mathbf{b}$$
 | Wheelbase | 1.058 m | 1.058 m |
 | Track | 0.550 m | 0.550 m |
 | Wheel radius | 0.125 m | 0.125 m |
-| Deck | 1.418 × 0.815 m | same |
-| Mass | 98.7 kg | ~100 kg |
+| Deck | 1.418 × 0.815 m, top 0.389 m above ground | same |
+| Deck surface | 3 mm aluminium tread plate on two ribs | planned |
+| Upper chassis | 50 × 25 mm steel tube arc, 1.353 × 0.775 × 1.265 m | same design |
+| Overall height | 1.657 m | same design |
+| Mass | 126.6 kg | not yet weighed |
 | Steering | 4 × revolute, ±135° | 4 × industrial servo, 270° |
 | Drive | 4 × velocity-controlled joint | 4 × BLDC, 2 × ODrive S3 |
 | Max speed | 1.0 m/s, 1.0 rad/s | limited by the same controller |
-| LiDAR | YDLIDAR X2 model: 0.12–8 m, 360°, 7 Hz | YDLIDAR X2 |
-| Camera | ZED 2i model: 672 × 376, 110° HFOV, RGB-D | ZED 2i over USB 3.0 |
-| IMU | BMI088 noise model, 400 Hz | inside the ZED 2i |
+| LiDAR | 2 × YDLIDAR X2 model, front and rear: 0.12–8 m, 180° each, 7 Hz, merged into one `/scan` | YDLIDAR X2 at the front; the rear one planned |
+| Camera | ZED 2i model: 672 × 376, 110° HFOV, RGB-D, 0.907 m up, pitched 10° down | ZED 2i over USB 3.0, to be moved onto the arc |
+| IMU | BMI088 noise model, 400 Hz, attitude against the world | inside the ZED 2i |
+| Lamps | headlamps and indicators in front, combination lamps behind | planned |
 | Compute | host PC | Jetson Nano 4 GB |
 | Power | — | 2 × 24 V LiPo |
 
@@ -482,11 +562,13 @@ bridge that gap on odometry alone.
 
 ```
 src/
-  tadeocar_description/   URDF, meshes, and the test that keeps the URDF and
-                          the Gazebo model agreeing
+  tadeocar_description/   URDF, meshes, the scripts that generate the tread
+                          plate and lamp meshes, and the tests that keep the
+                          URDF and the Gazebo model agreeing
   tadeocar_gazebo/        Gazebo model, world generators, textures, bridge
   tadeocar_control/       4WS kinematics, wheel odometry, teleoperation
-  tadeocar_perception/    EKF state estimation, ZED 2i bringup
+  tadeocar_perception/    EKF state estimation, the LiDAR scan merger,
+                          ZED 2i bringup
   tadeocar_slam/          SLAM Toolbox
   tadeocar_vslam/         RTAB-Map RGB-D visual SLAM
   tadeocar_navigation/    Nav2 configuration and maps

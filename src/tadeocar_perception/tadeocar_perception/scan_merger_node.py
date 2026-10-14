@@ -203,7 +203,10 @@ def main(args=None):
         pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        # The launch's SIGINT has usually shut the context down already, and
+        # a second shutdown raises instead of returning.
+        if rclpy.ok():
+            rclpy.shutdown()
 
 
 if __name__ == '__main__':

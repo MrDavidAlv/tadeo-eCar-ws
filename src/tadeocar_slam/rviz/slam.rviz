@@ -44,9 +44,9 @@ Visualization Manager:
     Description Source: Topic
     Description Topic:
       Depth: 5
-      Durability: Transient Local
-      History: Keep Last
-      Reliability: Reliable
+      Durability Policy: Transient Local
+      History Policy: Keep Last
+      Reliability Policy: Reliable
       Value: /robot_description
     Enabled: true
     Links:
@@ -81,11 +81,59 @@ Visualization Manager:
     Axis: Z
     Channel Name: intensity
     Class: rviz_default_plugins/LaserScan
-    Color: 255; 60; 60
+    Color: 80; 220; 100
     Color Transformer: FlatColor
     Decay Time: 0
     Enabled: true
-    Name: LiDAR scan
+    Name: Front LiDAR (/scan_front)
+    Position Transformer: XYZ
+    Selectable: true
+    Size (Pixels): 4
+    Size (m): 0.03
+    Style: Points
+    Topic:
+      Depth: 5
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
+      Value: /scan_front
+    Use Fixed Frame: true
+    Use rainbow: true
+    Value: true
+  - Alpha: 1
+    Autocompute Intensity Bounds: true
+    Axis: Z
+    Channel Name: intensity
+    Class: rviz_default_plugins/LaserScan
+    Color: 255; 160; 40
+    Color Transformer: FlatColor
+    Decay Time: 0
+    Enabled: true
+    Name: Rear LiDAR (/scan_rear)
+    Position Transformer: XYZ
+    Selectable: true
+    Size (Pixels): 4
+    Size (m): 0.03
+    Style: Points
+    Topic:
+      Depth: 5
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
+      Value: /scan_rear
+    Use Fixed Frame: true
+    Use rainbow: true
+    Value: true
+  - Alpha: 1
+    Autocompute Intensity Bounds: true
+    Axis: Z
+    Channel Name: intensity
+    Class: rviz_default_plugins/LaserScan
+    Color: 255; 60; 60
+    Color Transformer: FlatColor
+    Decay Time: 0
+    Enabled: false
+    Name: Merged scan (/scan)
     Position Transformer: XYZ
     Selectable: true
     Size (Pixels): 4
@@ -93,13 +141,13 @@ Visualization Manager:
     Style: Points
     Topic:
       Depth: 5
-      Durability: Volatile
-      History: Keep Last
-      Reliability: Best Effort
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
       Value: /scan
     Use Fixed Frame: true
     Use rainbow: true
-    Value: true
+    Value: false
   - Alpha: 0.7
     Class: rviz_default_plugins/Map
     Color Scheme: map
@@ -109,16 +157,16 @@ Visualization Manager:
     Resolution: 0
     Topic:
       Depth: 1
-      Durability: Transient Local
-      History: Keep Last
-      Reliability: Reliable
+      Durability Policy: Transient Local
+      History Policy: Keep Last
+      Reliability Policy: Reliable
       Value: /map
     Update Interval: 0
     Update Topic:
       Depth: 5
-      Durability: Volatile
-      History: Keep Last
-      Reliability: Reliable
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Reliable
       Value: /map_updates
     Use Timestamp: false
     Value: true
@@ -139,9 +187,9 @@ Visualization Manager:
     Style: Points
     Topic:
       Depth: 5
-      Durability: Volatile
-      History: Keep Last
-      Reliability: Best Effort
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
       Value: /zed/zed_node/point_cloud/cloud_registered
     Use Fixed Frame: true
     Use rainbow: true
@@ -155,9 +203,9 @@ Visualization Manager:
     Normalize Range: true
     Topic:
       Depth: 5
-      Durability: Volatile
-      History: Keep Last
-      Reliability: Best Effort
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
       Value: /zed/zed_node/rgb/image_rect_color
     Value: true
   - Angle Tolerance: 0.05
@@ -188,9 +236,9 @@ Visualization Manager:
       Value: Arrow
     Topic:
       Depth: 20
-      Durability: Volatile
-      History: Keep Last
-      Reliability: Best Effort
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
       Value: /odometry/filtered
     Value: true
   - Angle Tolerance: 0.05
@@ -221,9 +269,9 @@ Visualization Manager:
       Value: Arrow
     Topic:
       Depth: 20
-      Durability: Volatile
-      History: Keep Last
-      Reliability: Best Effort
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Best Effort
       Value: /odom
     Value: false
   Enabled: true
@@ -246,24 +294,24 @@ Visualization Manager:
     Covariance yaw: 0.06853891909122467
     Topic:
       Depth: 5
-      Durability: Volatile
-      History: Keep Last
-      Reliability: Reliable
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Reliable
       Value: /initialpose
   - Class: rviz_default_plugins/SetGoal
     Topic:
       Depth: 5
-      Durability: Volatile
-      History: Keep Last
-      Reliability: Reliable
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Reliable
       Value: /goal_pose
   - Class: rviz_default_plugins/PublishPoint
     Single click: true
     Topic:
       Depth: 5
-      Durability: Volatile
-      History: Keep Last
-      Reliability: Reliable
+      Durability Policy: Volatile
+      History Policy: Keep Last
+      Reliability Policy: Reliable
       Value: /clicked_point
   Transformation:
     Current:

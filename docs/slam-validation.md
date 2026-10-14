@@ -30,7 +30,10 @@ nothing in the estimation chain. It exists to score.
    ```
 
 2. Drive a lap covering the building. The runs below used a waypoint pilot
-   following `/odom_truth`, at 0.7 m/s, about 100 m of travel over 16 legs.
+   following `/odom_truth`, at 0.6 m/s, 68 m of travel over 15 legs, turning
+   on the spot at every corner: the manoeuvre that is hardest on wheel
+   odometry, and on camera odometry hardest of all. The robot carries two
+   LiDARs, each scanning the half it faces, merged into one `/scan`.
 
 3. Capture `/map`. It is transient local, so a default-QoS subscription
    receives nothing and appears to be an empty topic.
@@ -48,25 +51,31 @@ nothing in the estimation chain. It exists to score.
 
 | Metric | Value |
 |---|---|
-| Mapped cells within 10 cm of true geometry | **97.0 %** |
-| Mean error, mapped cell to truth | 2.1 cm |
-| Median | 0.0 cm |
-| 95th percentile | 7.1 cm |
-| Coverage of visible surfaces | 59 % |
+| Metric | Two half-scans | One 360° scan, same lap |
+|---|---|---|
+| Mapped cells within 10 cm of true geometry | **95.5 %** | 97.3 % |
+| Mean error, mapped cell to truth | 2.2 cm | 1.8 cm |
+| Median | 0.0 cm | 0.0 cm |
+| 95th percentile | 7.1 cm | 5.0 cm |
+| Coverage of visible surfaces | 52 % | 52 % |
 
-Coverage is short of 100 % because a single lap down the aisles never sees
-behind the rack rows or the machines. That is a property of the route, not of
-the mapper.
+The second column is the same lap driven with the single 360 degree LiDAR the
+model carried before the upper chassis: two half-scans, blind in the strip
+beside the robot, map the building within two points of it. Coverage is short
+of 100 % because a single lap down the aisles never sees behind the rack rows
+or the machines. That is a property of the route, not of the mapper.
 
 ### Pose at the end of the lap
 
 | Estimator | Position error | Heading error |
 |---|---|---|
-| EKF (wheels + IMU) | **0.55 m** | 0.6° |
-| Wheel odometry alone | 5.2 m | 21° |
+| EKF (wheels + IMU) | **0.29 m** | 0.7° |
+| Wheel odometry alone | 2.5 m | 33° |
 
-Over roughly 100 m of driving. The ratio is what justifies the filter: the same
-wheels, the same world, one extra sensor.
+Over 68 m of driving with fifteen pivots. The ratio is what justifies the
+filter: the same wheels, the same world, one extra sensor. The pivots are what
+the wheels cannot measure: four tyres scrubbing at once, which the gyro sees
+and the encoders do not.
 
 ---
 
@@ -77,14 +86,22 @@ ground truth on arrival:
 
 | Goal | Time | Position error | Heading error |
 |---|---|---|---|
-| (6.0, 0.0, 0°) | 11.0 s | 21.8 cm | 9.2° |
-| (8.5, 0.0, −90°) | 6.7 s | 24.2 cm | 7.5° |
-| (0.0, −5.0, 90°) | 21.9 s | 30.1 cm | 8.1° |
-| (−6.0, 0.0, 180°) | 11.4 s | 32.0 cm | 11.1° |
-| (0.0, 0.0, 0°) | 13.0 s | 22.4 cm | 1.3° |
+| (6.0, 0.0, 0°) | 12.2 s | 37.4 cm | 6.6° |
+| (8.5, 0.0, 0°) | 5.9 s | 11.6 cm | 11.3° |
+| (0.0, −5.0, −90°) | 22.0 s | 37.2 cm | 5.6° |
+| (−6.0, 0.0, 180°) | 16.6 s | 28.1 cm | 13.7° |
+| (0.0, 0.0, 0°) | 14.4 s | 14.6 cm | 8.7° |
 
-**5 of 5 reached.** Localisation error while driving averaged 26.5 cm, worst
-50 cm, heading 2.45° mean.
+**5 of 5 reached.** And three in the yard, the last two on the dock platform,
+which the planner reaches by the ramp:
+
+| Goal | Time | Position error | Heading error |
+|---|---|---|---|
+| (−4.0, 4.5, 0°) | 8.2 s | 16.3 cm | 5.5° |
+| (6.0, 4.5, 0°) | 13.8 s | 36.5 cm | 1.3° |
+| (6.0, −3.0, −90°) | 13.9 s | 20.7 cm | 12.6° |
+
+**3 of 3 reached.** Times are wall clock.
 
 The goal tolerance is 0.25 m, and the errors above are slightly larger than
 that because the goal checker measures against AMCL's estimate while the table
@@ -95,18 +112,20 @@ localisation error.
 
 ## Results: RGB-D visual SLAM
 
-Over a 45 m lap of the factory:
+Over the same 68 m lap with fifteen pivots, two runs, with the ZED 2i on its
+mount on the upper chassis, 0.907 m up and pitched 10 degrees down:
 
-| Metric | camera-only odometry | mapping on the fused pose |
+| Metric | camera-only odometry | EKF, same drive |
 |---|---|---|
-| Final pose error | 0.37 m, 0.9° | 0.06 m |
-| Failed registrations | 1 in 400 frames | n/a |
-| Feature inliers | median 211, peak 683 | n/a |
-| Accumulated 3D cloud | 116 865 points | 100 270 points |
+| Final pose error | 3.6 m and 14.6 m | 0.25 m both times |
+| Frames with no inliers | 2.3 % and 2.9 % | n/a |
+| Feature inliers | median 178 and 158, peak 740 | n/a |
 
-Camera-only odometry did not work at first, and the reason was the world rather
-than the algorithm: every texture in it was silently failing to load and the
-scene rendered flat. [visual-slam.md](visual-slam.md) has the full account.
+Camera-only odometry loses its estimate a pivot at a time, and where it ends
+depends on which pivots it loses. In a straight line it holds. It did not work
+at all at first, and the reason was the world rather than the algorithm: every
+texture in it was silently failing to load and the scene rendered flat.
+[visual-slam.md](visual-slam.md) has the full account.
 
 ---
 
@@ -117,14 +136,16 @@ Driving 14.2 m up the north ramp onto the dock platform:
 
 | | ground truth | wheel odometry | EKF |
 |---|---|---|---|
-| $z$ on the platform | 0.350 m | 0.000 m (**−350 mm**) | 0.352 m (+2 mm) |
-| $z$ mid-ramp | 0.192 m | 0.000 m | 0.185 m |
+| $z$ on the platform | 0.350 m | 0.000 m (**−350 mm**) | 0.351 m (+1 mm) |
+| $z$ mid-ramp | 0.191 m | 0.000 m | 0.185 m |
 | pitch mid-ramp | −6.72° | 0.00° | −6.72° |
-| forward distance | 14.187 m | 14.222 m | 14.202 m |
+| pitch on flat ground | 0.00° | 0.00° | 0.00° |
 
 The wheel odometry is not badly tuned. It reports zero because a wheel encoder
 cannot tell forward from up. The generator's own figure for the ramp is 6.72
-degrees, which is what the IMU-fused estimate returns to two decimal places.
+degrees, which is what the IMU-fused estimate returns to two decimal places,
+with the IMU itself pitched 10 degrees on the camera's wedge and taken out
+through TF.
 
 On flat ground the filter costs nothing: over a 4 m straight run the EKF and
 ground truth agree to 10 mm.

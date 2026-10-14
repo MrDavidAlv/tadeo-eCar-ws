@@ -246,8 +246,8 @@ worlds:
 | Fused pose (EKF) after the lap | 0.25–0.29 m, under 1° from ground truth |
 | Wheel odometry after the same lap | 2.5–3.7 m, 5–33° |
 | Camera-only odometry after the same lap | 3.6–14.6 m |
-| Nav2, factory | 5 of 5 goals reached, 20–36 cm from the requested pose, 5–20 s each |
-| Nav2, yard | 3 of 3 reached, 17–26 cm, the last two up the ramp on the dock platform |
+| Nav2, factory | 5 of 5 goals reached, 12–37 cm from the requested pose, 6–22 s each |
+| Nav2, yard | 3 of 3 reached, 16–37 cm, the last two up the ramp on the dock platform |
 
 ---
 

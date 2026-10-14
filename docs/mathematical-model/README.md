@@ -137,7 +137,7 @@ and consumed by nothing in the estimation chain.
 | SLAM over a 68 m lap with 15 pivots | 95.5 % of mapped cells within 10 cm, mean 2.2 cm |
 | EKF after that lap | 0.25–0.29 m, under 1° |
 | Wheel odometry after that lap | 2.5–3.7 m |
-| Nav2 | 5/5 goals in the factory, 20–36 cm; 3/3 in the yard, 17–26 cm |
+| Nav2 | 5/5 goals in the factory, 12–37 cm; 3/3 in the yard, 16–37 cm |
 | Camera-only odometry over the same lap | 3.6–14.6 m |
 
 ---

@@ -109,10 +109,14 @@ counter-clockwise.
   in this stack is reported for this frame: the wheel odometry, the EKF, SLAM,
   Nav2.
 - **`base_link`** — the body frame, one wheel radius above `base_footprint`.
-- **`base_scan`** — the LiDAR, at $(0.600,\ 0,\ 0.325)$ in `base_link`, so
-  0.450 m above the ground.
-- **`zed2i_camera_link`** — the camera mount, at $(0.680,\ 0,\ 0.175)$, so
-  0.300 m above the ground.
+- **`base_scan`** and **`base_scan_rear`** — the two LiDARs, at
+  $(0.600,\ 0,\ 0.325)$ and $(-0.675,\ 0,\ 0.325)$ in `base_link`, the
+  rear one turned to face back; both 0.450 m above the ground.
+- **`base_scan_merged`** — the frame of the merged `/scan`, midway between
+  them at the same height. Nothing is mounted there.
+- **`zed2i_camera_link`** — the camera, at $(0.479,\ 0,\ 0.782)$ and
+  pitched 10° down, on the upper chassis's lower front cross tube: 0.907 m
+  above the ground.
 
 ---
 
@@ -296,7 +300,7 @@ Measured on the platform at the top:
 
 | | ground truth | wheel odometry | EKF |
 |---|---|---|---|
-| $z$ | 0.350 m | 0.000 m (**−350 mm**) | 0.352 m (+2 mm) |
+| $z$ | 0.350 m | 0.000 m (**−350 mm**) | 0.351 m (+1 mm) |
 | pitch, mid-ramp | −6.72° | 0.00° | −6.72° |
 
 The 0.35 m is not error to be tuned away. It is a question these sensors were
@@ -317,9 +321,11 @@ configuration files carry the argument in full.
 | Steering rate | 3.0 rad/s | SDF joint velocity limit |
 | Wheel rate | 60 rad/s | SDF joint velocity limit |
 
-The 1.0 m/s ceiling is not the drivetrain's limit, it is the LiDAR's: the scan
-turns at 7 Hz, so at 2 m/s the robot moves 0.29 m between scans and scan
-matching has to bridge that gap on odometry alone.
+The 1.0 m/s ceiling is not the drivetrain's limit, it is the LiDARs': each
+scan turns at 7 Hz, so at 2 m/s the robot moves 0.29 m between scans and scan
+matching has to bridge that gap on odometry alone. Two sensors do not halve
+it: each covers a different half, so every direction is still refreshed seven
+times a second.
 
 ---
 

@@ -7,29 +7,32 @@ odometry is the default, and it works:
 ros2 launch tadeocar_bringup vslam_bringup.launch.py
 ```
 
-Over a 45 m lap of the factory, with nothing but the images deciding where the
-robot is:
+The camera rides on the upper chassis's lower front cross tube, 0.907 m above
+the ground and pitched 10 degrees down. Over a 68 m lap of the factory with
+fifteen pivots on the spot, nothing but the images deciding where the robot
+is, two runs:
 
-| Metric | Result |
-|---|---|
-| Final pose error | **0.37 m**, 0.9° |
-| Failed registrations | **1 in 400 frames** |
-| Odometry resets | 0 |
-| Feature inliers | median 211, peak 683 |
-| Accumulated 3D cloud | 116 865 points |
+| Metric | Run 1 | Run 2 |
+|---|---|---|
+| Final pose error | 3.6 m | 14.6 m |
+| Feature inliers | median 178, peak 740 | median 158, peak 721 |
+| Frames with no inliers | 2.3 % | 2.9 % |
+| EKF over the same drive | 0.25 m | 0.25 m |
 
-**These figures depend on the route, and the route was not recorded.** The 45 m
-lap turned while driving, never on the spot. Repeated on 2026-09-25 over a
-67 m lap of the same building with fifteen in-place pivots, camera-only
-odometry ended 10.3 m out, with inliers at a median of 145 and 3.8 % of frames
-finding none; the EKF ended 0.07 m out over the same drive. The error is not
-spread along the lap: it arrives in the pivots, and the single 180 degree turn
-at the end of the central aisle cost the heading about 65 degrees on its own.
-In a straight line the estimate holds. Pivots are what break it, indoors as
-well as out - see the yard section below.
+**The route decides these figures, and pivots decide the route.** The error
+is not spread along the lap: it arrives in the pivots on the spot, a few
+degrees of heading at a time, and the two runs end far apart because they
+lose different pivots. In a straight line the estimate holds.
 
-For comparison, on the same lap the EKF — wheels fused with the IMU — ends
-0.06 m out. Mapping on the fused pose is available and more accurate, but it
+The same lap with the camera where it used to be, 0.30 m up on the front of
+the deck, ended 10.3 m out with inliers at a median of 145 and 3.8 % of frames
+finding none. The higher mount registers better, and it does not survive a
+pivot any better.
+An earlier figure, 0.37 m over a 45 m lap with the low camera, came from a
+route that turned while driving and was not recorded.
+
+For comparison, the EKF, wheels fused with the IMU, ends that lap 0.25 m out
+both times. Mapping on the fused pose is available and more accurate, but it
 demonstrates less, because the camera is no longer the thing being tested:
 
 ```bash
@@ -78,8 +81,8 @@ during startup and nothing downstream complains — the simulation runs, the
 camera publishes, the images simply have nothing in them. The textures live
 next to the worlds now.
 
-**2. The building needed a roof, and the roof needed lights.** The camera sits
-0.30 m off the ground with a 110 degree field of view. Without a roof it spent
+**2. The building needed a roof, and the roof needed lights.** The camera sat
+0.30 m off the ground then, with a 110 degree field of view. Without a roof it spent
 the top third of every frame on empty background: 27 % of depth pixels came
 back non-finite. With a roof and no luminaires it spent them on an unlit
 ceiling. The factory has twelve bay lights on the same grid as its trusses.
@@ -132,7 +135,8 @@ performs on real hardware.
 
 Every other number here was measured in the factory. The yard is a different
 scene - open sky above, uniform asphalt below, walls twenty metres off - and it
-was worth measuring rather than assuming either way.
+was worth measuring rather than assuming either way. These yard figures were
+taken with the camera on its old mount, 0.30 m up on the front of the deck.
 
 Driving straight, it is fine. Over 5.9 m of flat apron against generated ground
 truth, camera-only odometry is out by 0.11 m, which is about 2 % of the

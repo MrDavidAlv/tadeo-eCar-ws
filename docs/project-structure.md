@@ -12,7 +12,7 @@ tadeo-eCar-ws/
     ├── tadeocar_description/   geometry: URDF, meshes, the URDF/SDF test
     ├── tadeocar_gazebo/        simulation: the Gazebo model, worlds, generators, bridge
     ├── tadeocar_control/       4WS kinematics, wheel odometry, teleoperation
-    ├── tadeocar_perception/    EKF state estimation, ZED 2i bringup
+    ├── tadeocar_perception/    EKF state estimation, LiDAR scan merger, ZED 2i bringup
     ├── tadeocar_slam/          SLAM Toolbox
     ├── tadeocar_vslam/         RTAB-Map RGB-D visual SLAM
     ├── tadeocar_navigation/    Nav2 configuration and maps
@@ -24,16 +24,22 @@ tadeo-eCar-ws/
 ## `tadeocar_description`
 
 ```
-urdf/tadeocar.urdf.xacro     the single source of truth for geometry
-meshes/                      chassis, wheels, suspension, ZED 2i
-test/test_urdf_sdf_match.py  20 tests that fail the build if the URDF and the
-                             Gazebo model stop agreeing
-launch/display.launch.py     the robot in RViz with joint sliders, no simulator
+urdf/tadeocar.urdf.xacro         the single source of truth for geometry
+meshes/                          deck, upper chassis, tread plate, lamps,
+                                 wheels, suspension, ZED 2i
+scripts/generate_deck_plate.py   the tread plate mesh and texture, outlined
+                                 from the deck mesh itself
+scripts/generate_lamps.py        lamp housings, lenses and lens textures
+test/test_urdf_sdf_match.py      30 tests that fail the build if the URDF and
+                                 the Gazebo model stop agreeing
+launch/display.launch.py         the robot in RViz with joint sliders, no simulator
 ```
 
 The description is xacro because the wheel radius appears in eight places and
 had the wrong value in all of them. It carries visual and collision geometry
-but no inertial tags: physics lives in the Gazebo model.
+but no inertial tags: physics lives in the Gazebo model, and a test keeps it
+that way. The generator scripts write their meshes into both this package and
+the Gazebo model, which resolves meshes from its own directory.
 
 ## `tadeocar_gazebo`
 
@@ -73,13 +79,17 @@ one distance and reports another.
 ## `tadeocar_perception`
 
 ```
-config/ekf_sim.yaml     wheels + IMU
-config/ekf_real.yaml    wheels + IMU + the ZED SDK's positional tracking
-launch/ekf.launch.py    robot_localization, agnostic of sim or hardware
-launch/zed2i.launch.py  the physical camera
+config/ekf_sim.yaml                    wheels + IMU
+config/ekf_real.yaml                   wheels + IMU + the ZED SDK's positional tracking
+launch/ekf.launch.py                   robot_localization, agnostic of sim or hardware
+launch/zed2i.launch.py                 the physical camera
+tadeocar_perception/scan_merger_node.py  /scan_front + /scan_rear -> /scan
 ```
 
 The header of each YAML explains what the other one does differently and why.
+`scan_merger` joins the two LiDARs' half-scans into the one 360 degree `/scan`
+everything downstream reads, in `base_scan_merged`, with the rear half moved
+through `odom` to the front half's timestamp; its docstring has the detail.
 
 ## `tadeocar_slam`, `tadeocar_vslam`, `tadeocar_navigation`
 
@@ -122,7 +132,9 @@ transform is a broken tree, not a merged one.
 
 | Topic | Type |
 |---|---|
-| `/scan` | `sensor_msgs/LaserScan` |
+| `/scan_front` | `sensor_msgs/LaserScan` — front LiDAR, the 180° ahead |
+| `/scan_rear` | `sensor_msgs/LaserScan` — rear LiDAR, the 180° behind |
+| `/scan` | `sensor_msgs/LaserScan` — both, merged by `scan_merger` |
 | `/zed/zed_node/rgb/image_rect_color` | `sensor_msgs/Image` |
 | `/zed/zed_node/depth/depth_registered` | `sensor_msgs/Image` |
 | `/zed/zed_node/rgb/camera_info` | `sensor_msgs/CameraInfo` |
@@ -153,9 +165,15 @@ map
  └── odom                              SLAM Toolbox, AMCL or RTAB-Map
       └── base_footprint               the EKF, wheel odometry or visual odometry
            └── base_link               fixed, one wheel radius up
-                ├── base_scan
+                ├── base_scan                front LiDAR
+                ├── base_scan_rear           rear LiDAR, facing back
+                ├── base_scan_merged         frame of /scan, between them
                 ├── sensor_mast_link
-                ├── zed2i_camera_link
+                ├── sensor_mast_rear_link
+                ├── deck_plate_link          tread plate
+                ├── upper_chassis_link       the tubular arc
+                ├── lamps_link
+                ├── zed2i_camera_link        on the arc, pitched 10 degrees down
                 │    ├── zed2i_left_camera_frame
                 │    │    └── zed2i_left_camera_optical_frame
                 │    ├── zed2i_right_camera_frame

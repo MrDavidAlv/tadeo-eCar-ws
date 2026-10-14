@@ -17,6 +17,7 @@ setup(
         (os.path.join('share', package_name, 'web'), glob('web/*')),
     ],
     install_requires=['setuptools', 'websockets'],
+    tests_require=['pytest'],
     zip_safe=True,
     maintainer='MrDavidAlv',
     maintainer_email='davidalvarezzzzzzzz@gmail.com',

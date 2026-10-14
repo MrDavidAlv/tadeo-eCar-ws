@@ -86,6 +86,15 @@ class FourWSKinematicsNode(Node):
         self.half_track = half_track
 
         self.current_steering = {w: 0.0 for w in WHEELS}
+        # The angle last sent to each servo, which is what a stopped wheel
+        # holds. Holding the MEASURED angle instead hands the servo a target
+        # equal to wherever it already is, so it never has an error to push
+        # back with: whatever turns the wheel - the tyre unwinding after a
+        # sideways stop - turns it for good, and the target follows it.
+        # Measured that way, wheels left at 90 degrees after a sideways move
+        # had relaxed to between 37 and 61 degrees four seconds after the
+        # robot came to rest.
+        self.held_steering = {w: 0.0 for w in WHEELS}
         self.have_joint_states = False
         self.heading = None          # from the estimator, radians
         self.crab_reference = None   # heading latched when a crab run begins
@@ -173,11 +182,12 @@ class FourWSKinematicsNode(Node):
             wy = vy + wz * px
 
             if abs(wx) < 1e-4 and abs(wy) < 1e-4:
-                steering[w] = self.current_steering[w]   # hold, do not snap
+                steering[w] = self.held_steering[w]   # hold, do not snap
                 speeds[w] = 0.0
                 continue
 
-            angle, direction = self._fold_steering(math.atan2(wy, wx))
+            angle, direction = self._fold_steering(math.atan2(wy, wx),
+                                                   self.held_steering[w])
             steering[w] = self._clamp(angle, -self.max_steering_angle,
                                       self.max_steering_angle)
             speeds[w] = direction * math.hypot(wx, wy) / self.wheel_radius
@@ -258,9 +268,10 @@ class FourWSKinematicsNode(Node):
 
         if abs(vx) < 1e-4 and abs(vy) < 1e-4:
             self.crab_reference = None
-            return {w: self.current_steering[w] for w in WHEELS}, speeds
+            return dict(self.held_steering), speeds
 
-        angle, direction = self._fold_steering(math.atan2(vy, vx))
+        angle, direction = self._fold_steering(
+            math.atan2(vy, vx), sum(self.held_steering.values()) / len(WHEELS))
         angle = self._clamp(angle, -self.max_steering_angle,
                             self.max_steering_angle)
         speed = direction * math.hypot(vx, vy) / self.wheel_radius
@@ -325,6 +336,7 @@ class FourWSKinematicsNode(Node):
             msg = Float64()
             msg.data = float(steering[w])
             self.steering_pubs[w].publish(msg)
+            self.held_steering[w] = msg.data
 
             msg = Float64()
             msg.data = float(self._clamp(speeds[w] * gate, -60.0, 60.0))
@@ -335,21 +347,30 @@ class FourWSKinematicsNode(Node):
     def _wrap(angle):
         return math.atan2(math.sin(angle), math.cos(angle))
 
-    @classmethod
-    def _fold_steering(cls, angle):
-        """Fold a heading into [-pi/2, pi/2], reversing the wheel if needed.
+    def _fold_steering(self, angle, reference=0.0):
+        """Servo angle and drive direction for a wheel to point along angle.
 
         A wheel asked to point backwards can instead point forwards and spin
-        the other way. It reaches the same velocity through half the servo
+        the other way. It reaches the same velocity through less servo
         travel, which matters when the servo has 135 degrees and the turn
-        would have asked for 170.
+        would have asked for 170. Of the two ways to point, take the one
+        nearer where the wheel was last sent.
+
+        Folding into a fixed [-90, 90] instead, as this did, made a sideways
+        command unstable: at 90 degrees the slightest change in the command,
+        a heading correction changing sign, flips the answer between +90 and
+        -90, and the four servos swung half a turn back and forth while the
+        robot was meant to be crabbing.
         """
-        angle = cls._wrap(angle)
-        if angle > math.pi / 2:
-            return angle - math.pi, -1.0
-        if angle < -math.pi / 2:
-            return angle + math.pi, -1.0
-        return angle, 1.0
+        angle = self._wrap(angle)
+        best = None
+        for candidate, direction in ((angle, 1.0), (angle - math.pi, -1.0),
+                                     (angle + math.pi, -1.0)):
+            if abs(candidate) > self.max_steering_angle:
+                continue
+            if best is None or abs(candidate - reference) < abs(best[0] - reference):
+                best = (candidate, direction)
+        return best
 
     @staticmethod
     def _clamp(value, low, high):

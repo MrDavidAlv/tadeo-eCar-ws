@@ -147,19 +147,41 @@ achievable body twist, produced exactly.
 
 ### 3.2 Folding the steering angle
 
-The servos travel $\pm 135^\circ$, so an angle outside $[-\pi/2, \pi/2]$ is
-reachable the other way round: point the wheel forwards and spin it backwards.
+The servos travel $\pm 135^\circ$, and every wheel heading can be reached two
+ways: point the wheel along it, or point it the opposite way and spin it
+backwards. Of the candidates inside the servo travel, the node takes the one
+nearest the angle it last sent that wheel, $\delta_i^{-}$:
 
-$$(\delta_i, s_i) = \begin{cases}
-(\delta_i - \pi,\ -1) & \delta_i > \pi/2 \\
-(\delta_i + \pi,\ -1) & \delta_i < -\pi/2 \\
-(\delta_i,\ +1) & \text{otherwise}
-\end{cases}
-\qquad \omega_i \leftarrow s_i\, \omega_i$$
+$$(\delta_i, s_i) = \arg\min_{(\delta,\, s)} \lvert \delta - \delta_i^{-} \rvert
+\quad \text{over} \quad
+\lbrace (\delta_i, +1),\ (\delta_i - \pi, -1),\ (\delta_i + \pi, -1) \rbrace,
+\ \ \lvert \delta \rvert \le 135^\circ$$
 
-Half the servo travel, the same wheel velocity. It matters: without folding, a
-turn asking for $170^\circ$ would be clamped at the $135^\circ$ limit and the
-wheel would point somewhere the solution never intended.
+$$\omega_i \leftarrow s_i\, \omega_i$$
+
+From rest, $\delta_i^{-} = 0$, this is the plain fold into
+$[-\pi/2, \pi/2]$: never more than a quarter turn of servo travel for the same
+wheel velocity, and a turn asking for $170^\circ$ is steered to $-10^\circ$
+with the wheel spinning backwards instead of being clamped at the
+$135^\circ$ limit, pointing somewhere the solution never intended.
+
+> **Relative to the last command, not to zero.** The fold used to be the fixed
+> one, and it made a sideways command unstable. At $90^\circ$ the slightest
+> change in the command — a heading correction changing sign — flips the
+> answer between $+90^\circ$ and $-90^\circ$, and the four servos swung half a
+> turn back and forth. Measured in simulation, a 1 m sideways move with a
+> heading hold on top ended 0.16 m the wrong way and $6.6^\circ$ off its
+> heading, the wheels chattering between $\pm 80^\circ$; folded towards the
+> previous command, the same move covers 1.01 m and the heading never strays
+> more than $0.7^\circ$.
+
+A stopped wheel — a body twist that asks nothing of it — holds the angle last
+sent to it, for the same reason a servo is given a target at all. Holding the
+*measured* angle instead, as the node once did, hands the servo a target equal
+to wherever it already is, so it never has an error to push back with:
+wheels left at $90^\circ$ after a sideways move had relaxed to between
+$37^\circ$ and $61^\circ$ four seconds after the robot came to rest.
+`src/tadeocar_control/test/test_kinematics.py` pins both behaviours.
 
 ### 3.3 Ackermann mode
 
